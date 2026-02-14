@@ -1,4 +1,5 @@
 {
   "MoveSpeed" : 15,
+  "Health" : 3,
   "RotateSpeed" : 65
 }

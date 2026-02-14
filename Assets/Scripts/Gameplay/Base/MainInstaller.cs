@@ -1,5 +1,7 @@
 using Core.Configs;
+using Gameplay.Enemies.Asteroids;
 using Gameplay.Gamefields;
+using Gameplay.Signals;
 using UnityEngine;
 using Zenject;
 
@@ -9,8 +11,10 @@ namespace Gameplay.Base
     {
         [SerializeField] private GameObject _bulletPrefab;
         [SerializeField] private GameObject _gameFieldPrefab;
+        [SerializeField] private GameObject _asteroidPrefab;
 
         [SerializeField] private int _bulletPoolCapacity;
+        [SerializeField] private int _asteroidPoolCapacity;
         
         private ConfigProvider _provider;
     
@@ -19,13 +23,17 @@ namespace Gameplay.Base
             SignalBusInstaller.Install(Container);
             
             Container.DeclareSignal<ResetSignal<Bullet>>();
+            Container.DeclareSignal<ResetSignal<Asteroid>>();
+            Container.DeclareSignal<EnemyDiedSignal>();
         
             _provider = new ConfigProvider();
             _provider.LoadAll();
 
+            InstallEnemies();
             InstallBullets();
             InstallGameField();
             InstallPlayer();
+           
 
         }
 
@@ -40,6 +48,18 @@ namespace Gameplay.Base
             Container.BindInterfacesAndSelfTo<Spawner<Bullet>>().AsSingle();
         }
 
+        private void InstallEnemies()
+        {
+            GameObject enemyContainer = new("ENEMIES");
+            
+            Container.Bind<AsteroidConfig>().FromInstance(_provider.AsteroidConfig).AsSingle();
+            Container.Bind<Core.IFactory<Asteroid>>().To<Core.Factory<Asteroid>>().AsSingle().WithArguments(_asteroidPrefab);
+            Container.Bind<ObjectPool<Asteroid>>().AsSingle()
+                .WithArguments(enemyContainer.transform, _asteroidPoolCapacity)
+                .OnInstantiated<ObjectPool<Asteroid>>((c, p) => p.Initialize());
+            Container.BindInterfacesAndSelfTo<Spawner<Asteroid>>().AsSingle();
+        }
+
         private void InstallPlayer()
         {
             Container.Bind<PlayerConfig>().FromInstance(_provider.PlayerConfig).AsSingle(); 
@@ -47,8 +67,9 @@ namespace Gameplay.Base
         
         private void InstallGameField()
         {
-            Container.Bind<GameFieldConfig>().FromInstance(_provider.GameField).AsSingle();
+            Container.Bind<GameFieldConfig>().FromInstance(_provider.GameFieldConfig).AsSingle();
             Container.Bind<GameField>().FromComponentInNewPrefab(_gameFieldPrefab).AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<EnemyGeneratorService>().AsSingle();
         }
     }
 }

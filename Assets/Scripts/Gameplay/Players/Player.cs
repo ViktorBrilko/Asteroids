@@ -4,18 +4,20 @@ using Zenject;
 
 namespace Gameplay.Players
 {
-    public class Player : MonoBehaviour
+    public class Player : MonoBehaviour, IDamagable
     {
         [SerializeField] private Transform _projectileSpawnPoint;
 
         private PlayerConfig _playerConfig;
         private Spawner<Bullet> _bulletSpawner;
+        private int _currentHealth;
 
         [Inject]
         public void Construct(PlayerConfig playerConfig, Spawner<Bullet> bulletSpawner)
         {
             _playerConfig = playerConfig;
             _bulletSpawner = bulletSpawner;
+            _currentHealth = _playerConfig.Health;
         }
 
         public void HorizontalMove(float direction)
@@ -39,6 +41,17 @@ namespace Gameplay.Players
         public void Fire()
         {
             _bulletSpawner.SpawnItem(_projectileSpawnPoint.position, transform.rotation);
+        }
+
+        public void TakeDamage(int damage)
+        {
+            _currentHealth -= damage;
+            Debug.Log("Игрок получил урон");
+
+            if (_currentHealth <= 0)
+            {
+                
+            }
         }
     }
 }

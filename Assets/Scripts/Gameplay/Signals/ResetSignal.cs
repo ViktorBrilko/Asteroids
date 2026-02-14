@@ -1,4 +1,5 @@
 public class ResetSignal<T>
+    where T : IResetable
 {
     public T Resetable { get; }
 

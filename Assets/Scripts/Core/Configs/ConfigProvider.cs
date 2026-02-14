@@ -8,13 +8,15 @@ namespace Core.Configs
     {
         public PlayerConfig PlayerConfig { get; private set; }
         public BulletConfig BulletConfig { get; private set; }
-        public GameFieldConfig GameField { get; private set; }
+        public GameFieldConfig GameFieldConfig { get; private set; }
+        public AsteroidConfig AsteroidConfig { get; private set; }
         
         public void LoadAll()
         {
             PlayerConfig = LoadFromFile<PlayerConfig>("player_config.json");
             BulletConfig = LoadFromFile<BulletConfig>("bullet_config.json");
-            GameField = LoadFromFile<GameFieldConfig>("gamefield_config.json");
+            GameFieldConfig = LoadFromFile<GameFieldConfig>("gamefield_config.json");
+            AsteroidConfig = LoadFromFile<AsteroidConfig>("asteroid_config.json");
         }
     
         private T LoadFromFile<T>(string fileName)

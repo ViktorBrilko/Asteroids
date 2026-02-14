@@ -1,4 +1,7 @@
 {
   "XSize" : 50,
-  "YSize" : 50
+  "YSize" : 50, 
+  "MaxAsteroids" : 10,
+  "EnemySpawnCooldown" : 2000,
+  "MaxAttemptsToPlaceEnemy" : 200
 }

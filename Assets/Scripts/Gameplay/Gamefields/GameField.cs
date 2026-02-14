@@ -10,6 +10,8 @@ namespace Gameplay.Gamefields
         private Vector3 _startPosition;
         private BoxCollider2D _collider;
 
+        public BoxCollider2D Collider => _collider;
+
         [Inject]
         public void Construct(GameFieldConfig config)
         {
