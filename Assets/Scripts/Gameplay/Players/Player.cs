@@ -1,3 +1,5 @@
+using System;
+using Cysharp.Threading.Tasks;
 using Gameplay.Base;
 using UnityEngine;
 using Zenject;
@@ -11,6 +13,9 @@ namespace Gameplay.Players
         private PlayerConfig _playerConfig;
         private Spawner<Bullet> _bulletSpawner;
         private int _currentHealth;
+        private bool _canShootBullets = true;
+        
+        public PlayerConfig PlayerConfig => _playerConfig;
 
         [Inject]
         public void Construct(PlayerConfig playerConfig, Spawner<Bullet> bulletSpawner)
@@ -18,6 +23,11 @@ namespace Gameplay.Players
             _playerConfig = playerConfig;
             _bulletSpawner = bulletSpawner;
             _currentHealth = _playerConfig.Health;
+        }
+
+        public void MoveAfterCollision(Vector3 direction)
+        {
+            transform.Translate(direction * _playerConfig.MoveSpeed * Time.deltaTime);
         }
 
         public void HorizontalMove(float direction)
@@ -38,9 +48,15 @@ namespace Gameplay.Players
                 transform.Rotate(Vector3.forward * _playerConfig.RotateSpeed * Time.deltaTime);
         }
 
-        public void Fire()
+        public async UniTask FireBullets()
         {
-            _bulletSpawner.SpawnItem(_projectileSpawnPoint.position, transform.rotation);
+            if (_canShootBullets)
+            {
+                _canShootBullets = false;
+                _bulletSpawner.SpawnItem(_projectileSpawnPoint.position, transform.rotation);
+                await UniTask.Delay(_playerConfig.BulletFireDelay);
+                _canShootBullets = true;
+            }
         }
 
         public void TakeDamage(int damage)
@@ -50,7 +66,6 @@ namespace Gameplay.Players
 
             if (_currentHealth <= 0)
             {
-                
             }
         }
     }

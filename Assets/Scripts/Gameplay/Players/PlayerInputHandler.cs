@@ -1,4 +1,5 @@
-using Gameplay.Base;
+using Cysharp.Threading.Tasks;
+using Gameplay.Signals;
 using UnityEngine;
 using Zenject;
 
@@ -7,39 +8,77 @@ namespace Gameplay.Players
     public class PlayerInputHandler : MonoBehaviour
     {
         private Player _player;
+        private SignalBus _signalBus;
+        private bool _isUncontrollable;
 
+        [Inject]
+        public void Construct(SignalBus signalBus)
+        {
+            _signalBus = signalBus;
+        }
+
+        //TODO перенести в Construct
         private void Awake()
         {
             _player = GetComponent<Player>();
         }
 
-        private void Update()
+        public void OnEnable()
         {
-            float xDirection = Input.GetAxis("Horizontal");
-            float yDirection = Input.GetAxis("Vertical");
+            _signalBus.Subscribe<PlayerCollidedSignal>(OnPlayerCollision);
+        }
 
-            if (xDirection != 0)
+        public void OnDisable()
+        {
+            _signalBus.Unsubscribe<PlayerCollidedSignal>(OnPlayerCollision);
+        }
+
+        private async void OnPlayerCollision(PlayerCollidedSignal signal)
+        {
+            float elapsedTime = 0;
+            _isUncontrollable = true;
+            var direction = (transform.position - signal.CollidedObject.transform.position).normalized;
+
+            while (elapsedTime < _player.PlayerConfig.UncontrollableTime)
             {
-                _player.HorizontalMove(xDirection);
+                _player.MoveAfterCollision(direction);
+                elapsedTime += Time.deltaTime;
+                await UniTask.NextFrame();
             }
 
-            if (yDirection != 0)
-            {
-                _player.VerticalMove(yDirection);
-            }
+            _isUncontrollable = false;
+        }
 
-            if (Input.GetKeyDown(KeyCode.F))
+        private async void Update()
+        {
+            if (!_isUncontrollable)
             {
-                _player.Fire();
-            }
+                float xDirection = Input.GetAxis("Horizontal");
+                float yDirection = Input.GetAxis("Vertical");
 
-            if (Input.GetKey(KeyCode.E))
-            {
-                _player.Rotate(true);
-            }
-            else if (Input.GetKey(KeyCode.Q))
-            {
-                _player.Rotate(false);
+                if (xDirection != 0)
+                {
+                    _player.HorizontalMove(xDirection);
+                }
+
+                if (yDirection != 0)
+                {
+                    _player.VerticalMove(yDirection);
+                }
+
+                if (Input.GetKeyDown(KeyCode.F))
+                {
+                    await _player.FireBullets();
+                }
+
+                if (Input.GetKey(KeyCode.E))
+                {
+                    _player.Rotate(true);
+                }
+                else if (Input.GetKey(KeyCode.Q))
+                {
+                    _player.Rotate(false);
+                }
             }
         }
     }

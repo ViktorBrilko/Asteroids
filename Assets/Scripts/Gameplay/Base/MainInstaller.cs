@@ -25,6 +25,7 @@ namespace Gameplay.Base
             Container.DeclareSignal<ResetSignal<Bullet>>();
             Container.DeclareSignal<ResetSignal<Asteroid>>();
             Container.DeclareSignal<EnemyDiedSignal>();
+            Container.DeclareSignal<PlayerCollidedSignal>();
         
             _provider = new ConfigProvider();
             _provider.LoadAll();

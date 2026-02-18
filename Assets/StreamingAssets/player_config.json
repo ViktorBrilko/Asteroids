@@ -1,5 +1,7 @@
 {
   "MoveSpeed" : 15,
   "Health" : 3,
-  "RotateSpeed" : 65
+  "RotateSpeed" : 65,
+  "BulletFireDelay" : 200,
+  "UncontrollableTime" : 3
 }
