@@ -16,15 +16,17 @@ namespace Gameplay.Base
     {
         private SignalBus _signalBus;
         private Spawner<Asteroid> _asteroidSpawner;
+        private Spawner<SmallAsteroid> _smallAsteroidSpawner;
         private GameFieldConfig _config;
         private GameField _gameField;
         private List<IDamagable> _enemies;
         private int _asteroidsCount;
 
         public EnemyGeneratorService(Spawner<Asteroid> asteroidSpawner, GameField gameField, GameFieldConfig config,
-            SignalBus signalBus)
+            SignalBus signalBus, Spawner<SmallAsteroid> smallAsteroidSpawner)
         {
             _asteroidSpawner = asteroidSpawner;
+            _smallAsteroidSpawner = smallAsteroidSpawner;
             _gameField = gameField;
             _config = config;
             _signalBus = signalBus;
@@ -45,13 +47,27 @@ namespace Gameplay.Base
             _signalBus.Unsubscribe<EnemyDiedSignal>(OnEnemyDeath);
         }
 
-        private async void OnEnemyDeath()
+        private async void OnEnemyDeath(EnemyDiedSignal signal)
         {
-            _asteroidsCount--;
-            
-            if (_asteroidsCount < _config.MaxAsteroids)
+            if (signal.Enemy is Asteroid asteroid)
             {
-                await SpawnEnemies();
+                _asteroidsCount--;
+                SpawnSmallAsteroids(signal.DeathPosition);
+            
+                if (_asteroidsCount < _config.MaxAsteroids)
+                {
+                    await SpawnEnemies();
+                }
+            }
+        }
+
+        private void SpawnSmallAsteroids(Vector3 position)
+        {
+            int asteroidsCount = Random.Range(_config.MinSmallAsteroids, _config.MaxSmallAsteroids);
+
+            for (int i = 0; i < asteroidsCount; i++)
+            {
+                _smallAsteroidSpawner.SpawnItem(position, GetRandomRotation());
             }
         }
 
@@ -101,7 +117,5 @@ namespace Gameplay.Base
             int zRotation = Random.Range(0, 360);
             return Quaternion.Euler(0, 0, zRotation);
         }
-
-       
     }
 }

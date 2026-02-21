@@ -495,8 +495,10 @@ MonoBehaviour:
   _bulletPrefab: {fileID: 358431341365235580, guid: 501dd970720b5bd4d97852d2133751f1, type: 3}
   _gameFieldPrefab: {fileID: 7006926220765692225, guid: 4340dc096ecf1e044bb1bc9a24a23279, type: 3}
   _asteroidPrefab: {fileID: 8913670955098313175, guid: 143c3de0eb968424e9fb17ba06152862, type: 3}
+  _smallAsteroidPrefab: {fileID: 4603335125315155557, guid: 14a997375b3d8fd409a40cc1eecce418, type: 3}
   _bulletPoolCapacity: 20
   _asteroidPoolCapacity: 10
+  _smallAsteroidPoolCapacity: 50
 --- !u!1001 &7727982545968521101
 PrefabInstance:
   m_ObjectHideFlags: 0

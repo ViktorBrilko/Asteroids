@@ -8,9 +8,7 @@ namespace Core
     {
         private DiContainer _container;
         private GameObject _prefab;
-
-
-        [Inject]
+        
         public Factory(DiContainer container, GameObject prefab)
         {
             _container = container;

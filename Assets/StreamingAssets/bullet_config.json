@@ -1,5 +1,5 @@
 {
-  "Speed" : 5,
-  "Damage" : 5,
+  "Speed" : 10,
+  "Damage" : 10,
   "MaxLifetime" : 3
 }

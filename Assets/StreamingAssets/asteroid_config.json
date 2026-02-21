@@ -4,5 +4,7 @@
   "Damage" : 1,
   "Health" : 20, 
   "AfterCollisionSpeed" : 7.5, 
-  "CollisionEffectTime" : 1000
+  "CollisionEffectTime" : 1000,
+  "MinChildren" : 1,
+  "MaxChildren" : 3
 }

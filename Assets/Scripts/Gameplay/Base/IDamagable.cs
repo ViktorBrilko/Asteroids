@@ -1,4 +1,7 @@
-﻿public interface IDamagable
+﻿namespace Gameplay.Base
 {
-    public void TakeDamage(int damage);
+    public interface IDamagable
+    {
+        public void TakeDamage(int damage);
+    }
 }

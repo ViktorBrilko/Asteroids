@@ -12,9 +12,11 @@ namespace Gameplay.Base
         [SerializeField] private GameObject _bulletPrefab;
         [SerializeField] private GameObject _gameFieldPrefab;
         [SerializeField] private GameObject _asteroidPrefab;
+        [SerializeField] private GameObject _smallAsteroidPrefab;
 
         [SerializeField] private int _bulletPoolCapacity;
         [SerializeField] private int _asteroidPoolCapacity;
+        [SerializeField] private int _smallAsteroidPoolCapacity;
         
         private ConfigProvider _provider;
     
@@ -24,6 +26,7 @@ namespace Gameplay.Base
             
             Container.DeclareSignal<ResetSignal<Bullet>>();
             Container.DeclareSignal<ResetSignal<Asteroid>>();
+            Container.DeclareSignal<ResetSignal<SmallAsteroid>>();
             Container.DeclareSignal<EnemyDiedSignal>();
             Container.DeclareSignal<PlayerCollidedSignal>();
         
@@ -51,14 +54,24 @@ namespace Gameplay.Base
 
         private void InstallEnemies()
         {
-            GameObject enemyContainer = new("ENEMIES");
+            GameObject asteroidsContainer = new("ASTEROIDS");
             
             Container.Bind<AsteroidConfig>().FromInstance(_provider.AsteroidConfig).AsSingle();
             Container.Bind<Core.IFactory<Asteroid>>().To<Core.Factory<Asteroid>>().AsSingle().WithArguments(_asteroidPrefab);
             Container.Bind<ObjectPool<Asteroid>>().AsSingle()
-                .WithArguments(enemyContainer.transform, _asteroidPoolCapacity)
+                .WithArguments(asteroidsContainer.transform, _asteroidPoolCapacity)
                 .OnInstantiated<ObjectPool<Asteroid>>((c, p) => p.Initialize());
             Container.BindInterfacesAndSelfTo<Spawner<Asteroid>>().AsSingle();
+            
+            GameObject smallAsteroidsContainer = new("SMALL_ASTEROIDS");
+            
+            Container.Bind<SmallAsteroidConfig>().FromInstance(_provider.SmallAsteroidConfig).AsSingle();
+            Container.Bind<Core.IFactory<SmallAsteroid>>().To<Core.Factory<SmallAsteroid>>().AsSingle().WithArguments(_smallAsteroidPrefab);
+            Container.Bind<ObjectPool<SmallAsteroid>>().AsSingle()
+                .WithArguments(smallAsteroidsContainer.transform, _smallAsteroidPoolCapacity)
+                .OnInstantiated<ObjectPool<SmallAsteroid>>((c, p) => p.Initialize());
+            Container.BindInterfacesAndSelfTo<Spawner<SmallAsteroid>>().AsSingle();
+            
         }
 
         private void InstallPlayer()

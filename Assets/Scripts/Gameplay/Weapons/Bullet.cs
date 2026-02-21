@@ -1,4 +1,5 @@
 using Core.Configs;
+using Gameplay.Base;
 using UnityEngine;
 using Zenject;
 

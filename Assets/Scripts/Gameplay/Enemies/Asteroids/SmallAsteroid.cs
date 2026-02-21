@@ -1,4 +1,4 @@
-using Core.Configs;
+﻿using Core.Configs;
 using Cysharp.Threading.Tasks;
 using Gameplay.Base;
 using Gameplay.Players;
@@ -8,16 +8,16 @@ using Zenject;
 
 namespace Gameplay.Enemies.Asteroids
 {
-    public class Asteroid : MonoBehaviour, IDamagable, IResetable
+    public class SmallAsteroid : MonoBehaviour, IDamagable, IResetable
     {
         private SignalBus _signalBus;
         private int _currentHealth;
-        private AsteroidConfig _config;
+        private SmallAsteroidConfig _config;
         private Vector3 _direction;
         private float _moveSpeed;
 
         [Inject]
-        public void Construct(SignalBus signalBus, AsteroidConfig config)
+        public void Construct(SignalBus signalBus, SmallAsteroidConfig config)
         {
             _signalBus = signalBus;
             _moveSpeed = config.MoveSpeed;
@@ -64,15 +64,16 @@ namespace Gameplay.Enemies.Asteroids
             await UniTask.Delay(_config.CollisionEffectTime);
             _moveSpeed = _config.MoveSpeed;
         }
-
+        
         private void DestroyAsteroid()
         {
-            _signalBus.Fire(new ResetSignal<Asteroid>(this));
+            _signalBus.Fire(new ResetSignal<SmallAsteroid>(this));
             _signalBus.Fire(new EnemyDiedSignal(this, transform.position));
         }
 
         public void Reset()
         {
+            
         }
     }
 }

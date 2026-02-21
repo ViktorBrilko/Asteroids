@@ -3,5 +3,7 @@
   "YSize" : 100, 
   "MaxAsteroids" : 10,
   "EnemySpawnCooldown" : 2000,
-  "MaxAttemptsToPlaceEnemy" : 200
+  "MaxAttemptsToPlaceEnemy" : 200,
+  "MinSmallAsteroids" : 1,
+  "MaxSmallAsteroids" : 3
 }
