@@ -54,8 +54,14 @@ namespace Gameplay.Enemies.Asteroids
 
             if (_currentHealth <= 0)
             {
-                DestroyAsteroid();
+                Die();
             }
+        }
+
+        public void Die()
+        {
+            _signalBus.Fire(new ResetSignal<Asteroid>(this));
+            _signalBus.Fire(new EnemyDiedSignal(this, transform.position));
         }
 
         private async UniTaskVoid ChangeMoveSpeed()
@@ -63,12 +69,6 @@ namespace Gameplay.Enemies.Asteroids
             _moveSpeed = _config.AfterCollisionSpeed;
             await UniTask.Delay(_config.CollisionEffectTime);
             _moveSpeed = _config.MoveSpeed;
-        }
-
-        private void DestroyAsteroid()
-        {
-            _signalBus.Fire(new ResetSignal<Asteroid>(this));
-            _signalBus.Fire(new EnemyDiedSignal(this, transform.position));
         }
 
         public void Reset()

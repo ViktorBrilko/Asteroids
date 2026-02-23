@@ -1,6 +1,8 @@
+using Cinemachine;
 using Core.Configs;
 using Gameplay.Enemies.Asteroids;
 using Gameplay.Gamefields;
+using Gameplay.Players;
 using Gameplay.Signals;
 using UnityEngine;
 using Zenject;
@@ -13,10 +15,14 @@ namespace Gameplay.Base
         [SerializeField] private GameObject _gameFieldPrefab;
         [SerializeField] private GameObject _asteroidPrefab;
         [SerializeField] private GameObject _smallAsteroidPrefab;
+        [SerializeField] private GameObject _playerPrefab;
+        [SerializeField] private GameObject _cameraPrefab;
 
         [SerializeField] private int _bulletPoolCapacity;
         [SerializeField] private int _asteroidPoolCapacity;
         [SerializeField] private int _smallAsteroidPoolCapacity;
+        
+        [SerializeField] private Transform _playerSpawnPoint;
         
         private ConfigProvider _provider;
     
@@ -36,6 +42,7 @@ namespace Gameplay.Base
             InstallEnemies();
             InstallBullets();
             InstallGameField();
+            InstallCamera();
             InstallPlayer();
            
 
@@ -73,11 +80,21 @@ namespace Gameplay.Base
             Container.BindInterfacesAndSelfTo<Spawner<SmallAsteroid>>().AsSingle();
             
         }
+        
+        private void InstallCamera()
+        {
+            Container.Bind<CinemachineVirtualCamera>().FromComponentInNewPrefab(_cameraPrefab)
+                .AsSingle().NonLazy();
+        }
+
 
         private void InstallPlayer()
         {
             Container.Bind<PlayerConfig>().FromInstance(_provider.PlayerConfig).AsSingle(); 
+            Container.Bind<Player>().FromComponentInNewPrefab(_playerPrefab).UnderTransform(_playerSpawnPoint).AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<PlayerInputHandler>().AsSingle().NonLazy();
         }
+        
         
         private void InstallGameField()
         {
