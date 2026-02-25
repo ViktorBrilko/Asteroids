@@ -1,4 +1,3 @@
-using System;
 using Cysharp.Threading.Tasks;
 using Gameplay.Base;
 using Gameplay.Signals;
@@ -11,15 +10,21 @@ namespace Gameplay.Players
     {
         [SerializeField] private Transform _projectileSpawnPoint;
         [SerializeField] private GameObject _laser;
+        [SerializeField] private ParticleSystem _shield;
+
+        private const string PLAYER_LAYER = "Player";
+        private const string PLAYER_UNCONTROLLABLE_LAYER = "Uncontrollable Player";
 
         private PlayerConfig _config;
         private Spawner<Bullet> _bulletSpawner;
+        private Animator _laserAnimator;
         private int _currentHealth;
         private bool _canShootBullets = true;
         private int _laserShootsCount;
         private bool _isUncontrollable;
         private bool _isLaserCharging;
         private SignalBus _signalBus;
+        private static readonly int IsShooting = Animator.StringToHash("IsShooting");
 
         public bool IsUncontrollable => _isUncontrollable;
 
@@ -32,6 +37,11 @@ namespace Gameplay.Players
             _currentHealth = _config.Health;
             _laserShootsCount = config.LaserCount;
             _signalBus = signalBus;
+        }
+
+        private void Start()
+        {
+            _laserAnimator = _laser.GetComponent<Animator>();
         }
 
         public void OnEnable()
@@ -79,9 +89,9 @@ namespace Gameplay.Players
 
             _canShootBullets = false;
             _laser.gameObject.SetActive(true);
-            _laser.GetComponent<Animator>().SetBool("IsShooting", true);
-            await UniTask.Delay(2000);
-            _laser.GetComponent<Animator>().SetBool("IsShooting", false);
+            _laserAnimator.SetBool(IsShooting, true);
+            await UniTask.Delay(_config.LaserShootingTime);
+            _laserAnimator.SetBool(IsShooting, false);
             _laser.gameObject.SetActive(false);
             _canShootBullets = true;
 
@@ -92,6 +102,7 @@ namespace Gameplay.Players
         public void TakeDamage(int damage)
         {
             _currentHealth -= damage;
+            //TODO убрать
             Debug.Log("Игрок получил урон");
 
             if (_currentHealth <= 0)
@@ -105,9 +116,9 @@ namespace Gameplay.Players
 
         private async void ChargeLaser()
         {
-            if(_isLaserCharging) return;
-            if(_laserShootsCount == _config.LaserCount) return;
-            
+            if (_isLaserCharging) return;
+            if (_laserShootsCount == _config.LaserCount) return;
+
             _isLaserCharging = true;
             await UniTask.Delay(_config.LaserCooldown);
             _laserShootsCount++;
@@ -124,6 +135,8 @@ namespace Gameplay.Players
             float elapsedTime = 0;
             _isUncontrollable = true;
             var direction = (transform.position - signal.CollidedObject.transform.position).normalized;
+            gameObject.layer = LayerMask.NameToLayer(PLAYER_UNCONTROLLABLE_LAYER);
+            _shield.Play();
 
             while (elapsedTime < _config.UncontrollableTime)
             {
@@ -132,9 +145,11 @@ namespace Gameplay.Players
                 await UniTask.NextFrame();
             }
 
+            gameObject.layer = LayerMask.NameToLayer(PLAYER_LAYER);
             _isUncontrollable = false;
+            _shield.Stop();
         }
-        
+
         private void MoveAfterCollision(Vector3 direction)
         {
             transform.Translate(direction * _config.MoveSpeed * Time.deltaTime);

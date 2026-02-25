@@ -5,5 +5,6 @@
   "BulletFireDelay" : 200,
   "UncontrollableTime" : 3,
   "LaserCooldown" : 5000,
+  "LaserShootingTime" : 2000,
   "LaserCount" : 10
 }
