@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Core.Configs;
 using Cysharp.Threading.Tasks;
+using Gameplay.Enemies;
 using Gameplay.Enemies.Asteroids;
 using Gameplay.Gamefields;
 using Gameplay.Signals;
@@ -17,28 +18,36 @@ namespace Gameplay.Base
         private SignalBus _signalBus;
         private Spawner<Asteroid> _asteroidSpawner;
         private Spawner<SmallAsteroid> _smallAsteroidSpawner;
+        private Spawner<Ufo> _ufoSpawner;
         private GameFieldConfig _config;
         private GameField _gameField;
         private List<IDamagable> _enemies;
         private int _asteroidsCount;
+        private int _ufosCount;
 
         public EnemyGeneratorService(Spawner<Asteroid> asteroidSpawner, GameField gameField, GameFieldConfig config,
-            SignalBus signalBus, Spawner<SmallAsteroid> smallAsteroidSpawner)
+            SignalBus signalBus, Spawner<SmallAsteroid> smallAsteroidSpawner, Spawner<Ufo> ufoSpawner)
         {
             _asteroidSpawner = asteroidSpawner;
             _smallAsteroidSpawner = smallAsteroidSpawner;
+            _ufoSpawner = ufoSpawner;
             _gameField = gameField;
             _config = config;
             _signalBus = signalBus;
         }
-        
+
         public async void Initialize()
         {
             _signalBus.Subscribe<EnemyDiedSignal>(OnEnemyDeath);
-            
+
             while (_asteroidsCount < _config.MaxAsteroids)
             {
-                await SpawnEnemies();
+                await SpawnAsteroids();
+            }
+
+            while (_ufosCount < _config.MaxUfos)
+            {
+                await SpawnUfos();
             }
         }
 
@@ -49,14 +58,23 @@ namespace Gameplay.Base
 
         private async void OnEnemyDeath(EnemyDiedSignal signal)
         {
-            if (signal.Enemy is Asteroid asteroid)
+            if (signal.Enemy is Asteroid _)
             {
                 _asteroidsCount--;
                 SpawnSmallAsteroids(signal.DeathPosition);
-            
+
                 if (_asteroidsCount < _config.MaxAsteroids)
                 {
-                    await SpawnEnemies();
+                    await SpawnAsteroids();
+                }
+            }
+            else if (signal.Enemy is Ufo _)
+            {
+                _ufosCount--;
+
+                if (_ufosCount < _config.MaxUfos)
+                {
+                    await SpawnUfos();
                 }
             }
         }
@@ -71,12 +89,20 @@ namespace Gameplay.Base
             }
         }
 
-        private async UniTask SpawnEnemies()
+        private async UniTask SpawnAsteroids()
         {
-            await UniTask.Delay(_config.EnemySpawnCooldown);
+            await UniTask.Delay(_config.AsteroidSpawnCooldown);
             Vector3 spawnPosition = GetSpawnPosition();
             _asteroidSpawner.SpawnItem(spawnPosition, GetRandomRotation());
             _asteroidsCount++;
+        }
+
+        private async UniTask SpawnUfos()
+        {
+            await UniTask.Delay(_config.UfoSpawnCooldown);
+            Vector3 spawnPosition = GetSpawnPosition();
+            _ufoSpawner.SpawnItem(spawnPosition, GetRandomRotation());
+            _ufosCount++;
         }
 
         private Vector3 GetSpawnPosition()
@@ -106,7 +132,7 @@ namespace Gameplay.Base
 
             if (attempts >= _config.MaxAttemptsToPlaceEnemy)
             {
-                Debug.Log("Истекло количество попыток нахождения позиции врага");
+                Debug.Log("The number of attempts to find the enemy position has expired.");
             }
 
             return candidatePosition;

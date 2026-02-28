@@ -364,9 +364,11 @@ MonoBehaviour:
   _smallAsteroidPrefab: {fileID: 4603335125315155557, guid: 14a997375b3d8fd409a40cc1eecce418, type: 3}
   _playerPrefab: {fileID: 8915094865332775943, guid: b87cb2fff5379ce488a79f854e28f036, type: 3}
   _cameraPrefab: {fileID: 3142117575118425044, guid: 78ea5a41704a94a439981000e7cb0873, type: 3}
+  _ufoPrefab: {fileID: 8596934722968740097, guid: 89f1ea3e9ab465345a3dde70f0dffebc, type: 3}
   _bulletPoolCapacity: 20
   _asteroidPoolCapacity: 10
   _smallAsteroidPoolCapacity: 50
+  _ufoPoolCapacity: 5
   _playerSpawnPoint: {fileID: 1630376952}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

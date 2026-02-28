@@ -5063,7 +5063,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7899378032927115617, guid: 29ba248c4594cbf458b3f434013bc06a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 6.89
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 7899378032927115617, guid: 29ba248c4594cbf458b3f434013bc06a, type: 3}
       propertyPath: m_LocalPosition.z
@@ -5099,7 +5099,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8114843499673881945, guid: 29ba248c4594cbf458b3f434013bc06a, type: 3}
       propertyPath: m_Name
-      value: Laser2
+      value: Laser
+      objectReference: {fileID: 0}
+    - target: {fileID: 8114843499673881945, guid: 29ba248c4594cbf458b3f434013bc06a, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
