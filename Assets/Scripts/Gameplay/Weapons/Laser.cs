@@ -7,7 +7,7 @@ namespace Gameplay.Weapons
     {
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.TryGetComponent(out IDamagable enemy))
+            if (other.TryGetComponent(out IDieable enemy))
             {
                 enemy.Die();
             }

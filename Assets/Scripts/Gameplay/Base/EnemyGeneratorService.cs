@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Core.Configs;
 using Cysharp.Threading.Tasks;
 using Gameplay.Enemies;
-using Gameplay.Enemies.Asteroids;
 using Gameplay.Gamefields;
 using Gameplay.Signals;
 using UnityEngine;
@@ -21,7 +20,7 @@ namespace Gameplay.Base
         private Spawner<Ufo> _ufoSpawner;
         private GameFieldConfig _config;
         private GameField _gameField;
-        private List<IDamagable> _enemies;
+        private List<IDieable> _enemies;
         private int _asteroidsCount;
         private int _ufosCount;
 

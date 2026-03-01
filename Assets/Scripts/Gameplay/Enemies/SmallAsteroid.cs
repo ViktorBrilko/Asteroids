@@ -1,74 +1,44 @@
 ﻿using Core.Configs;
-using Cysharp.Threading.Tasks;
 using Gameplay.Base;
-using Gameplay.Players;
 using Gameplay.Signals;
 using UnityEngine;
 using Zenject;
 
-namespace Gameplay.Enemies.Asteroids
+namespace Gameplay.Enemies
 {
-    public class SmallAsteroid : MonoBehaviour, IDamagable, IResetable
+    public class SmallAsteroid : Enemy, IDieable, IResetable
     {
-        private SignalBus _signalBus;
-        private int _currentHealth;
         private SmallAsteroidConfig _config;
-        private Vector3 _direction;
-        private float _moveSpeed;
 
         [Inject]
         public void Construct(SignalBus signalBus, SmallAsteroidConfig config)
         {
-            _signalBus = signalBus;
-            _moveSpeed = config.MoveSpeed;
-            _currentHealth = config.Health;
+            base.Construct(signalBus);
             _config = config;
-            _direction = Vector3.up;
+            
+            HealthService.Init(_config.Health);
+            EnemyMove.Init(config.MoveSpeed, config.AfterCollisionSpeed, config.CollisionEffectTime);
         }
-
-        private void Update()
-        {
-            Move(_direction);
-        }
-
+        
         private void OnCollisionEnter2D(Collision2D other)
         {
-            if (other.gameObject.TryGetComponent(out Player player))
-            {
-                _direction = (transform.position - other.transform.position).normalized;
-                ChangeMoveSpeed();
-
-                player.TakeDamage(_config.Damage);
-                _signalBus.Fire(new PlayerCollidedSignal(gameObject));
-            }
+            CollideWithPlayer(other, _config.Damage);
         }
-
-        private void Move(Vector3 direction)
+        
+        public void OnEnable()
         {
-            transform.Translate(direction * _moveSpeed * Time.deltaTime, Space.Self);
+            HealthService.OnDied += Die;
         }
 
-        public void TakeDamage(int damage)
+        public void OnDisable()
         {
-            _currentHealth -= damage;
-
-            if (_currentHealth <= 0)
-            {
-                Die();
-            }
+            HealthService.OnDied -= Die;
         }
-
+     
         public void Die()
         {
-            _signalBus.Fire(new ResetSignal<SmallAsteroid>(this));
-            _signalBus.Fire(new EnemyDiedSignal(this, transform.position));
-        }
-
-        private async UniTaskVoid ChangeMoveSpeed()
-        {
-            _moveSpeed = _config.AfterCollisionSpeed;
-            await UniTask.Delay(_config.CollisionEffectTime);
-            _moveSpeed = _config.MoveSpeed;
+            SignalBus.Fire(new ResetSignal<SmallAsteroid>(this));
+            SignalBus.Fire(new EnemyDiedSignal(this, transform.position));
         }
 
         public void Reset()

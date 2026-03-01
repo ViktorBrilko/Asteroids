@@ -6,7 +6,7 @@ using Zenject;
 
 namespace Gameplay.Players
 {
-    public class Player : MonoBehaviour, IDamagable
+    public class Player : MonoBehaviour
     {
         [SerializeField] private Transform _projectileSpawnPoint;
         [SerializeField] private GameObject _laser;
@@ -18,14 +18,15 @@ namespace Gameplay.Players
         private PlayerConfig _config;
         private Spawner<Bullet> _bulletSpawner;
         private Animator _laserAnimator;
-        private int _currentHealth;
         private bool _canShootBullets = true;
         private int _laserShootsCount;
         private bool _isUncontrollable;
         private bool _isLaserCharging;
         private SignalBus _signalBus;
         private static readonly int IsShooting = Animator.StringToHash("IsShooting");
+        private HealthService _healthService;
 
+        public HealthService HealthService => _healthService;
         public bool IsUncontrollable => _isUncontrollable;
 
         [Inject]
@@ -34,9 +35,11 @@ namespace Gameplay.Players
             transform.SetParent(null);
             _config = config;
             _bulletSpawner = bulletSpawner;
-            _currentHealth = _config.Health;
             _laserShootsCount = config.LaserCount;
             _signalBus = signalBus;
+
+            _healthService = GetComponent<HealthService>();
+            _healthService.Init(_config.Health);
         }
 
         private void Start()
@@ -47,11 +50,13 @@ namespace Gameplay.Players
         public void OnEnable()
         {
             _signalBus.Subscribe<PlayerCollidedSignal>(OnPlayerCollision);
+            _healthService.OnDied += Die;
         }
 
         public void OnDisable()
         {
             _signalBus.Unsubscribe<PlayerCollidedSignal>(OnPlayerCollision);
+            _healthService.OnDied -= Die;
         }
 
         public void HorizontalMove(float direction)
@@ -98,18 +103,7 @@ namespace Gameplay.Players
             _laserShootsCount--;
             ChargeLaser();
         }
-
-        public void TakeDamage(int damage)
-        {
-            _currentHealth -= damage;
-            //TODO убрать
-            Debug.Log("Игрок получил урон");
-
-            if (_currentHealth <= 0)
-            {
-            }
-        }
-
+        
         public void Die()
         {
         }

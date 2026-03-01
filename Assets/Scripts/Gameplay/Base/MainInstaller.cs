@@ -1,7 +1,6 @@
 using Cinemachine;
 using Core.Configs;
 using Gameplay.Enemies;
-using Gameplay.Enemies.Asteroids;
 using Gameplay.Gamefields;
 using Gameplay.Players;
 using Gameplay.Signals;

@@ -24,7 +24,7 @@ public class Bullet : MonoBehaviour, IResetable
     
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.gameObject.TryGetComponent(out IDamagable enemy))
+        if (other.gameObject.TryGetComponent(out HealthService enemy))
         {
             enemy.TakeDamage(_bulletConfig.Damage);
             DestroyBullet();

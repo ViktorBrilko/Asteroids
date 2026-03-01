@@ -5,10 +5,10 @@ namespace Gameplay.Signals
 {
     public class EnemyDiedSignal
     {
-        public IDamagable Enemy { get; }
+        public IDieable Enemy { get; }
         public Vector3 DeathPosition { get; }
 
-        public EnemyDiedSignal(IDamagable enemy, Vector3 deathPosition)
+        public EnemyDiedSignal(IDieable enemy, Vector3 deathPosition)
         {
             Enemy = enemy;
             DeathPosition = deathPosition;
