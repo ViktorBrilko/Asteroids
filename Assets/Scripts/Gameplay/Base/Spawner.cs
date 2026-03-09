@@ -1,4 +1,5 @@
 using System;
+using Gameplay.Signals;
 using UnityEngine;
 using Zenject;
 
@@ -56,7 +57,6 @@ namespace Gameplay.Base
             T item = signal.Resetable;
             item.gameObject.SetActive(false);
             item.transform.SetParent(_pool.Container.transform);
-            item.Reset();
         }
     }
 }

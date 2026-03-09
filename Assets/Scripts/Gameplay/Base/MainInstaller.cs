@@ -4,6 +4,7 @@ using Gameplay.Enemies;
 using Gameplay.Gamefields;
 using Gameplay.Players;
 using Gameplay.Signals;
+using Gameplay.Weapons;
 using UnityEngine;
 using Zenject;
 

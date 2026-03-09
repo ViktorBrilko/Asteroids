@@ -1,6 +1,9 @@
+using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Gameplay.Base;
 using Gameplay.Signals;
+using Gameplay.Weapons;
 using UnityEngine;
 using Zenject;
 
@@ -16,15 +19,23 @@ namespace Gameplay.Players
         private const string PLAYER_UNCONTROLLABLE_LAYER = "Uncontrollable Player";
 
         private PlayerConfig _config;
-        private Spawner<Bullet> _bulletSpawner;
-        private Animator _laserAnimator;
+        private SignalBus _signalBus;
+        private HealthService _healthService;
+        private CancellationTokenSource _speedCts;
+        private CancellationTokenSource _inertionCts;
+
+        //weapon
         private bool _canShootBullets = true;
         private int _laserShootsCount;
-        private bool _isUncontrollable;
+        private Spawner<Bullet> _bulletSpawner;
+        private Animator _laserAnimator;
         private bool _isLaserCharging;
-        private SignalBus _signalBus;
         private static readonly int IsShooting = Animator.StringToHash("IsShooting");
-        private HealthService _healthService;
+
+        private float _lastXDirection;
+        private float _lastYDirection;
+        private float _currentSpeed;
+        private bool _isUncontrollable;
 
         public HealthService HealthService => _healthService;
         public bool IsUncontrollable => _isUncontrollable;
@@ -37,6 +48,7 @@ namespace Gameplay.Players
             _bulletSpawner = bulletSpawner;
             _laserShootsCount = config.LaserCount;
             _signalBus = signalBus;
+            _currentSpeed = _config.MoveSpeed;
 
             _healthService = GetComponent<HealthService>();
             _healthService.Init(_config.Health);
@@ -59,22 +71,93 @@ namespace Gameplay.Players
             _healthService.OnDied -= Die;
         }
 
-        public void HorizontalMove(float direction)
+        public async UniTaskVoid ChangeSpeed(bool increase)
         {
-            transform.Translate(new Vector3(direction, 0, 0) * _config.MoveSpeed * Time.deltaTime);
+            if (_speedCts != null)
+            {
+                _speedCts.Cancel();
+                _speedCts.Dispose();
+            }
+
+            _speedCts = new CancellationTokenSource();
+            CancellationToken token = _speedCts.Token;
+
+            try
+            {
+                while (true)
+                {
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken: token);
+
+                    if (increase)
+                    {
+                        if (_inertionCts != null)
+                        {
+                            _inertionCts?.Cancel();
+                        }
+
+                        _currentSpeed = Mathf.MoveTowards(_currentSpeed, 10f, _config.SpeedChangeStep * Time.deltaTime);
+                        if (_currentSpeed == 10f) break;
+                    }
+                    else
+                    {
+                        _currentSpeed = Mathf.MoveTowards(_currentSpeed, 0f, _config.SpeedChangeStep * Time.deltaTime);
+                        if (_currentSpeed == 0f) break;
+                    }
+                }
+            }
+            catch (OperationCanceledException e)
+            {
+            }
         }
 
-        public void VerticalMove(float direction)
+        public async UniTaskVoid InertialMove()
         {
-            transform.Translate(new Vector3(0, direction, 0) * _config.MoveSpeed * Time.deltaTime);
+            _inertionCts = new CancellationTokenSource();
+            CancellationToken token = _inertionCts.Token;
+
+            try
+            {
+                while (true)
+                {
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken: token);
+
+                    transform.Translate(new Vector3(_lastXDirection, _lastYDirection, 0) * _currentSpeed *
+                                        Time.deltaTime);
+
+                    if (_currentSpeed == 0f) break;
+                }
+            }
+            catch (OperationCanceledException e)
+            {
+            }
+            finally
+            {
+                _inertionCts.Dispose();
+                _inertionCts = null;
+            }
+
+            _lastXDirection = 0;
+            _lastYDirection = 0;
         }
 
-        public void Rotate(bool right)
+        //TODO удалить
+        private void OnGUI()
         {
-            if (right)
-                transform.Rotate(Vector3.forward * -_config.RotateSpeed * Time.deltaTime);
-            else
-                transform.Rotate(Vector3.forward * _config.RotateSpeed * Time.deltaTime);
+            GUIStyle myStyle = new GUIStyle(GUI.skin.label);
+            myStyle.fontSize = 50;
+            GUI.Label(new Rect(20, 20, 400, 100), $"Speed: {_currentSpeed}", myStyle);
+        }
+
+        public void Move(float xDirection, float yDirection)
+        {
+            transform.Translate(new Vector3(xDirection, yDirection, 0).normalized * _currentSpeed * Time.deltaTime);
+            _lastXDirection = xDirection;
+            _lastYDirection = yDirection;
+        }
+
+        public void Rotate(float rotation)
+        {
+            transform.Rotate(0, 0, rotation * _config.RotationSpeed * Time.deltaTime);
         }
 
         public async UniTask FireBullets()
@@ -103,12 +186,12 @@ namespace Gameplay.Players
             _laserShootsCount--;
             ChargeLaser();
         }
-        
+
         public void Die()
         {
         }
 
-        private async void ChargeLaser()
+        private async UniTaskVoid ChargeLaser()
         {
             if (_isLaserCharging) return;
             if (_laserShootsCount == _config.LaserCount) return;
@@ -128,9 +211,10 @@ namespace Gameplay.Players
         {
             float elapsedTime = 0;
             _isUncontrollable = true;
-            var direction = (transform.position - signal.CollidedObject.transform.position).normalized;
+            Vector3 direction = (transform.position - signal.CollidedObject.transform.position).normalized;
             gameObject.layer = LayerMask.NameToLayer(PLAYER_UNCONTROLLABLE_LAYER);
             _shield.Play();
+            ChangeSpeed(false);
 
             while (elapsedTime < _config.UncontrollableTime)
             {
@@ -146,7 +230,7 @@ namespace Gameplay.Players
 
         private void MoveAfterCollision(Vector3 direction)
         {
-            transform.Translate(direction * _config.MoveSpeed * Time.deltaTime);
+            transform.Translate(direction * _config.AfterCollisionSpeed * Time.deltaTime);
         }
     }
 }

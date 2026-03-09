@@ -1,10 +1,15 @@
-public class ResetSignal<T>
-    where T : IResetable
-{
-    public T Resetable { get; }
+using Gameplay.Base;
 
-    public ResetSignal(T resetable)
+namespace Gameplay.Signals
+{
+    public class ResetSignal<T>
+        where T : IResetable
     {
-        Resetable = resetable;
+        public T Resetable { get; }
+
+        public ResetSignal(T resetable)
+        {
+            Resetable = resetable;
+        }
     }
 }

@@ -50,10 +50,6 @@ namespace Gameplay.Enemies
                 Chasing();
             }
         }
-
-        public void Reset()
-        {
-        }
        
         public void StartChasing()
         {

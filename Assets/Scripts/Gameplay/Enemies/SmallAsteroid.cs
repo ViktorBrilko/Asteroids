@@ -40,10 +40,5 @@ namespace Gameplay.Enemies
             SignalBus.Fire(new ResetSignal<SmallAsteroid>(this));
             SignalBus.Fire(new EnemyDiedSignal(this, transform.position));
         }
-
-        public void Reset()
-        {
-            
-        }
     }
 }

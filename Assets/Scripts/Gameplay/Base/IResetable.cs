@@ -1,4 +1,7 @@
-﻿public interface IResetable
+﻿namespace Gameplay.Base
 {
-    public void Reset();
+    public interface IResetable
+    {
+   
+    }
 }

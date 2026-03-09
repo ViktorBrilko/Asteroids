@@ -5038,6 +5038,7 @@ MonoBehaviour:
   _projectileSpawnPoint: {fileID: 7212271247455749396}
   _laser: {fileID: 3147239558615990374}
   _shield: {fileID: 284268349092691993}
+  speedChange: 5
 --- !u!114 &5315213234721504559
 MonoBehaviour:
   m_ObjectHideFlags: 0
