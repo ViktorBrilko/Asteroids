@@ -3,6 +3,7 @@ using Core.Configs;
 using Gameplay.Enemies;
 using Gameplay.Gamefields;
 using Gameplay.Players;
+using Gameplay.Scores;
 using Gameplay.Signals;
 using Gameplay.Weapons;
 using UnityEngine;
@@ -43,11 +44,19 @@ namespace Gameplay.Base
             _provider = new ConfigProvider();
             _provider.LoadAll();
 
+            InstallScore();
             InstallEnemies();
             InstallBullets();
             InstallGameField();
             InstallCamera();
             InstallPlayer();
+        }
+
+        private void InstallScore()
+        {
+            Container.Bind<ScoreConfig>().FromInstance(_provider.ScoreConfig).AsSingle();
+            //TODO убрать NonLazy
+            Container.BindInterfacesAndSelfTo<ScoreLogic>().AsSingle().NonLazy();
         }
 
         private void InstallBullets()
@@ -72,6 +81,8 @@ namespace Gameplay.Base
                 .WithArguments(asteroidsContainer.transform, _asteroidPoolCapacity)
                 .OnInstantiated<ObjectPool<Asteroid>>((c, p) => p.Initialize());
             Container.BindInterfacesAndSelfTo<Spawner<Asteroid>>().AsSingle();
+            Container.Resolve<ScoreLogic>().EnemyScoreRates
+                .Add(EnemyTypes.Asteroid, _provider.ScoreConfig.ScoreForAsteroid);
 
             GameObject smallAsteroidsContainer = new("SMALL_ASTEROIDS");
 
@@ -82,6 +93,8 @@ namespace Gameplay.Base
                 .WithArguments(smallAsteroidsContainer.transform, _smallAsteroidPoolCapacity)
                 .OnInstantiated<ObjectPool<SmallAsteroid>>((c, p) => p.Initialize());
             Container.BindInterfacesAndSelfTo<Spawner<SmallAsteroid>>().AsSingle();
+            Container.Resolve<ScoreLogic>().EnemyScoreRates
+                .Add(EnemyTypes.SmallAsteroid, _provider.ScoreConfig.ScoreForSmallAsteroid);
 
             GameObject ufoContainer = new("UFO");
 
@@ -91,6 +104,8 @@ namespace Gameplay.Base
                 .WithArguments(ufoContainer.transform, _ufoPoolCapacity)
                 .OnInstantiated<ObjectPool<Ufo>>((c, p) => p.Initialize());
             Container.BindInterfacesAndSelfTo<Spawner<Ufo>>().AsSingle();
+            Container.Resolve<ScoreLogic>().EnemyScoreRates
+                .Add(EnemyTypes.Ufo, _provider.ScoreConfig.ScoreForUfo);
         }
 
         private void InstallCamera()

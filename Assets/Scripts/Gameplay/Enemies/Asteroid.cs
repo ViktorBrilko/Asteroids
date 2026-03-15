@@ -18,6 +18,8 @@ namespace Gameplay.Enemies
 
             HealthService.Init(_config.Health);
             EnemyMove.Init(config.MoveSpeed, config.AfterCollisionSpeed, config.CollisionEffectTime);
+            
+            EnemyType = EnemyTypes.Asteroid;
         }
 
         private void OnCollisionEnter2D(Collision2D other)

@@ -23,16 +23,18 @@ namespace Gameplay.Enemies
         {
             base.Construct(signalBus);
             _config = config;
-            
+
             HealthService.Init(_config.Health);
             EnemyMove.Init(config.MoveSpeed, config.AfterCollisionSpeed, config.CollisionEffectTime);
+
+            EnemyType = EnemyTypes.Ufo;
         }
-        
+
         private void OnCollisionEnter2D(Collision2D other)
         {
             CollideWithPlayer(other, _config.Damage);
         }
-        
+
         public void OnEnable()
         {
             HealthService.OnDied += Die;
@@ -50,7 +52,7 @@ namespace Gameplay.Enemies
                 Chasing();
             }
         }
-       
+
         public void StartChasing()
         {
             EnemyMove.CancelRegularMovement();

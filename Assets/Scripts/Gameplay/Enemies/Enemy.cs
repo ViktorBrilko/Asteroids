@@ -11,6 +11,9 @@ namespace Gameplay.Enemies
         protected SignalBus SignalBus;
         protected EnemyMoveService EnemyMove;
         protected HealthService HealthService;
+        protected EnemyTypes EnemyType;
+        
+        public EnemyTypes Type => EnemyType;
 
         protected void Construct(SignalBus signalBus)
         {

@@ -17,7 +17,7 @@ namespace Gameplay.Players
 
         private const string PLAYER_LAYER = "Player";
         private const string PLAYER_UNCONTROLLABLE_LAYER = "Uncontrollable Player";
-
+        
         private PlayerConfig _config;
         private SignalBus _signalBus;
         private HealthService _healthService;
