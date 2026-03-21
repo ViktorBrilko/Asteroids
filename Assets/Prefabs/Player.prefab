@@ -4884,6 +4884,7 @@ GameObject:
   - component: {fileID: 3586498247564469775}
   - component: {fileID: 5315213234721504559}
   - component: {fileID: 2013198557539151199}
+  - component: {fileID: 5480437598588718449}
   m_Layer: 3
   m_Name: Player
   m_TagString: Untagged
@@ -5035,10 +5036,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75c978a332d24774295058ab06031d3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _projectileSpawnPoint: {fileID: 7212271247455749396}
-  _laser: {fileID: 3147239558615990374}
   _shield: {fileID: 284268349092691993}
-  speedChange: 5
 --- !u!114 &5315213234721504559
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5063,6 +5061,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fab5a3c27ea446b2af1747572c51bcbd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &5480437598588718449
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8915094865332775943}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90330b3e5bc245ea90113d71628f6e2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _laser: {fileID: 3147239558615990374}
+  _projectileSpawnPoint: {fileID: 7212271247455749396}
 --- !u!1001 &6570904271966833983
 PrefabInstance:
   m_ObjectHideFlags: 0

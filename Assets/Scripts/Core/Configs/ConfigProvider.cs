@@ -13,6 +13,7 @@ namespace Core.Configs
         public SmallAsteroidConfig SmallAsteroidConfig { get; private set; }
         public UfoConfig UfoConfig { get; private set; }
         public ScoreConfig ScoreConfig { get; private set; }
+        public WeaponConfig WeaponConfig { get; private set; }
         
         public void LoadAll()
         {
@@ -23,6 +24,7 @@ namespace Core.Configs
             SmallAsteroidConfig = LoadFromFile<SmallAsteroidConfig>("small_asteroid_config.json");
             UfoConfig = LoadFromFile<UfoConfig>("ufo_config.json");
             ScoreConfig = LoadFromFile<ScoreConfig>("score_config.json");
+            WeaponConfig = LoadFromFile<WeaponConfig>("weapon_config.json");
         }
     
         private T LoadFromFile<T>(string fileName)

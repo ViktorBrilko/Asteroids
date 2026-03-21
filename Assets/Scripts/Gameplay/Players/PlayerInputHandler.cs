@@ -6,11 +6,13 @@ namespace Gameplay.Players
     public class PlayerInputHandler : ITickable
     {
         private Player _player;
+        private PlayerWeapon _playerWeapon;
         private float _lastXDirection;
 
         public PlayerInputHandler(Player player)
         {
             _player = player;
+            _playerWeapon = _player.GetComponent<PlayerWeapon>();
         }
 
         private bool IsMovingButtonsHold()
@@ -54,12 +56,12 @@ namespace Gameplay.Players
 
             if (Input.GetButtonDown("Fire1"))
             {
-                await _player.FireBullets();
+                await _playerWeapon.FireBullets();
             }
 
             if (Input.GetButtonDown("Fire2"))
             {
-                _player.FireLaser();
+                _playerWeapon.FireLaser();
             }
 
             float rotation = Input.GetAxisRaw("Rotate");

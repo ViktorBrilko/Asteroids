@@ -9,6 +9,7 @@ namespace UI.Binders
         public override void InstallBindings()
         {
             BinderFactory.RegisterBinder<TextBinder>();
+            BinderFactory.RegisterBinder<ImageBinder>();
         }
     }
 }

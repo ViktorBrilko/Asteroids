@@ -46,10 +46,11 @@ namespace Gameplay.Base
 
             InstallScore();
             InstallEnemies();
-            InstallBullets();
+            InstallPlayer();
+            InstallWeapons();
             InstallGameField();
             InstallCamera();
-            InstallPlayer();
+            
         }
 
         private void InstallScore()
@@ -59,7 +60,7 @@ namespace Gameplay.Base
             Container.BindInterfacesAndSelfTo<ScoreLogic>().AsSingle().NonLazy();
         }
 
-        private void InstallBullets()
+        private void InstallWeapons()
         {
             GameObject bulletContainer = new("BULLETS");
             Container.Bind<BulletConfig>().FromInstance(_provider.BulletConfig).AsSingle();
@@ -68,6 +69,11 @@ namespace Gameplay.Base
                 .WithArguments(bulletContainer.transform, _bulletPoolCapacity)
                 .OnInstantiated<ObjectPool<Bullet>>((c, p) => p.Initialize());
             Container.BindInterfacesAndSelfTo<Spawner<Bullet>>().AsSingle();
+            
+            Container.Bind<WeaponConfig>().FromInstance(_provider.WeaponConfig).AsSingle();
+            Container.Bind<PlayerWeapon>()
+                .FromResolveGetter<Player>(playerInstance => playerInstance.GetComponent<PlayerWeapon>())
+                .AsSingle();
         }
 
         private void InstallEnemies()

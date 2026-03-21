@@ -4,10 +4,5 @@
   "Health": 3,
   "RotationSpeed": 65,
   "UncontrollableTime": 3,
-  "SpeedChangeStep": 5,
-  
-  "BulletFireDelay": 200,
-  "LaserCooldown": 5000,
-  "LaserShootingTime": 2000,
-  "LaserCount": 10
+  "SpeedChangeStep": 5
 }

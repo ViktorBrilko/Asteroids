@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using Core.Configs;
 using Cysharp.Threading.Tasks;
 using Gameplay.Base;
 using Gameplay.Signals;
@@ -11,8 +12,6 @@ namespace Gameplay.Players
 {
     public class Player : MonoBehaviour
     {
-        [SerializeField] private Transform _projectileSpawnPoint;
-        [SerializeField] private GameObject _laser;
         [SerializeField] private ParticleSystem _shield;
 
         private const string PLAYER_LAYER = "Player";
@@ -24,14 +23,6 @@ namespace Gameplay.Players
         private CancellationTokenSource _speedCts;
         private CancellationTokenSource _inertionCts;
 
-        //weapon
-        private bool _canShootBullets = true;
-        private int _laserShootsCount;
-        private Spawner<Bullet> _bulletSpawner;
-        private Animator _laserAnimator;
-        private bool _isLaserCharging;
-        private static readonly int IsShooting = Animator.StringToHash("IsShooting");
-
         private float _lastXDirection;
         private float _lastYDirection;
         private float _currentSpeed;
@@ -41,22 +32,15 @@ namespace Gameplay.Players
         public bool IsUncontrollable => _isUncontrollable;
 
         [Inject]
-        public void Construct(PlayerConfig config, Spawner<Bullet> bulletSpawner, SignalBus signalBus)
+        public void Construct(PlayerConfig config, SignalBus signalBus)
         {
             transform.SetParent(null);
             _config = config;
-            _bulletSpawner = bulletSpawner;
-            _laserShootsCount = config.LaserCount;
             _signalBus = signalBus;
             _currentSpeed = _config.MoveSpeed;
 
             _healthService = GetComponent<HealthService>();
             _healthService.Init(_config.Health);
-        }
-
-        private void Start()
-        {
-            _laserAnimator = _laser.GetComponent<Animator>();
         }
 
         public void OnEnable()
@@ -160,51 +144,8 @@ namespace Gameplay.Players
             transform.Rotate(0, 0, rotation * _config.RotationSpeed * Time.deltaTime);
         }
 
-        public async UniTask FireBullets()
-        {
-            if (_canShootBullets)
-            {
-                _canShootBullets = false;
-                _bulletSpawner.SpawnItem(_projectileSpawnPoint.position, transform.rotation);
-                await UniTask.Delay(_config.BulletFireDelay);
-                _canShootBullets = true;
-            }
-        }
-
-        public async void FireLaser()
-        {
-            if (_laserShootsCount <= 0) return;
-
-            _canShootBullets = false;
-            _laser.gameObject.SetActive(true);
-            _laserAnimator.SetBool(IsShooting, true);
-            await UniTask.Delay(_config.LaserShootingTime);
-            _laserAnimator.SetBool(IsShooting, false);
-            _laser.gameObject.SetActive(false);
-            _canShootBullets = true;
-
-            _laserShootsCount--;
-            ChargeLaser();
-        }
-
         public void Die()
         {
-        }
-
-        private async UniTaskVoid ChargeLaser()
-        {
-            if (_isLaserCharging) return;
-            if (_laserShootsCount == _config.LaserCount) return;
-
-            _isLaserCharging = true;
-            await UniTask.Delay(_config.LaserCooldown);
-            _laserShootsCount++;
-            _isLaserCharging = false;
-
-            if (_laserShootsCount != _config.LaserCount)
-            {
-                ChargeLaser();
-            }
         }
 
         private async void OnPlayerCollision(PlayerCollidedSignal signal)

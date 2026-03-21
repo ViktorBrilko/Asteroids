@@ -7,6 +7,8 @@ namespace UI.ViewModels
         public override void InstallBindings()
         {
             Container.BindInterfacesAndSelfTo<ScoreViewModel>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<LaserCountViewModel>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<LaserChargeViewModel>().AsSingle().NonLazy();
         }
     }
 }
