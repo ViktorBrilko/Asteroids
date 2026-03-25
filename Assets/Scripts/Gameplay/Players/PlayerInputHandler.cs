@@ -5,14 +5,13 @@ namespace Gameplay.Players
 {
     public class PlayerInputHandler : ITickable
     {
-        private Player _player;
         private PlayerWeapon _playerWeapon;
-        private float _lastXDirection;
+        private PlayerMovement _playerMovement;
 
         public PlayerInputHandler(Player player)
         {
-            _player = player;
-            _playerWeapon = _player.GetComponent<PlayerWeapon>();
+            _playerWeapon = player.GetComponent<PlayerWeapon>();
+            _playerMovement = player.GetComponent<PlayerMovement>();
         }
 
         private bool IsMovingButtonsHold()
@@ -28,7 +27,7 @@ namespace Gameplay.Players
 
         public async void Tick()
         {
-            if (_player.IsUncontrollable) return;
+            if (_playerMovement.IsUncontrollable) return;
 
             float xDirection = Input.GetAxisRaw("Horizontal");
             float yDirection = Input.GetAxisRaw("Vertical");
@@ -36,13 +35,13 @@ namespace Gameplay.Players
             if (Input.GetButtonDown("Vertical") ||
                 Input.GetButtonDown("Horizontal"))
             {
-                _player.ChangeSpeed(true);
+                _playerMovement.ChangeSpeed(true);
             }
 
             if (Input.GetButton("Horizontal") ||
                 Input.GetButton("Vertical"))
             {
-                _player.Move(xDirection, yDirection);
+                _playerMovement.Move(new Vector3(xDirection, yDirection, 0));
             }
 
             if (Input.GetButtonUp("Vertical") ||
@@ -50,8 +49,8 @@ namespace Gameplay.Players
             {
                 if (IsMovingButtonsHold()) return;
 
-                _player.ChangeSpeed(false);
-                _player.InertialMove();
+                _playerMovement.ChangeSpeed(false);
+                _playerMovement.InertialMove();
             }
 
             if (Input.GetButtonDown("Fire1"))
@@ -68,7 +67,7 @@ namespace Gameplay.Players
             
             if (rotation != 0)
             {
-                _player.Rotate(rotation);
+                _playerMovement.Rotate(rotation);
             }
            
         }

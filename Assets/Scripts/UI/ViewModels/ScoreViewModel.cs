@@ -20,12 +20,12 @@ namespace UI.ViewModels
         public void Initialize()
         {
             OnScoreChanged(ScoreLogic.Score);
-            ScoreLogic.OnStateChanged += OnScoreChanged;
+            ScoreLogic.OnSpeedChanged += OnScoreChanged;
         }
 
         public void Dispose()
         {
-            ScoreLogic.OnStateChanged -= OnScoreChanged;
+            ScoreLogic.OnSpeedChanged -= OnScoreChanged;
         }
         
         private void OnScoreChanged(int score)

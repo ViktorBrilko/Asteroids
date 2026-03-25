@@ -127,6 +127,10 @@ namespace Gameplay.Base
             Container.Bind<Player>().FromComponentInNewPrefab(_playerPrefab).UnderTransform(_playerSpawnPoint)
                 .AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<PlayerInputHandler>().AsSingle().NonLazy();
+            
+            Container.Bind<PlayerMovement>()
+                .FromResolveGetter<Player>(playerInstance => playerInstance.GetComponent<PlayerMovement>())
+                .AsSingle();
         }
 
 

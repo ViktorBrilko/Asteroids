@@ -4,5 +4,6 @@
   "Health": 3,
   "RotationSpeed": 65,
   "UncontrollableTime": 3,
+  "BeforeShieldStopDelay": 1000,
   "SpeedChangeStep": 5
 }

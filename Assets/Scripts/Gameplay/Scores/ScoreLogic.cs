@@ -17,7 +17,7 @@ namespace Gameplay.Scores
 
         public int Score => _score;
 
-        public event Action<int> OnStateChanged;
+        public event Action<int> OnSpeedChanged;
 
         public Dictionary<EnemyTypes, int> EnemyScoreRates
         {
@@ -41,7 +41,7 @@ namespace Gameplay.Scores
             if (signal.Enemy is Enemy enemy)
             {
                 _score += _enemyScoreRates[enemy.Type];
-                OnStateChanged?.Invoke(_score);
+                OnSpeedChanged?.Invoke(_score);
             }
         }
 

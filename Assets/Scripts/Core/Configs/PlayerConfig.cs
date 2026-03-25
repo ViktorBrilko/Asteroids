@@ -8,6 +8,7 @@ namespace Core.Configs
     public float SpeedChangeStep { get; set; }
     public int Health { get; set; }
     public float UncontrollableTime { get; set; }
+    public int BeforeShieldStopDelay { get; set; }
   
   }
 }
