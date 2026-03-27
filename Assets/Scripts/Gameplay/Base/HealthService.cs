@@ -7,7 +7,10 @@ namespace Gameplay.Base
     {
         private int _currentHealth;
 
+        public int CurrentHealth => _currentHealth;
+
         public event Action OnDied; 
+        public event Action<int> OnHealthChanged;
 
         public void Init(int maxHealth)
         {
@@ -17,6 +20,7 @@ namespace Gameplay.Base
         public void TakeDamage(int damage)
         {
             _currentHealth -= damage;
+            OnHealthChanged?.Invoke(_currentHealth);
 
             if (_currentHealth <= 0)
             {

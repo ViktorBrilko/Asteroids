@@ -131,6 +131,10 @@ namespace Gameplay.Base
             Container.Bind<PlayerMovement>()
                 .FromResolveGetter<Player>(playerInstance => playerInstance.GetComponent<PlayerMovement>())
                 .AsSingle();
+            
+            Container.Bind<HealthService>()
+                .FromResolveGetter<Player>(playerInstance => playerInstance.GetComponent<HealthService>())
+                .AsSingle();
         }
 
 

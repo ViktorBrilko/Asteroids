@@ -11,7 +11,8 @@ namespace UI.ViewModels
     public class LaserChargeViewModel : IInitializable, IDisposable
     {
         public readonly PlayerWeapon Weapon;
-        [Data("LaserCharge")] public readonly ReactiveProperty<float> LaserChargeImage = new();
+        [Data("LaserCharge")] 
+        public readonly ReactiveProperty<float> LaserChargeImage = new();
 
         public LaserChargeViewModel(PlayerWeapon weapon)
         {
