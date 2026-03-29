@@ -39,14 +39,14 @@ namespace Gameplay.Base
         {
             _signalBus.Subscribe<EnemyDiedSignal>(OnEnemyDeath);
 
-            while (_asteroidsCount < _config.MaxAsteroids)
-            {
-                await SpawnAsteroids();
-            }
-
             while (_ufosCount < _config.MaxUfos)
             {
                 await SpawnUfos();
+            }
+            
+            while (_asteroidsCount < _config.MaxAsteroids)
+            {
+                await SpawnAsteroids();
             }
         }
 

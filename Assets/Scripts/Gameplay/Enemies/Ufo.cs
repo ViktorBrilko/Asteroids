@@ -57,6 +57,7 @@ namespace Gameplay.Enemies
         {
             EnemyMove.CancelRegularMovement();
             _isChasing = true;
+            transform.up = _player.position - transform.position;
         }
 
         public void StopChasing()
