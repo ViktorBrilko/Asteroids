@@ -11,6 +11,8 @@ namespace UI.Binders
             BinderFactory.RegisterBinder<TextBinder>();
             BinderFactory.RegisterBinder<ImageBinder>();
             BinderFactory.RegisterBinder<ListImageBinder>();
+            BinderFactory.RegisterBinder<ButtonBinder>();
+            BinderFactory.RegisterBinder<ViewSetterBinder<bool>>();
         }
     }
 }

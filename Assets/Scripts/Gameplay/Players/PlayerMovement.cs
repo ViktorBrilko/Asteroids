@@ -48,6 +48,20 @@ namespace Gameplay.Players
         private void OnDisable()
         {
             _signalBus.Unsubscribe<PlayerCollidedSignal>(OnPlayerCollision);
+
+            if (_speedCts != null)
+            {
+                _speedCts.Cancel();
+                _speedCts.Dispose();
+                _speedCts = null;
+            }
+
+            if (_inertionCts != null)
+            {
+                _inertionCts.Cancel();
+                _inertionCts.Dispose();
+                _inertionCts = null;
+            }
         }
 
         public async UniTaskVoid ChangeSpeed(bool increase)
@@ -59,13 +73,12 @@ namespace Gameplay.Players
             }
 
             _speedCts = new CancellationTokenSource();
-            CancellationToken token = _speedCts.Token;
 
             try
             {
                 while (true)
                 {
-                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken: token);
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken: _speedCts.Token);
 
                     if (increase)
                     {
@@ -75,12 +88,12 @@ namespace Gameplay.Players
                         }
 
                         _currentSpeed = Mathf.MoveTowards(_currentSpeed, 10f, _config.SpeedChangeStep * Time.deltaTime);
-                        if (_currentSpeed == 10f) break;
+                        if (Mathf.Approximately(_currentSpeed, 10f)) break;
                     }
                     else
                     {
                         _currentSpeed = Mathf.MoveTowards(_currentSpeed, 0f, _config.SpeedChangeStep * Time.deltaTime);
-                        if (_currentSpeed == 0f) break;
+                        if (Mathf.Approximately(_currentSpeed, 0f)) break;
                     }
 
                     OnSpeedChanged?.Invoke(_currentSpeed);
@@ -94,13 +107,12 @@ namespace Gameplay.Players
         public async UniTaskVoid InertialMove()
         {
             _inertionCts = new CancellationTokenSource();
-            CancellationToken token = _inertionCts.Token;
 
             try
             {
                 while (true)
                 {
-                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken: token);
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken: _speedCts.Token);
 
                     transform.Translate(new Vector3(_lastXDirection, _lastYDirection, 0) * _currentSpeed *
                                         Time.deltaTime);
@@ -114,8 +126,11 @@ namespace Gameplay.Players
             }
             finally
             {
-                _inertionCts.Dispose();
-                _inertionCts = null;
+                if (_inertionCts != null)
+                {
+                    _inertionCts.Dispose();
+                    _inertionCts = null;
+                }
             }
 
             _lastXDirection = 0;
@@ -144,7 +159,7 @@ namespace Gameplay.Players
             gameObject.layer = LayerMask.NameToLayer(PLAYER_UNCONTROLLABLE_LAYER);
             _shield.Play();
             _currentSpeed = _config.AfterCollisionSpeed;
-            ChangeSpeed(false);
+            ChangeSpeed(false).Forget();
 
             while (elapsedTime < _config.UncontrollableTime)
             {

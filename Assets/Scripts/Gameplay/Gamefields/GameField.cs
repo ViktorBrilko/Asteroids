@@ -18,7 +18,7 @@ namespace Gameplay.Gamefields
             _config = config;
         }
 
-        private void Start()
+        private void Awake()
         {
             _collider = GetComponent<BoxCollider2D>();
             _collider.size = new Vector3(_config.XSize, _config.YSize, 0);

@@ -33,7 +33,7 @@ namespace Gameplay.Base
         public override void InstallBindings()
         {
             SignalBusInstaller.Install(Container);
-
+            
             Container.DeclareSignal<ResetSignal<Bullet>>();
             Container.DeclareSignal<ResetSignal<Asteroid>>();
             Container.DeclareSignal<ResetSignal<SmallAsteroid>>();
@@ -43,6 +43,8 @@ namespace Gameplay.Base
 
             _provider = new ConfigProvider();
             _provider.LoadAll();
+
+            Container.Bind<LoadLevelService>().AsSingle().NonLazy();
 
             InstallScore();
             InstallEnemies();

@@ -28,7 +28,7 @@ namespace Gameplay.Enemies
             if (other.gameObject.TryGetComponent(out Player player))
             {
                 EnemyMove.ChangeMoveDirection((transform.position - other.transform.position).normalized);
-                EnemyMove.ChangeMoveSpeed();
+                EnemyMove.ChangeMoveSpeed().Forget();
 
                 player.HealthService.TakeDamage(damage);
                 SignalBus.Fire(new PlayerCollidedSignal(gameObject));

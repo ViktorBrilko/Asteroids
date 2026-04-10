@@ -1,9 +1,13 @@
+using System;
 using Core.Configs;
-using Cysharp.Threading.Tasks;
 using Gameplay.Base;
-using Gameplay.Signals;
+using Gameplay.Players;
 using UnityEngine;
 using Zenject;
+
+#if UNITY_EDITOR
+using UnityEditor; 
+#endif
 
 namespace Gameplay.Players
 {
@@ -11,6 +15,8 @@ namespace Gameplay.Players
     {
         private PlayerConfig _config;
         private HealthService _healthService;
+        
+        public event Action OnPlayerDied; 
 
         public HealthService HealthService => _healthService;
 
@@ -36,7 +42,26 @@ namespace Gameplay.Players
         
         public void Die()
         {
+            OnPlayerDied?.Invoke(); 
         }
        
     }
 }
+
+#if UNITY_EDITOR
+[CustomEditor(typeof(Player))]
+public class PlayerHealthEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        DrawDefaultInspector(); 
+
+        Player player = (Player)target;
+
+        if (GUILayout.Button("Убить игрока"))
+        {
+            player.Die();
+        }
+    }
+}
+#endif

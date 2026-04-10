@@ -65,7 +65,7 @@ namespace Gameplay.Players
 
             _laserShootsCount--;
             OnLaserCountChanged?.Invoke(_laserShootsCount);
-            ChargeLaser();
+            ChargeLaser().Forget();
         }
         
         private async UniTaskVoid ChargeLaser()
@@ -82,7 +82,7 @@ namespace Gameplay.Players
 
             if (_laserShootsCount != _config.LaserCount)
             {
-                ChargeLaser();
+                ChargeLaser().Forget();
             }
         }
     }

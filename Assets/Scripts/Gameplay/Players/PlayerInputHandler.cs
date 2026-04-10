@@ -35,7 +35,7 @@ namespace Gameplay.Players
             if (Input.GetButtonDown("Vertical") ||
                 Input.GetButtonDown("Horizontal"))
             {
-                _playerMovement.ChangeSpeed(true);
+                _playerMovement.ChangeSpeed(true).Forget();
             }
 
             if (Input.GetButton("Horizontal") ||
@@ -49,8 +49,8 @@ namespace Gameplay.Players
             {
                 if (IsMovingButtonsHold()) return;
 
-                _playerMovement.ChangeSpeed(false);
-                _playerMovement.InertialMove();
+                _playerMovement.ChangeSpeed(false).Forget();
+                _playerMovement.InertialMove().Forget();
             }
 
             if (Input.GetButtonDown("Fire1"))

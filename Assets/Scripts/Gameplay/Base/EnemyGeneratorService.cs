@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using Core.Configs;
 using Cysharp.Threading.Tasks;
 using Gameplay.Enemies;
@@ -23,6 +24,7 @@ namespace Gameplay.Base
         private List<IDieable> _enemies;
         private int _asteroidsCount;
         private int _ufosCount;
+        private CancellationTokenSource _cts;
 
         public EnemyGeneratorService(Spawner<Asteroid> asteroidSpawner, GameField gameField, GameFieldConfig config,
             SignalBus signalBus, Spawner<SmallAsteroid> smallAsteroidSpawner, Spawner<Ufo> ufoSpawner)
@@ -31,28 +33,31 @@ namespace Gameplay.Base
             _smallAsteroidSpawner = smallAsteroidSpawner;
             _ufoSpawner = ufoSpawner;
             _gameField = gameField;
+
             _config = config;
             _signalBus = signalBus;
         }
 
-        public async void Initialize()
+        public void Initialize()
         {
+            _cts = new CancellationTokenSource();
+
             _signalBus.Subscribe<EnemyDiedSignal>(OnEnemyDeath);
 
-            while (_ufosCount < _config.MaxUfos)
-            {
-                await SpawnUfos();
-            }
-            
-            while (_asteroidsCount < _config.MaxAsteroids)
-            {
-                await SpawnAsteroids();
-            }
+            SpawnUfos(_cts.Token).Forget();
+            SpawnAsteroids(_cts.Token).Forget();
         }
 
         public void Dispose()
         {
             _signalBus.Unsubscribe<EnemyDiedSignal>(OnEnemyDeath);
+
+            if (_cts != null)
+            {
+                _cts.Cancel();
+                _cts.Dispose();
+                _cts = null;
+            }
         }
 
         private async void OnEnemyDeath(EnemyDiedSignal signal)
@@ -64,7 +69,7 @@ namespace Gameplay.Base
 
                 if (_asteroidsCount < _config.MaxAsteroids)
                 {
-                    await SpawnAsteroids();
+                    await SpawnAsteroids(_cts.Token);
                 }
             }
             else if (signal.Enemy is Ufo _)
@@ -73,7 +78,7 @@ namespace Gameplay.Base
 
                 if (_ufosCount < _config.MaxUfos)
                 {
-                    await SpawnUfos();
+                    await SpawnUfos(_cts.Token);
                 }
             }
         }
@@ -88,20 +93,38 @@ namespace Gameplay.Base
             }
         }
 
-        private async UniTask SpawnAsteroids()
+        private async UniTask SpawnAsteroids(CancellationToken cancellationToken)
         {
-            await UniTask.Delay(_config.AsteroidSpawnCooldown);
-            Vector3 spawnPosition = GetSpawnPosition();
-            _asteroidSpawner.SpawnItem(spawnPosition, GetRandomRotation());
-            _asteroidsCount++;
+            try
+            {
+                while (_asteroidsCount < _config.MaxAsteroids)
+                {
+                    await UniTask.Delay(_config.AsteroidSpawnCooldown, cancellationToken: cancellationToken);
+                    Vector3 spawnPosition = GetSpawnPosition();
+                    _asteroidSpawner.SpawnItem(spawnPosition, GetRandomRotation());
+                    _asteroidsCount++;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
 
-        private async UniTask SpawnUfos()
+        private async UniTask SpawnUfos(CancellationToken cancellationToken)
         {
-            await UniTask.Delay(_config.UfoSpawnCooldown);
-            Vector3 spawnPosition = GetSpawnPosition();
-            _ufoSpawner.SpawnItem(spawnPosition, GetRandomRotation());
-            _ufosCount++;
+            try
+            {
+                while (_ufosCount < _config.MaxUfos)
+                {
+                    await UniTask.Delay(_config.UfoSpawnCooldown, cancellationToken: cancellationToken);
+                    Vector3 spawnPosition = GetSpawnPosition();
+                    _ufoSpawner.SpawnItem(spawnPosition, GetRandomRotation());
+                    _ufosCount++;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
 
         private Vector3 GetSpawnPosition()

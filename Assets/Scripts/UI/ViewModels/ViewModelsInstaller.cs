@@ -13,6 +13,7 @@ namespace UI.ViewModels
             Container.BindInterfacesAndSelfTo<PlayerPositionViewModel>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<SpeedViewModel>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<HealthViewModel>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<DeathPanelViewModel>().AsSingle().NonLazy();
         }
     }
 }
