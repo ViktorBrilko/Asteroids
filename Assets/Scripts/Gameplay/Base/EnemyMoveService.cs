@@ -1,54 +1,109 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace Gameplay.Base
 {
     public class EnemyMoveService : MonoBehaviour
     {
-        private float _moveSpeed;
-        private float _afterCollisionSpeed;
-        private int _collisionEffectTime;
-        private Vector3 _direction;
+        [SerializeField] private GameObject _model;
 
-        public void Init(float moveSpeed, float afterCollisionSpeed, int collisionEffectTime)
+        private float _regularSpeed;
+        private float _currentSpeed;
+        private float _afterCollisionSpeed;
+        private float _rotationSpeed;
+        private int _collisionEffectTime;
+        private CancellationTokenSource _cts;
+
+        protected Vector3 Direction;
+
+        public void Init(float moveSpeed, float afterCollisionSpeed, int collisionEffectTime, float rotationSpeed)
         {
-            _moveSpeed = moveSpeed;
+            _regularSpeed = moveSpeed;
+            _rotationSpeed = rotationSpeed;
+            _currentSpeed = _regularSpeed;
             _afterCollisionSpeed = afterCollisionSpeed;
             _collisionEffectTime = collisionEffectTime;
 
             StartRegularMovement();
         }
 
+        private void OnEnable()
+        {
+            _cts = new CancellationTokenSource();
+        }
+
+        private void OnDisable()
+        {
+            if (_cts != null)
+            {
+                _cts.Cancel();
+                _cts.Dispose();
+                _cts = null;
+            }
+        }
+
         private void Update()
         {
-            Move(_direction);
+            Move(Direction);
         }
 
-        public void CancelRegularMovement()
+        protected void StartRegularMovement()
         {
-            _direction = Vector3.zero;
-        }
-        
-        public void StartRegularMovement()
-        {
-            _direction = Vector3.up;
+            Direction = Vector3.up;
         }
 
-        private void Move(Vector3 direction)
+        protected void Move(Vector3 direction)
         {
-            transform.Translate(direction * _moveSpeed * Time.deltaTime, Space.Self);
+            transform.Translate(direction * _currentSpeed * Time.deltaTime, Space.Self);
         }
 
-        public void ChangeMoveDirection(Vector3 direction)
+        public async void ChangeMoveDirection(Vector3 direction)
         {
-            _direction = direction;
+            try
+            {
+                Direction = direction;
+                await UniTask.Delay(TimeSpan.FromSeconds(_collisionEffectTime), cancellationToken: _cts.Token);
+                StartRegularMovement();
+            }
+            catch (OperationCanceledException ex)
+            {
+            }
+        }
+
+        public async UniTaskVoid RotateAfterCollision()
+        {
+            float elapsedTime = 0;
+
+            try
+            {
+                while (elapsedTime < _collisionEffectTime)
+                {
+                    _model.transform.RotateAround(_model.transform.position, Vector3.forward,
+                        _rotationSpeed * Time.deltaTime);
+                    elapsedTime += Time.deltaTime;
+                    await UniTask.NextFrame(cancellationToken: _cts.Token);
+                }
+
+                _model.transform.localEulerAngles = Vector3.zero;
+            }
+            catch (OperationCanceledException ex)
+            {
+            }
         }
 
         public async UniTaskVoid ChangeMoveSpeed()
         {
-            _moveSpeed = _afterCollisionSpeed;
-            await UniTask.Delay(_collisionEffectTime);
-            _moveSpeed = _afterCollisionSpeed;
+            try
+            {
+                _currentSpeed = _afterCollisionSpeed;
+                await UniTask.Delay(TimeSpan.FromSeconds(_collisionEffectTime), cancellationToken: _cts.Token);
+                _currentSpeed = _regularSpeed;
+            }
+            catch (OperationCanceledException ex)
+            {
+            }
         }
     }
 }

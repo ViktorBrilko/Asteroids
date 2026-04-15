@@ -2,28 +2,31 @@ using Gameplay.Gamefields;
 using UnityEngine;
 using Zenject;
 
-public class ScreenWarp : MonoBehaviour
+namespace Gameplay.Base
 {
-    private GameField _field;
-
-    [Inject]
-    public void Construct(GameField field)
+    public class ScreenWarp : MonoBehaviour
     {
-        _field = field;
-    }
-    
-    public void Warp()
-    {
-        Vector3 position = transform.position;
-        Bounds bounds = _field.GetComponent<Collider2D>().bounds;
+        private GameField _field;
 
-        if (position.x > bounds.max.x)
-            transform.position = new Vector3(-transform.position.x, transform.position.y);
-        else if (position.x < bounds.min.x)
-            transform.position = new Vector3(-transform.position.x, transform.position.y);
-        else if (position.y > bounds.max.y)
-            transform.position = new Vector3(transform.position.x, -transform.position.y);
-        else if (position.y < bounds.min.y)
-            transform.position = new Vector3(transform.position.x, -transform.position.y);
+        [Inject]
+        public void Construct(GameField field)
+        {
+            _field = field;
+        }
+
+        public void Warp()
+        {
+            Vector3 position = transform.position;
+            Bounds bounds = _field.GetComponent<Collider2D>().bounds;
+
+            if (position.x > bounds.max.x)
+                transform.position = new Vector3(-transform.position.x + 1, transform.position.y);
+            else if (position.x < bounds.min.x)
+                transform.position = new Vector3(-transform.position.x - 1, transform.position.y);
+            else if (position.y > bounds.max.y)
+                transform.position = new Vector3(transform.position.x, -transform.position.y + 1);
+            else if (position.y < bounds.min.y)
+                transform.position = new Vector3(transform.position.x, -transform.position.y - 1);
+        }
     }
 }

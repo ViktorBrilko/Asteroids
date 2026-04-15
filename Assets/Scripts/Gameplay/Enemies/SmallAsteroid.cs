@@ -17,7 +17,7 @@ namespace Gameplay.Enemies
             _config = config;
             
             HealthService.Init(_config.Health);
-            EnemyMove.Init(config.MoveSpeed, config.AfterCollisionSpeed, config.CollisionEffectTime);
+            EnemyMove.Init(config.MoveSpeed, config.AfterCollisionSpeed, config.CollisionEffectTime, config.RotationSpeed);
             
             EnemyType = EnemyTypes.SmallAsteroid;
         }

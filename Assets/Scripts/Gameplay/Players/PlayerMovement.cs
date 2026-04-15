@@ -17,6 +17,7 @@ namespace Gameplay.Players
 
         private CancellationTokenSource _speedCts;
         private CancellationTokenSource _inertionCts;
+        private CancellationTokenSource _collisionCts;
 
         private float _lastXDirection;
         private float _lastYDirection;
@@ -37,7 +38,6 @@ namespace Gameplay.Players
             transform.SetParent(null);
             _config = config;
             _signalBus = signalBus;
-            _currentSpeed = _config.MoveSpeed;
         }
 
         private void OnEnable()
@@ -62,6 +62,13 @@ namespace Gameplay.Players
                 _inertionCts.Dispose();
                 _inertionCts = null;
             }
+            
+            if (_collisionCts != null)
+            {
+                _collisionCts.Cancel();
+                _collisionCts.Dispose();
+                _collisionCts = null;
+            }
         }
 
         public async UniTaskVoid ChangeSpeed(bool increase)
@@ -84,19 +91,19 @@ namespace Gameplay.Players
                     {
                         if (_inertionCts != null)
                         {
-                            _inertionCts?.Cancel();
+                            _inertionCts.Cancel();
                         }
 
-                        _currentSpeed = Mathf.MoveTowards(_currentSpeed, 10f, _config.SpeedChangeStep * Time.deltaTime);
-                        if (Mathf.Approximately(_currentSpeed, 10f)) break;
+                        _currentSpeed = Mathf.MoveTowards(_currentSpeed, _config.MaxSpeed, _config.SpeedChangeStep * Time.deltaTime);
                     }
                     else
                     {
                         _currentSpeed = Mathf.MoveTowards(_currentSpeed, 0f, _config.SpeedChangeStep * Time.deltaTime);
-                        if (Mathf.Approximately(_currentSpeed, 0f)) break;
                     }
 
                     OnSpeedChanged?.Invoke(_currentSpeed);
+
+                    if (Mathf.Approximately(_currentSpeed, _config.MaxSpeed) || Mathf.Approximately(_currentSpeed, 0f)) break;
                 }
             }
             catch (OperationCanceledException e)
@@ -106,16 +113,22 @@ namespace Gameplay.Players
 
         public async UniTaskVoid InertialMove()
         {
+            if (_inertionCts != null)
+            {
+                _inertionCts.Cancel();
+                _inertionCts.Dispose();
+            }
+
             _inertionCts = new CancellationTokenSource();
 
             try
             {
                 while (true)
                 {
-                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken: _speedCts.Token);
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken: _inertionCts.Token);
 
-                    transform.Translate(new Vector3(_lastXDirection, _lastYDirection, 0) * _currentSpeed *
-                                        Time.deltaTime);
+                    transform.Translate(new Vector3(_lastXDirection, _lastYDirection, 0) *
+                                        (_currentSpeed * Time.deltaTime));
                     OnPositionChanged?.Invoke(transform.position);
 
                     if (_currentSpeed == 0f) break;
@@ -124,14 +137,6 @@ namespace Gameplay.Players
             catch (OperationCanceledException e)
             {
             }
-            finally
-            {
-                if (_inertionCts != null)
-                {
-                    _inertionCts.Dispose();
-                    _inertionCts = null;
-                }
-            }
 
             _lastXDirection = 0;
             _lastYDirection = 0;
@@ -139,7 +144,7 @@ namespace Gameplay.Players
 
         public void Move(Vector3 direction)
         {
-            transform.Translate(direction.normalized * _currentSpeed * Time.deltaTime);
+            transform.Translate(direction.normalized * (_currentSpeed * Time.deltaTime));
             _lastXDirection = direction.x;
             _lastYDirection = direction.y;
             OnPositionChanged?.Invoke(transform.position);
@@ -153,26 +158,40 @@ namespace Gameplay.Players
 
         private async void OnPlayerCollision(PlayerCollidedSignal signal)
         {
-            float elapsedTime = 0;
-            _isUncontrollable = true;
-            Vector3 direction = (transform.position - signal.CollidedObject.transform.position).normalized;
-            gameObject.layer = LayerMask.NameToLayer(PLAYER_UNCONTROLLABLE_LAYER);
-            _shield.Play();
-            _currentSpeed = _config.AfterCollisionSpeed;
-            ChangeSpeed(false).Forget();
-
-            while (elapsedTime < _config.UncontrollableTime)
+            if (_collisionCts != null)
             {
-                Move(direction);
-                elapsedTime += Time.deltaTime;
-                await UniTask.NextFrame();
+                _collisionCts.Cancel();
+                _collisionCts.Dispose();
             }
 
-            _isUncontrollable = false;
+            _collisionCts = new CancellationTokenSource();
 
-            await UniTask.Delay(_config.BeforeShieldStopDelay);
-            gameObject.layer = LayerMask.NameToLayer(PLAYER_LAYER);
-            _shield.Stop();
+            try
+            {
+                float elapsedTime = 0;
+                _isUncontrollable = true;
+                Vector3 direction = (transform.position - signal.CollidedObject.transform.position).normalized;
+                gameObject.layer = LayerMask.NameToLayer(PLAYER_UNCONTROLLABLE_LAYER);
+                _shield.Play();
+                _currentSpeed = _config.AfterCollisionSpeed;
+                ChangeSpeed(false).Forget();
+
+                while (elapsedTime < _config.UncontrollableTime)
+                {
+                    Move(direction);
+                    elapsedTime += Time.deltaTime;
+                    await UniTask.NextFrame(cancellationToken: _collisionCts.Token);
+                }
+
+                _isUncontrollable = false;
+
+                await UniTask.Delay(_config.BeforeShieldStopDelay, cancellationToken: _collisionCts.Token);
+                gameObject.layer = LayerMask.NameToLayer(PLAYER_LAYER);
+                _shield.Stop();
+            }
+            catch (OperationCanceledException e)
+            {
+            }
         }
     }
 }

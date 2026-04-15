@@ -33,7 +33,7 @@ namespace Gameplay.Base
         public override void InstallBindings()
         {
             SignalBusInstaller.Install(Container);
-            
+
             Container.DeclareSignal<ResetSignal<Bullet>>();
             Container.DeclareSignal<ResetSignal<Asteroid>>();
             Container.DeclareSignal<ResetSignal<SmallAsteroid>>();
@@ -52,7 +52,6 @@ namespace Gameplay.Base
             InstallWeapons();
             InstallGameField();
             InstallCamera();
-            
         }
 
         private void InstallScore()
@@ -71,7 +70,7 @@ namespace Gameplay.Base
                 .WithArguments(bulletContainer.transform, _bulletPoolCapacity)
                 .OnInstantiated<ObjectPool<Bullet>>((c, p) => p.Initialize());
             Container.BindInterfacesAndSelfTo<Spawner<Bullet>>().AsSingle();
-            
+
             Container.Bind<WeaponConfig>().FromInstance(_provider.WeaponConfig).AsSingle();
             Container.Bind<PlayerWeapon>()
                 .FromResolveGetter<Player>(playerInstance => playerInstance.GetComponent<PlayerWeapon>())
@@ -118,8 +117,7 @@ namespace Gameplay.Base
 
         private void InstallCamera()
         {
-            Container.Bind<CinemachineVirtualCamera>().FromComponentInNewPrefab(_cameraPrefab)
-                .AsSingle().NonLazy();
+            Container.Bind<CinemachineVirtualCamera>().FromComponentInNewPrefab(_cameraPrefab).AsSingle().NonLazy();
         }
 
 
@@ -129,11 +127,11 @@ namespace Gameplay.Base
             Container.Bind<Player>().FromComponentInNewPrefab(_playerPrefab).UnderTransform(_playerSpawnPoint)
                 .AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<PlayerInputHandler>().AsSingle().NonLazy();
-            
+
             Container.Bind<PlayerMovement>()
                 .FromResolveGetter<Player>(playerInstance => playerInstance.GetComponent<PlayerMovement>())
                 .AsSingle();
-            
+
             Container.Bind<HealthService>()
                 .FromResolveGetter<Player>(playerInstance => playerInstance.GetComponent<HealthService>())
                 .AsSingle();

@@ -1,4 +1,5 @@
-﻿using Gameplay.Players;
+﻿using Gameplay.Base;
+using Gameplay.Players;
 using UnityEngine;
 
 namespace Gameplay.Enemies
@@ -6,9 +7,9 @@ namespace Gameplay.Enemies
     [RequireComponent(typeof(CircleCollider2D))]
     public class UfoScanner : MonoBehaviour
     {
-        [SerializeField] private Ufo _parentUfo;
+        [SerializeField] private UfoMovement _parentUfo;
 
-        private void OnTriggerStay2D(Collider2D other)
+        private void OnTriggerEnter2D(Collider2D other)
         {
             if (!other.TryGetComponent(out Player player)) return;
             

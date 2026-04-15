@@ -80,7 +80,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 12d22c3d404b4aebae1a939715197862, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _parentUfo: {fileID: 1211882164114651024}
+  _parentUfo: {fileID: 8520552840218933320}
 --- !u!1 &8376209298037490253
 GameObject:
   m_ObjectHideFlags: 0
@@ -177,9 +177,9 @@ GameObject:
   - component: {fileID: -2128449371080242527}
   - component: {fileID: 2107706977129720200}
   - component: {fileID: 2691188439187973736}
-  - component: {fileID: 2626332811179688731}
   - component: {fileID: 1211882164114651024}
   - component: {fileID: 4478045398268502413}
+  - component: {fileID: 8520552840218933320}
   m_Layer: 8
   m_Name: UFO
   m_TagString: Untagged
@@ -278,18 +278,6 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.79
---- !u!114 &2626332811179688731
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8596934722968740097}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 11268f5736a44c4bb04e0808a9381364, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1211882164114651024
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -314,3 +302,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fab5a3c27ea446b2af1747572c51bcbd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &8520552840218933320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8596934722968740097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d88320cf12a406987fb29a2353762be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _model: {fileID: 8376209298037490253}

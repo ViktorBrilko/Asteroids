@@ -1,4 +1,5 @@
 ﻿using Core.Configs;
+using Gameplay.Base;
 using UnityEngine;
 using Zenject;
 
@@ -9,6 +10,7 @@ namespace Gameplay.Gamefields
         private GameFieldConfig _config;
         private Vector3 _startPosition;
         private BoxCollider2D _collider;
+        private GameObject _background;
 
         public BoxCollider2D Collider => _collider;
 

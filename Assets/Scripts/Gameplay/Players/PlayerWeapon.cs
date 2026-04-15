@@ -51,7 +51,7 @@ namespace Gameplay.Players
             }
         }
 
-        public async void FireLaser()
+        public async UniTaskVoid FireLaser()
         {
             if (_laserShootsCount <= 0) return;
 

@@ -50,7 +50,7 @@ namespace Gameplay.Players
 
 #if UNITY_EDITOR
 [CustomEditor(typeof(Player))]
-public class PlayerHealthEditor : Editor
+public class PlayerEditor : Editor
 {
     public override void OnInspectorGUI()
     {

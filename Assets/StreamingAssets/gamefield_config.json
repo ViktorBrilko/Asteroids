@@ -2,7 +2,7 @@
   "XSize" : 100,
   "YSize" : 100, 
   "MaxAsteroids" : 10,
-  "MaxUfos" : 4,
+  "MaxUfos" : 1,
   "AsteroidSpawnCooldown" : 2000,
   "UfoSpawnCooldown" : 3000,
   "MaxAttemptsToPlaceEnemy" : 200,

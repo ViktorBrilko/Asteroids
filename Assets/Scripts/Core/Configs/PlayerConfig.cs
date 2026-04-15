@@ -2,7 +2,7 @@ namespace Core.Configs
 {
   public class PlayerConfig
   {
-    public float MoveSpeed { get; set; }
+    public float MaxSpeed { get; set; }
     public float AfterCollisionSpeed { get; set; }
     public float RotationSpeed { get; set; }
     public float SpeedChangeStep { get; set; }

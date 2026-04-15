@@ -9,14 +9,6 @@ namespace Gameplay.Enemies
     public class Ufo : Enemy, IResetable, IDieable
     {
         private UfoConfig _config;
-        private Transform _player;
-        private bool _isChasing;
-
-        public Transform Player
-        {
-            get => _player;
-            set => _player = value;
-        }
 
         [Inject]
         public void Construct(SignalBus signalBus, UfoConfig config)
@@ -25,7 +17,7 @@ namespace Gameplay.Enemies
             _config = config;
 
             HealthService.Init(_config.Health);
-            EnemyMove.Init(config.MoveSpeed, config.AfterCollisionSpeed, config.CollisionEffectTime);
+            EnemyMove.Init(config.MoveSpeed, config.AfterCollisionSpeed, config.CollisionEffectTime, config.RotationSpeed);
 
             EnemyType = EnemyTypes.Ufo;
         }
@@ -43,33 +35,6 @@ namespace Gameplay.Enemies
         public void OnDisable()
         {
             HealthService.OnDied -= Die;
-        }
-
-        private void Update()
-        {
-            if (_isChasing)
-            {
-                Chasing();
-            }
-        }
-
-        public void StartChasing()
-        {
-            EnemyMove.CancelRegularMovement();
-            _isChasing = true;
-            transform.up = _player.position - transform.position;
-        }
-
-        public void StopChasing()
-        {
-            _isChasing = false;
-            EnemyMove.StartRegularMovement();
-        }
-
-        private void Chasing()
-        {
-            transform.position =
-                Vector3.MoveTowards(transform.position, _player.transform.position, _config.MoveSpeed * Time.deltaTime);
         }
 
         public void Die()
