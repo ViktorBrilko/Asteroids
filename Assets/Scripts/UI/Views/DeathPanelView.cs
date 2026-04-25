@@ -1,5 +1,4 @@
-﻿using System;
-using MVVM;
+﻿using MVVM;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,8 +11,7 @@ namespace UI.Views
 
         [Data("OnTryAgainClick")] 
         [SerializeField] public Button TryAgainButton;
-
-        [Data("DeathPanel")] 
+       
         [SerializeField] public GameObject DeathPanel;
 
         [Setter("Interactable")]

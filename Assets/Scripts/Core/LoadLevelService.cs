@@ -1,6 +1,6 @@
 ﻿using UnityEngine.SceneManagement;
 
-namespace Gameplay.Base
+namespace Core
 {
     public class LoadLevelService 
     {

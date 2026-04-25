@@ -1,3 +1,4 @@
+using Core.Audios;
 using Core.Configs;
 using Gameplay.Base;
 using Gameplay.Signals;
@@ -11,13 +12,14 @@ namespace Gameplay.Enemies
         private UfoConfig _config;
 
         [Inject]
-        public void Construct(SignalBus signalBus, UfoConfig config)
+        public void Construct(SignalBus signalBus, UfoConfig config, AudioService audioService)
         {
-            base.Construct(signalBus);
+            base.Construct(signalBus, audioService);
             _config = config;
 
             HealthService.Init(_config.Health);
-            EnemyMove.Init(config.MoveSpeed, config.AfterCollisionSpeed, config.CollisionEffectTime, config.RotationSpeed);
+            EnemyMove.Init(config.MoveSpeed, config.AfterCollisionSpeed, config.CollisionEffectTime,
+                config.RotationSpeed);
 
             EnemyType = EnemyTypes.Ufo;
         }
@@ -39,6 +41,7 @@ namespace Gameplay.Enemies
 
         public void Die()
         {
+            AudioService.PlaySfx(AudioService.Config.Explosion);
             SignalBus.Fire(new ResetSignal<Ufo>(this));
             SignalBus.Fire(new EnemyDiedSignal(this, transform.position));
         }

@@ -1,5 +1,6 @@
 ﻿using System;
-using Gameplay.Base;
+using Core;
+using Core.Audios;
 using Gameplay.Players;
 using MVVM;
 using UniRx;
@@ -12,11 +13,14 @@ namespace UI.ViewModels
     {
         public readonly Player Player;
         public readonly LoadLevelService LoadLevel;
+        
+        private AudioService _audioService;
 
         [Data("Interactable")] public readonly ReactiveProperty<bool> IsPlayerDead = new();
 
-        public DeathPanelViewModel(Player player, LoadLevelService loadLevel)
+        public DeathPanelViewModel(Player player, LoadLevelService loadLevel, AudioService audioService)
         {
+            _audioService = audioService;
             Player = player;
             LoadLevel = loadLevel;
         }
@@ -38,14 +42,16 @@ namespace UI.ViewModels
         }
 
         [Method("OnMenuClick")]
-        private void OnMenuClicked()
+        public void OnMenuClicked()
         {
+            _audioService.PlaySfx(_audioService.Config.UI_Click);
             LoadLevel.LoadMenu();
         }
 
         [Method("OnTryAgainClick")]
         public void OnTryAgainClick()
         {
+            _audioService.PlaySfx(_audioService.Config.UI_Click);
             LoadLevel.LoadLevel();
             Time.timeScale = 1;
         }

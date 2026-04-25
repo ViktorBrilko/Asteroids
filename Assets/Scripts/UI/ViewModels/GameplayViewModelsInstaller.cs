@@ -2,7 +2,7 @@
 
 namespace UI.ViewModels
 {
-    public class ViewModelsInstaller : MonoInstaller
+    public class GameplayViewModelsInstaller : MonoInstaller
     {
         public override void InstallBindings()
         {
@@ -13,7 +13,7 @@ namespace UI.ViewModels
             Container.BindInterfacesAndSelfTo<PlayerPositionViewModel>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<SpeedViewModel>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<HealthViewModel>().AsSingle().NonLazy();
-            Container.BindInterfacesAndSelfTo<DeathPanelViewModel>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<DeathPanelViewModel>().AsSingle().NonLazy();            
         }
     }
 }

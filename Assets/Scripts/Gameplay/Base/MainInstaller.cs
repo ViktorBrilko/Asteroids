@@ -29,6 +29,12 @@ namespace Gameplay.Base
         [SerializeField] private Transform _playerSpawnPoint;
 
         private ConfigProvider _provider;
+       
+        [Inject]
+        public void Construct(ConfigProvider provider)
+        {
+            _provider = provider;
+        } 
 
         public override void InstallBindings()
         {
@@ -40,12 +46,7 @@ namespace Gameplay.Base
             Container.DeclareSignal<ResetSignal<Ufo>>();
             Container.DeclareSignal<EnemyDiedSignal>();
             Container.DeclareSignal<PlayerCollidedSignal>();
-
-            _provider = new ConfigProvider();
-            _provider.LoadAll();
-
-            Container.Bind<LoadLevelService>().AsSingle().NonLazy();
-
+            
             InstallScore();
             InstallEnemies();
             InstallPlayer();
@@ -57,8 +58,7 @@ namespace Gameplay.Base
         private void InstallScore()
         {
             Container.Bind<ScoreConfig>().FromInstance(_provider.ScoreConfig).AsSingle();
-            //TODO убрать NonLazy
-            Container.BindInterfacesAndSelfTo<ScoreLogic>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<ScoreLogic>().AsSingle();
         }
 
         private void InstallWeapons()

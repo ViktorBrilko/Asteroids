@@ -12,12 +12,11 @@ namespace Gameplay.Scores
     {
         private int _score;
         private SignalBus _signalBus;
-        private ScoreConfig _config;
         private Dictionary<EnemyTypes, int> _enemyScoreRates = new();
 
         public int Score => _score;
 
-        public event Action<int> OnSpeedChanged;
+        public event Action<int> OnScoreChanged;
 
         public Dictionary<EnemyTypes, int> EnemyScoreRates
         {
@@ -25,10 +24,9 @@ namespace Gameplay.Scores
             set => _enemyScoreRates = value;
         }
 
-        public ScoreLogic(SignalBus signalBus, ScoreConfig config)
+        public ScoreLogic(SignalBus signalBus)
         {
             _signalBus = signalBus;
-            _config =  config;
         }
 
         public void Initialize()
@@ -41,7 +39,7 @@ namespace Gameplay.Scores
             if (signal.Enemy is Enemy enemy)
             {
                 _score += _enemyScoreRates[enemy.Type];
-                OnSpeedChanged?.Invoke(_score);
+                OnScoreChanged?.Invoke(_score);
             }
         }
 

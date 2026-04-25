@@ -1,4 +1,5 @@
 using System;
+using Core.Audios;
 using Core.Configs;
 using Gameplay.Base;
 using Gameplay.Players;
@@ -6,7 +7,7 @@ using UnityEngine;
 using Zenject;
 
 #if UNITY_EDITOR
-using UnityEditor; 
+using UnityEditor;
 #endif
 
 namespace Gameplay.Players
@@ -15,16 +16,18 @@ namespace Gameplay.Players
     {
         private PlayerConfig _config;
         private HealthService _healthService;
-        
-        public event Action OnPlayerDied; 
+        private AudioService _audioService;
+
+        public event Action OnPlayerDied;
 
         public HealthService HealthService => _healthService;
 
         [Inject]
-        public void Construct(PlayerConfig config)
+        public void Construct(PlayerConfig config, AudioService audioService)
         {
             transform.SetParent(null);
             _config = config;
+            _audioService = audioService;
 
             _healthService = GetComponent<HealthService>();
             _healthService.Init(_config.Health);
@@ -39,12 +42,12 @@ namespace Gameplay.Players
         {
             _healthService.OnDied -= Die;
         }
-        
+
         public void Die()
         {
-            OnPlayerDied?.Invoke(); 
+            _audioService.PlaySfx(_audioService.Config.PlayerDeath);
+            OnPlayerDied?.Invoke();
         }
-       
     }
 }
 
@@ -54,7 +57,7 @@ public class PlayerEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        DrawDefaultInspector(); 
+        DrawDefaultInspector();
 
         Player player = (Player)target;
 

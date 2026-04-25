@@ -1,7 +1,6 @@
 ﻿using System;
 using MVVM;
 using UniRx;
-using UnityEngine;
 using UnityEngine.UI;
 
 namespace UI.Binders
@@ -42,7 +41,5 @@ namespace UI.Binders
         public void OnError(Exception error)
         {
         }
-
-       
     }
 }

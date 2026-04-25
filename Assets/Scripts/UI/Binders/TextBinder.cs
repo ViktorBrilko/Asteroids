@@ -2,7 +2,6 @@
 using MVVM;
 using TMPro;
 using UniRx;
-using UnityEngine;
 
 namespace UI.Binders
 {

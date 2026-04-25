@@ -12,7 +12,9 @@ namespace UI.Binders
             BinderFactory.RegisterBinder<ImageBinder>();
             BinderFactory.RegisterBinder<ListImageBinder>();
             BinderFactory.RegisterBinder<ButtonBinder>();
+            BinderFactory.RegisterBinder<SliderBinder>();
             BinderFactory.RegisterBinder<ViewSetterBinder<bool>>();
+            BinderFactory.RegisterBinder<NumberBinder>();
         }
     }
 }

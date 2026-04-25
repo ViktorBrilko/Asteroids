@@ -14,6 +14,7 @@ namespace Core.Configs
         public UfoConfig UfoConfig { get; private set; }
         public ScoreConfig ScoreConfig { get; private set; }
         public WeaponConfig WeaponConfig { get; private set; }
+        public SettingsConfig SettingsConfig { get; private set; }
         
         public void LoadAll()
         {
@@ -25,6 +26,7 @@ namespace Core.Configs
             UfoConfig = LoadFromFile<UfoConfig>("ufo_config.json");
             ScoreConfig = LoadFromFile<ScoreConfig>("score_config.json");
             WeaponConfig = LoadFromFile<WeaponConfig>("weapon_config.json");
+            SettingsConfig = LoadFromFile<SettingsConfig>("settings_config.json");
         }
     
         private T LoadFromFile<T>(string fileName)

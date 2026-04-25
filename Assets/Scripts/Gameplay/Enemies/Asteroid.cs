@@ -1,3 +1,4 @@
+using Core.Audios;
 using Core.Configs;
 using Gameplay.Base;
 using Gameplay.Signals;
@@ -11,9 +12,9 @@ namespace Gameplay.Enemies
         private AsteroidConfig _config;
 
         [Inject]
-        public void Construct(SignalBus signalBus, AsteroidConfig config)
+        public void Construct(SignalBus signalBus, AsteroidConfig config, AudioService audioService)
         {
-            base.Construct(signalBus);
+            base.Construct(signalBus, audioService);
             _config = config;
 
             HealthService.Init(_config.Health);
@@ -40,6 +41,7 @@ namespace Gameplay.Enemies
 
         public void Die()
         {
+            AudioService.PlaySfx(AudioService.Config.Explosion);
             SignalBus.Fire(new ResetSignal<Asteroid>(this));
             SignalBus.Fire(new EnemyDiedSignal(this, transform.position));
         }
