@@ -16,7 +16,5 @@ namespace Gameplay.Players
             _camera = GetComponent<CinemachineVirtualCamera>();
             _camera.Follow = _player.transform;
         }
-
-       
     }
 }

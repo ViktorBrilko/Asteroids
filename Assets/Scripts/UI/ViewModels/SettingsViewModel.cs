@@ -1,15 +1,16 @@
 using System;
+using Core;
 using Core.Audios;
 using MVVM;
 using UniRx;
+using UnityEngine;
 using Zenject;
 
 namespace UI.ViewModels
 {
     public class SettingsViewModel : IInitializable, IDisposable
     {
-        public Settings Settings;
-
+        private Settings _settings;
         private WindowsState _windowsState;
         private AudioService _audioService;
 
@@ -19,7 +20,7 @@ namespace UI.ViewModels
 
         public SettingsViewModel(Settings settings, WindowsState windowsState, AudioService audioService)
         {
-            Settings = settings;
+            _settings = settings;
             _windowsState = windowsState;
             IsPanelOpen = _windowsState.IsSettingsOpen;
             _audioService = audioService;
@@ -27,11 +28,11 @@ namespace UI.ViewModels
 
         public void Initialize()
         {
-            MusicVolume.Value = Settings.MusicVolume;
-            SfxVolume.Value = Settings.SfxVolume;
+            MusicVolume.Value = _settings.MusicVolume;
+            SfxVolume.Value = _settings.SfxVolume;
             
-            Settings.SetMusicVolume(MusicVolume.Value);
-            Settings.SetSfxVolume(SfxVolume.Value);
+            _settings.SetMusicVolume(MusicVolume.Value);
+            _settings.SetSfxVolume(SfxVolume.Value);
         }
 
         public void Dispose()
@@ -43,18 +44,22 @@ namespace UI.ViewModels
         {
             _audioService.PlaySfx(_audioService.Config.UI_Click);
             _windowsState.IsSettingsOpen.Value = false;
+            _windowsState.IsMainMenuOpen.Value = true;
+            _windowsState.IsGameMenuOpen.Value = true;
         }
 
         [Method("MusicSliderChanged")]
         public void OnMusicVolumeChanged(float volume)
         {
-            Settings.SetMusicVolume(volume);
+            _settings.SetMusicVolume(volume);
+            MusicVolume.Value = volume;
         }
 
         [Method("SfxSliderChanged")]
         public void OnSfxVolumeChanged(float volume)
         {
-            Settings.SetSfxVolume(volume);
+            _settings.SetSfxVolume(volume);
+            SfxVolume.Value = volume;
         }
     }
 }
