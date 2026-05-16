@@ -1,5 +1,5 @@
 using Cinemachine;
-using Core;
+using Controls;
 using Core.Configs;
 using Gameplay.Enemies;
 using Gameplay.Gamefields;
@@ -12,7 +12,7 @@ using Zenject;
 
 namespace Gameplay.Base
 {
-    public class GameSceneInstaller : MonoInstaller
+    public class GameSceneInstaller : MonoInstaller, IInitializable
     {
         [SerializeField] private GameObject _bulletPrefab;
         [SerializeField] private GameObject _gameFieldPrefab;
@@ -21,6 +21,7 @@ namespace Gameplay.Base
         [SerializeField] private GameObject _playerPrefab;
         [SerializeField] private GameObject _cameraPrefab;
         [SerializeField] private GameObject _ufoPrefab;
+        [SerializeField] private GameObject _mobileButtonsPrefab;
 
         [SerializeField] private int _bulletPoolCapacity;
         [SerializeField] private int _asteroidPoolCapacity;
@@ -28,17 +29,29 @@ namespace Gameplay.Base
         [SerializeField] private int _ufoPoolCapacity;
 
         [SerializeField] private Transform _playerSpawnPoint;
+        [SerializeField] private Canvas _canvas;
 
         private ConfigProvider _provider;
-       
+        private bool _isMobile;
+
         [Inject]
         public void Construct(ConfigProvider provider)
         {
             _provider = provider;
-        } 
+        }
+
+        public void Initialize()
+        {
+            if (_isMobile)
+            {
+                Container.InstantiatePrefab(_mobileButtonsPrefab, _canvas.transform);
+            }
+        }
 
         public override void InstallBindings()
         {
+            _isMobile = Application.isMobilePlatform;
+
             SignalBusInstaller.Install(Container);
 
             Container.DeclareSignal<ResetSignal<Bullet>>();
@@ -47,13 +60,28 @@ namespace Gameplay.Base
             Container.DeclareSignal<ResetSignal<Ufo>>();
             Container.DeclareSignal<EnemyDiedSignal>();
             Container.DeclareSignal<PlayerCollidedSignal>();
-            
+
             InstallScore();
+            InstallControls();
             InstallEnemies();
             InstallPlayer();
             InstallWeapons();
             InstallGameField();
             InstallCamera();
+
+            Container.BindInterfacesTo<GameSceneInstaller>().FromInstance(this);
+        }
+
+        private void InstallControls()
+        {
+            if (_isMobile)
+            {
+                Container.Bind<MobileController>().AsSingle();
+            }
+            else
+            {
+                Container.BindInterfacesAndSelfTo<DesktopController>().AsSingle();
+            }
         }
 
         private void InstallScore()

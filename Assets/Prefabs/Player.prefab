@@ -5106,7 +5106,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _laser: {fileID: 3147239558615990374}
+  _laserAnimator: {fileID: 5598885245260203970}
   _projectileSpawnPoint: {fileID: 7212271247455749396}
+  _player: {fileID: 3586498247564469775}
 --- !u!114 &740109293531242867
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5120,6 +5122,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _shield: {fileID: 284268349092691993}
+  _player: {fileID: 3586498247564469775}
 --- !u!1001 &6570904271966833983
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5189,5 +5192,10 @@ GameObject:
 --- !u!4 &3931836988806333534 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7899378032927115617, guid: 29ba248c4594cbf458b3f434013bc06a, type: 3}
+  m_PrefabInstance: {fileID: 6570904271966833983}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &5598885245260203970 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 1622341399981001469, guid: 29ba248c4594cbf458b3f434013bc06a, type: 3}
   m_PrefabInstance: {fileID: 6570904271966833983}
   m_PrefabAsset: {fileID: 0}
