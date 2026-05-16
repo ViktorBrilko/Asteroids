@@ -44,8 +44,8 @@ namespace Gameplay.Base
 
             _signalBus.Subscribe<EnemyDiedSignal>(OnEnemyDeath);
 
-            SpawnUfos(_cts.Token).Forget();
-             SpawnAsteroids(_cts.Token).Forget();
+          //  SpawnUfos(_cts.Token).Forget();
+            SpawnAsteroids(_cts.Token).Forget();
         }
 
         public void Dispose()

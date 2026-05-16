@@ -1089,50 +1089,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 895842985}
     m_Modifications:
-    - target: {fileID: 141509472408648741, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 141509472408648741, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 965988983418090123, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 0.049
-      objectReference: {fileID: 0}
-    - target: {fileID: 965988983418090123, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 965988983418090123, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
-      propertyPath: m_AnchorMin.x
-      value: 0.049
-      objectReference: {fileID: 0}
-    - target: {fileID: 1997170941440648694, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1997170941440648694, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1997170941440648694, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
-      propertyPath: m_AnchorMin.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3497792337005775636, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3834651679484534605, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 0.049
-      objectReference: {fileID: 0}
-    - target: {fileID: 3834651679484534605, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 5024052683068855394, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -3803,11 +3759,13 @@ MonoBehaviour:
   _playerPrefab: {fileID: 8915094865332775943, guid: b87cb2fff5379ce488a79f854e28f036, type: 3}
   _cameraPrefab: {fileID: 3142117575118425044, guid: 78ea5a41704a94a439981000e7cb0873, type: 3}
   _ufoPrefab: {fileID: 8596934722968740097, guid: 89f1ea3e9ab465345a3dde70f0dffebc, type: 3}
+  _mobileButtonsPrefab: {fileID: 4385545635865817598, guid: 63947b5c021310a44ac71f9f92c7f5a8, type: 3}
   _bulletPoolCapacity: 20
   _asteroidPoolCapacity: 10
   _smallAsteroidPoolCapacity: 50
   _ufoPoolCapacity: 5
   _playerSpawnPoint: {fileID: 1630376952}
+  _canvas: {fileID: 895842984}
 --- !u!114 &1756391430
 MonoBehaviour:
   m_ObjectHideFlags: 0

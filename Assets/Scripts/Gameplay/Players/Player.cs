@@ -17,6 +17,13 @@ namespace Gameplay.Players
         private PlayerConfig _config;
         private HealthService _healthService;
         private AudioService _audioService;
+        private bool _isUncontrollable;
+
+        public bool IsUncontrollable
+        {
+            get => _isUncontrollable;
+            set => _isUncontrollable = value;
+        }
 
         public event Action OnPlayerDied;
 

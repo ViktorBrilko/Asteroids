@@ -1,4 +1,5 @@
 ﻿using System;
+using Controls;
 using Core.Audios;
 using Core.Configs;
 using Cysharp.Threading.Tasks;
@@ -12,17 +13,19 @@ namespace Gameplay.Players
     public class PlayerWeapon : MonoBehaviour
     {
         [SerializeField] private GameObject _laser;
+        [SerializeField] private Animator _laserAnimator;
         [SerializeField] private Transform _projectileSpawnPoint;
+        [SerializeField] private Player _player;
 
         private bool _canShootBullets = true;
         private int _laserShootsCount;
         private int _laserCooldown;
         private WeaponConfig _config;
         private Spawner<Bullet> _bulletSpawner;
-        private Animator _laserAnimator;
         private bool _isLaserCharging;
         private static readonly int IsShooting = Animator.StringToHash("IsShooting");
         private AudioService _audioService;
+        private PlayerInputHandler _inputHandler;
 
         public event Action<int> OnLaserCountChanged;
         public event Action<float> OnLaserChargeStarted;
@@ -30,22 +33,31 @@ namespace Gameplay.Players
         public int LaserShootsCount => _laserShootsCount;
 
         [Inject]
-        public void Construct(Spawner<Bullet> bulletSpawner, WeaponConfig config, AudioService audioService)
+        public void Construct(Spawner<Bullet> bulletSpawner, WeaponConfig config, AudioService audioService,
+            PlayerInputHandler inputHandler)
         {
             _bulletSpawner = bulletSpawner;
             _laserShootsCount = config.LaserCount;
             _config = config;
             _audioService = audioService;
+            _inputHandler = inputHandler;
         }
 
-        private void Start()
+        private void OnEnable()
         {
-            _laserAnimator = _laser.GetComponent<Animator>();
+            _inputHandler.FireBullet += FireBullets;
+            _inputHandler.FireLaser += FireLaser;
         }
 
-        public async UniTask FireBullets()
+        private void OnDisable()
         {
-            if (_canShootBullets)
+            _inputHandler.FireBullet -= FireBullets;
+            _inputHandler.FireLaser -= FireLaser;
+        }
+
+        private async void FireBullets()
+        {
+            if (_canShootBullets && !_player.IsUncontrollable)
             {
                 _audioService.PlaySfx(_audioService.Config.BulletShoot);
                 _canShootBullets = false;
@@ -55,9 +67,10 @@ namespace Gameplay.Players
             }
         }
 
-        public async UniTaskVoid FireLaser()
+        private async void FireLaser()
         {
-            if (_laserShootsCount <= 0) return;
+            if (_laserShootsCount <= 0 || _player.IsUncontrollable) return;
+            
             _audioService.PlaySfx(_audioService.Config.LaserShoot);
 
             _canShootBullets = false;

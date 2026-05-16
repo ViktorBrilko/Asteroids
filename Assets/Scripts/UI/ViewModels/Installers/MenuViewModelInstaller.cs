@@ -1,6 +1,6 @@
 ﻿using Zenject;
 
-namespace UI.ViewModels
+namespace UI.ViewModels.Installers
 {
     public class MenuViewModelInstaller : MonoInstaller
     {

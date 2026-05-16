@@ -1,6 +1,7 @@
-﻿using Zenject;
+﻿using UnityEngine;
+using Zenject;
 
-namespace UI.ViewModels
+namespace UI.ViewModels.Installers
 {
     public class GameplayViewModelsInstaller : MonoInstaller
     {
@@ -13,9 +14,14 @@ namespace UI.ViewModels
             Container.BindInterfacesAndSelfTo<PlayerPositionViewModel>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<SpeedViewModel>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<HealthViewModel>().AsSingle().NonLazy();
-            Container.BindInterfacesAndSelfTo<DeathPanelViewModel>().AsSingle().NonLazy();            
-            Container.BindInterfacesAndSelfTo<GameMenuViewModel>().AsSingle().NonLazy();             
-            Container.BindInterfacesAndSelfTo<GameMenuButtonViewModel>().AsSingle().NonLazy();             
+            Container.BindInterfacesAndSelfTo<DeathPanelViewModel>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<GameMenuViewModel>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<GameMenuButtonViewModel>().AsSingle().NonLazy();
+
+            if (Application.isMobilePlatform)
+            {
+                Container.BindInterfacesAndSelfTo<MobileButtonsViewModel>().AsSingle().NonLazy();
+            }
         }
     }
 }

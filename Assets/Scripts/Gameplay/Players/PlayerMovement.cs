@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Controls;
 using Core.Configs;
 using Cysharp.Threading.Tasks;
 using Gameplay.Signals;
@@ -11,6 +12,7 @@ namespace Gameplay.Players
     public class PlayerMovement : MonoBehaviour
     {
         [SerializeField] private ParticleSystem _shield;
+        [SerializeField] private Player _player;
 
         private const string PLAYER_LAYER = "Player";
         private const string PLAYER_UNCONTROLLABLE_LAYER = "Uncontrollable Player";
@@ -24,30 +26,32 @@ namespace Gameplay.Players
         private float _currentSpeed;
         private PlayerConfig _config;
         private SignalBus _signalBus;
-        private bool _isUncontrollable;
+        private PlayerInputHandler _playerInputHandler;
 
         public event Action<float> OnSpeedChanged;
         public event Action<float> OnRotationChanged;
         public event Action<Vector2> OnPositionChanged;
 
-        public bool IsUncontrollable => _isUncontrollable;
-
         [Inject]
-        public void Construct(PlayerConfig config, SignalBus signalBus)
+        public void Construct(PlayerConfig config, SignalBus signalBus, PlayerInputHandler playerInputHandler)
         {
             transform.SetParent(null);
             _config = config;
             _signalBus = signalBus;
+            _playerInputHandler = playerInputHandler;
         }
 
         private void OnEnable()
         {
             _signalBus.Subscribe<PlayerCollidedSignal>(OnPlayerCollision);
+            _playerInputHandler.ChangeSpeed += ChangeSpeed;
+            _playerInputHandler.InertialMovement += InertialMove;
         }
 
         private void OnDisable()
         {
             _signalBus.Unsubscribe<PlayerCollidedSignal>(OnPlayerCollision);
+            _playerInputHandler.ChangeSpeed -= ChangeSpeed;
 
             if (_speedCts != null)
             {
@@ -62,7 +66,7 @@ namespace Gameplay.Players
                 _inertionCts.Dispose();
                 _inertionCts = null;
             }
-            
+
             if (_collisionCts != null)
             {
                 _collisionCts.Cancel();
@@ -71,14 +75,31 @@ namespace Gameplay.Players
             }
         }
 
-        public async UniTaskVoid ChangeSpeed(bool increase)
+        private void Update()
         {
+            if(_player.IsUncontrollable) return;
+            
+            if (_playerInputHandler.XDirection != 0 ||  _playerInputHandler.YDirection != 0)
+            {
+                Move(new Vector3(_playerInputHandler.XDirection, _playerInputHandler.YDirection, 0));
+            }
+
+            if (_playerInputHandler.Rotation != 0)
+            {
+                Rotate(_playerInputHandler.Rotation);
+            }
+        }
+
+        private async void ChangeSpeed(bool increase)
+        {
+            if(_player.IsUncontrollable && increase) return;
+            
             if (_speedCts != null)
             {
                 _speedCts.Cancel();
                 _speedCts.Dispose();
             }
-
+            
             _speedCts = new CancellationTokenSource();
 
             try
@@ -94,7 +115,8 @@ namespace Gameplay.Players
                             _inertionCts.Cancel();
                         }
 
-                        _currentSpeed = Mathf.MoveTowards(_currentSpeed, _config.MaxSpeed, _config.SpeedChangeStep * Time.deltaTime);
+                        _currentSpeed = Mathf.MoveTowards(_currentSpeed, _config.MaxSpeed,
+                            _config.SpeedChangeStep * Time.deltaTime);
                     }
                     else
                     {
@@ -103,7 +125,8 @@ namespace Gameplay.Players
 
                     OnSpeedChanged?.Invoke(_currentSpeed);
 
-                    if (Mathf.Approximately(_currentSpeed, _config.MaxSpeed) || Mathf.Approximately(_currentSpeed, 0f)) break;
+                    if (Mathf.Approximately(_currentSpeed, _config.MaxSpeed) ||
+                        Mathf.Approximately(_currentSpeed, 0f)) break;
                 }
             }
             catch (OperationCanceledException e)
@@ -111,14 +134,14 @@ namespace Gameplay.Players
             }
         }
 
-        public async UniTaskVoid InertialMove()
+        private async void InertialMove()
         {
             if (_inertionCts != null)
             {
                 _inertionCts.Cancel();
                 _inertionCts.Dispose();
             }
-
+            
             _inertionCts = new CancellationTokenSource();
 
             try
@@ -142,7 +165,7 @@ namespace Gameplay.Players
             _lastYDirection = 0;
         }
 
-        public void Move(Vector3 direction)
+        private void Move(Vector3 direction)
         {
             transform.Translate(direction.normalized * (_currentSpeed * Time.deltaTime));
             _lastXDirection = direction.x;
@@ -150,7 +173,7 @@ namespace Gameplay.Players
             OnPositionChanged?.Invoke(transform.position);
         }
 
-        public void Rotate(float rotation)
+        private void Rotate(float rotation)
         {
             transform.Rotate(0, 0, rotation * _config.RotationSpeed * Time.deltaTime);
             OnRotationChanged?.Invoke(transform.rotation.eulerAngles.z);
@@ -169,12 +192,12 @@ namespace Gameplay.Players
             try
             {
                 float elapsedTime = 0;
-                _isUncontrollable = true;
+                _player.IsUncontrollable = true;
                 Vector3 direction = (transform.position - signal.CollidedObject.transform.position).normalized;
                 gameObject.layer = LayerMask.NameToLayer(PLAYER_UNCONTROLLABLE_LAYER);
                 _shield.Play();
                 _currentSpeed = _config.AfterCollisionSpeed;
-                ChangeSpeed(false).Forget();
+                ChangeSpeed(false);
 
                 while (elapsedTime < _config.UncontrollableTime)
                 {
@@ -183,7 +206,7 @@ namespace Gameplay.Players
                     await UniTask.NextFrame(cancellationToken: _collisionCts.Token);
                 }
 
-                _isUncontrollable = false;
+                _player.IsUncontrollable = false;
 
                 await UniTask.Delay(_config.BeforeShieldStopDelay, cancellationToken: _collisionCts.Token);
                 gameObject.layer = LayerMask.NameToLayer(PLAYER_LAYER);
