@@ -298,6 +298,46 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1192169878}
     m_Modifications:
+    - target: {fileID: 141509472408648741, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 141509472408648741, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 965988983418090123, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 965988983418090123, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 965988983418090123, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1997170941440648694, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1997170941440648694, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1997170941440648694, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3834651679484534605, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3834651679484534605, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5024052683068855394, guid: 55c3a72ea3fa2d34e8dcae288ce5f9d4, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -1104,12 +1144,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewBinding: 0
   view: {fileID: 1508923538}
-  viewType: {fileID: 0}
-  viewId: 
   viewModelBinding: 1
-  viewModel: {fileID: 0}
-  viewModelType: {fileID: 11500000, guid: a9d20b13945b411f9f6be3f3ba4ba620, type: 3}
-  viewModelId: 
+  viewModelTypeName: UI.ViewModels.MainMenuViewModel, UI, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  _viewModelScript: {fileID: 11500000, guid: a9d20b13945b411f9f6be3f3ba4ba620, type: 3}
 --- !u!114 &1508923538
 MonoBehaviour:
   m_ObjectHideFlags: 0

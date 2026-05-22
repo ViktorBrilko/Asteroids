@@ -1444,12 +1444,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewBinding: 0
   view: {fileID: 2611050240053086589}
-  viewType: {fileID: 0}
-  viewId: 
   viewModelBinding: 1
-  viewModel: {fileID: 0}
-  viewModelType: {fileID: 11500000, guid: 18b9f12d7d144324ca5d8b0be7afbcbe, type: 3}
-  viewModelId: 
+  viewModelTypeName: UI.ViewModels.SettingsViewModel, UI, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  _viewModelScript: {fileID: 11500000, guid: 18b9f12d7d144324ca5d8b0be7afbcbe, type: 3}
 --- !u!1 &8344917198662913932
 GameObject:
   m_ObjectHideFlags: 0

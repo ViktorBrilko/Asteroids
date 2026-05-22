@@ -1,3 +1,5 @@
+using Analytics;
+using Analytics.Firebase;
 using Core.Audios;
 using Core.Configs;
 using UnityEngine;
@@ -30,7 +32,8 @@ namespace Core
             Container.BindInterfacesAndSelfTo<AudioService>().FromComponentInNewPrefab(_audioServicePrefab).AsSingle()
                 .NonLazy();
             
-            
+            Container.Bind<IAnalyticsService>().To<FirebaseAnalyticsService>().AsSingle();
+            Container.BindInterfacesAndSelfTo<FirebaseInitializer>().AsSingle();
         }
     }
 }

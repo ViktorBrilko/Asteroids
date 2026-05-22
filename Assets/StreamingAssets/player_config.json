@@ -1,7 +1,7 @@
 {
   "MaxSpeed": 15,
   "AfterCollisionSpeed": 15,
-  "Health": 100,
+  "Health": 3,
   "RotationSpeed": 65,
   "UncontrollableTime": 3,
   "BeforeShieldStopDelay": 1000,

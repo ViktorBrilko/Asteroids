@@ -12,7 +12,7 @@ namespace Gameplay.Enemies
         private void OnTriggerEnter2D(Collider2D other)
         {
             if (!other.TryGetComponent(out Player player)) return;
-            
+
             _parentUfo.Player = player.transform;
             _parentUfo.StartChasing();
         }
@@ -20,7 +20,7 @@ namespace Gameplay.Enemies
         private void OnTriggerExit2D(Collider2D other)
         {
             if (!other.TryGetComponent(out Player player)) return;
-            
+
             _parentUfo.StopChasing();
             _parentUfo.Player = null;
         }
@@ -31,6 +31,7 @@ namespace Gameplay.Enemies
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position, GetComponent<CircleCollider2D>().radius * 2);
         }
-    }
+
 #endif
+    }
 }

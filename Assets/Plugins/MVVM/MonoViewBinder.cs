@@ -5,68 +5,76 @@ using UnityEngine;
 using Zenject;
 using Object = UnityEngine.Object;
 
-public sealed class MonoViewBinder : MonoBehaviour
+namespace Plugins.MVVM
 {
-    private enum BindingMode
+    public sealed class MonoViewBinder : MonoBehaviour
     {
-        FromInstance = 0,
-        FromResolve = 1,
-        FromResolveId = 2
-    }
-
-    [SerializeField] private BindingMode viewBinding;
-
-    [SerializeField] private Object view;
-
-    [SerializeField] private MonoScript viewType;
-
-    [SerializeField] private string viewId;
-
-    [Space(8)] [SerializeField] private BindingMode viewModelBinding;
-
-    [SerializeField] private Object viewModel;
-
-    [SerializeField] private MonoScript viewModelType;
-
-    [SerializeField] private string viewModelId;
-
-    [Inject] private DiContainer diContainer;
-
-    private IBinder _binder;
-
-    private void Awake()
-    {
-        _binder = CreateBinder();
-    }
-
-    private void OnEnable()
-    {
-        _binder.Bind();
-    }
-
-    private void OnDisable()
-    {
-        _binder.Unbind();
-    }
-
-    private IBinder CreateBinder()
-    {
-        object view = this.viewBinding switch
+        private enum BindingMode
         {
-            BindingMode.FromInstance => this.view,
-            BindingMode.FromResolve => this.diContainer.Resolve(this.viewType.GetClass()),
-            BindingMode.FromResolveId => this.diContainer.ResolveId(this.viewType.GetClass(), this.viewId),
-            _ => throw new Exception($"Binding type of view {this.viewBinding} is not found!")
-        };
+            FromInstance = 0,
+            FromResolve = 1
+        }
 
-        object model = this.viewModelBinding switch
+        [SerializeField] private BindingMode viewBinding;
+
+        [SerializeField] private Object view;
+
+        [Space(8)] [SerializeField] private BindingMode viewModelBinding;
+
+        [SerializeField, HideInInspector] private string viewModelTypeName;
+
+        [Inject] private DiContainer diContainer;
+
+        private IBinder _binder;
+        private Type _viewModelType;
+
+        private void Awake()
         {
-            BindingMode.FromInstance => this.viewModel,
-            BindingMode.FromResolve => this.diContainer.Resolve(this.viewModelType.GetClass()),
-            BindingMode.FromResolveId => this.diContainer.ResolveId(this.viewModelType.GetClass(), this.viewModelId),
-            _ => throw new Exception($"Binding type of view {this.viewBinding} is not found!")
-        };
+            _viewModelType = Type.GetType(viewModelTypeName);
+            _binder = CreateBinder();
+        }
 
-        return BinderFactory.CreateComposite(view, model);
+        private void OnEnable()
+        {
+            _binder.Bind();
+        }
+
+        private void OnDisable()
+        {
+            _binder.Unbind();
+        }
+
+#if UNITY_EDITOR
+        [SerializeField] private MonoScript _viewModelScript;
+
+        private void OnValidate()
+        {
+            if (_viewModelScript != null)
+            {
+                viewModelTypeName = _viewModelScript.GetClass()?.AssemblyQualifiedName;
+            }
+            else
+            {
+                viewModelTypeName = string.Empty;
+            }
+        }
+#endif
+
+        private IBinder CreateBinder()
+        {
+            object view = this.viewBinding switch
+            {
+                BindingMode.FromInstance => this.view,
+                _ => throw new Exception($"Binding type of view {this.viewBinding} is not found!")
+            };
+
+            object model = this.viewModelBinding switch
+            {
+                BindingMode.FromResolve => this.diContainer.Resolve(_viewModelType),
+                _ => throw new Exception($"Binding type of view {this.viewBinding} is not found!")
+            };
+
+            return BinderFactory.CreateComposite(view, model);
+        }
     }
 }

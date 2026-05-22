@@ -18,6 +18,8 @@ namespace Core.Configs
         
         public void LoadAll()
         {
+            BetterStreamingAssets.Initialize();
+            
             PlayerConfig = LoadFromFile<PlayerConfig>("player_config.json");
             BulletConfig = LoadFromFile<BulletConfig>("bullet_config.json");
             GameFieldConfig = LoadFromFile<GameFieldConfig>("gamefield_config.json");
@@ -31,10 +33,9 @@ namespace Core.Configs
     
         private T LoadFromFile<T>(string fileName)
         {
-            string path = Path.Combine(Application.streamingAssetsPath, fileName);
-            if (File.Exists(path))
+            if (BetterStreamingAssets.FileExists(fileName))
             {
-                string json = File.ReadAllText(path);
+                string json = BetterStreamingAssets.ReadAllText(fileName);
                 return JsonConvert.DeserializeObject<T>(json);
             }
             return default; 

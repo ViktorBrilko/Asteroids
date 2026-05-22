@@ -323,12 +323,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewBinding: 0
   view: {fileID: 213966475}
-  viewType: {fileID: 0}
-  viewId: 
   viewModelBinding: 1
-  viewModel: {fileID: 0}
-  viewModelType: {fileID: 11500000, guid: 273860dbd89e4ef6983be92784c504e0, type: 3}
-  viewModelId: 
+  viewModelTypeName: UI.ViewModels.DeathPanelViewModel, UI, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  _viewModelScript: {fileID: 11500000, guid: 273860dbd89e4ef6983be92784c504e0, type: 3}
 --- !u!114 &213966475
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -667,12 +665,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewBinding: 0
   view: {fileID: 394179153}
-  viewType: {fileID: 0}
-  viewId: 
   viewModelBinding: 1
-  viewModel: {fileID: 0}
-  viewModelType: {fileID: 11500000, guid: 3ee233588cf8693428e4eb10921657f2, type: 3}
-  viewModelId: 
+  viewModelTypeName: UI.ViewModels.LaserCountViewModel, UI, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  _viewModelScript: {fileID: 11500000, guid: 3ee233588cf8693428e4eb10921657f2, type: 3}
 --- !u!114 &394179153
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1495,12 +1491,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewBinding: 0
   view: {fileID: 730460257}
-  viewType: {fileID: 0}
-  viewId: 
   viewModelBinding: 1
-  viewModel: {fileID: 0}
-  viewModelType: {fileID: 11500000, guid: 307a1b683aadc4245803fb23d7bbcd6f, type: 3}
-  viewModelId: 
+  viewModelTypeName: UI.ViewModels.HealthViewModel, UI, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  _viewModelScript: {fileID: 11500000, guid: 307a1b683aadc4245803fb23d7bbcd6f, type: 3}
 --- !u!1 &766807566
 GameObject:
   m_ObjectHideFlags: 0
@@ -1772,12 +1766,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewBinding: 0
   view: {fileID: 851387751}
-  viewType: {fileID: 0}
-  viewId: 
   viewModelBinding: 1
-  viewModel: {fileID: 0}
-  viewModelType: {fileID: 11500000, guid: 87c6bccfdab545238d079b4de018181e, type: 3}
-  viewModelId: 
+  viewModelTypeName: UI.ViewModels.GameMenuButtonViewModel, UI, Version=0.0.0.0,
+    Culture=neutral, PublicKeyToken=null
+  _viewModelScript: {fileID: 11500000, guid: 87c6bccfdab545238d079b4de018181e, type: 3}
 --- !u!114 &851387751
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1843,12 +1835,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewBinding: 0
   view: {fileID: 893062346}
-  viewType: {fileID: 0}
-  viewId: 
   viewModelBinding: 1
-  viewModel: {fileID: 0}
-  viewModelType: {fileID: 11500000, guid: c6acfef580581de44be6b6f461cf7fc5, type: 3}
-  viewModelId: 
+  viewModelTypeName: UI.ViewModels.SpeedViewModel, UI, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  _viewModelScript: {fileID: 11500000, guid: c6acfef580581de44be6b6f461cf7fc5, type: 3}
 --- !u!114 &893062346
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2248,12 +2238,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewBinding: 0
   view: {fileID: 1026237763}
-  viewType: {fileID: 0}
-  viewId: 
   viewModelBinding: 1
-  viewModel: {fileID: 0}
-  viewModelType: {fileID: 11500000, guid: f0bf5a90253d9d3418a3940a6b849518, type: 3}
-  viewModelId: 
+  viewModelTypeName: UI.ViewModels.ScoreViewModel, UI, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  _viewModelScript: {fileID: 11500000, guid: f0bf5a90253d9d3418a3940a6b849518, type: 3}
 --- !u!1 &1080129527
 GameObject:
   m_ObjectHideFlags: 0
@@ -2306,12 +2294,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewBinding: 0
   view: {fileID: 1080129530}
-  viewType: {fileID: 0}
-  viewId: 
   viewModelBinding: 1
-  viewModel: {fileID: 0}
-  viewModelType: {fileID: 11500000, guid: fefc7e7a8b80b9245b65a617859cd626, type: 3}
-  viewModelId: 
+  viewModelTypeName: PlayerRotationViewModel, UI, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  _viewModelScript: {fileID: 11500000, guid: fefc7e7a8b80b9245b65a617859cd626, type: 3}
 --- !u!114 &1080129530
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2608,12 +2594,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewBinding: 0
   view: {fileID: 1208674585}
-  viewType: {fileID: 0}
-  viewId: 
   viewModelBinding: 1
-  viewModel: {fileID: 0}
-  viewModelType: {fileID: 11500000, guid: de0d8594408b4355a93100f006f7ead2, type: 3}
-  viewModelId: 
+  viewModelTypeName: UI.ViewModels.LaserChargeViewModel, UI, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  _viewModelScript: {fileID: 11500000, guid: de0d8594408b4355a93100f006f7ead2, type: 3}
 --- !u!1 &1245306175
 GameObject:
   m_ObjectHideFlags: 0
@@ -2666,12 +2650,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewBinding: 0
   view: {fileID: 1245306178}
-  viewType: {fileID: 0}
-  viewId: 
   viewModelBinding: 1
-  viewModel: {fileID: 0}
-  viewModelType: {fileID: 11500000, guid: d5913368fe4e9b848bf7278cd1c1320f, type: 3}
-  viewModelId: 
+  viewModelTypeName: UI.ViewModels.PlayerPositionViewModel, UI, Version=0.0.0.0,
+    Culture=neutral, PublicKeyToken=null
+  _viewModelScript: {fileID: 11500000, guid: d5913368fe4e9b848bf7278cd1c1320f, type: 3}
 --- !u!114 &1245306178
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4294,12 +4276,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewBinding: 0
   view: {fileID: 2029394802}
-  viewType: {fileID: 0}
-  viewId: 
   viewModelBinding: 1
-  viewModel: {fileID: 0}
-  viewModelType: {fileID: 11500000, guid: 8dd8aa712f9d4ddf978b24c57b925daa, type: 3}
-  viewModelId: 
+  viewModelTypeName: UI.ViewModels.GameMenuViewModel, UI, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  _viewModelScript: {fileID: 11500000, guid: 8dd8aa712f9d4ddf978b24c57b925daa, type: 3}
 --- !u!114 &2029394802
 MonoBehaviour:
   m_ObjectHideFlags: 0

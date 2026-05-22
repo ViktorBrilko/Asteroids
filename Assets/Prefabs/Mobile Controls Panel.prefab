@@ -755,12 +755,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewBinding: 0
   view: {fileID: 3574553927899748204}
-  viewType: {fileID: 0}
-  viewId: 
   viewModelBinding: 1
-  viewModel: {fileID: 0}
-  viewModelType: {fileID: 11500000, guid: a128fc86e76840fba682bd722c1e3635, type: 3}
-  viewModelId: 
+  viewModelTypeName: UI.ViewModels.MobileButtonsViewModel, UI, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  _viewModelScript: {fileID: 11500000, guid: a128fc86e76840fba682bd722c1e3635, type: 3}
 --- !u!1 &6648518154485661562
 GameObject:
   m_ObjectHideFlags: 0

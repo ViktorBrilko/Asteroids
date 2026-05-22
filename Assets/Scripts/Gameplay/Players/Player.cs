@@ -1,4 +1,5 @@
 using System;
+using Analytics;
 using Core.Audios;
 using Core.Configs;
 using Gameplay.Base;
@@ -18,6 +19,7 @@ namespace Gameplay.Players
         private HealthService _healthService;
         private AudioService _audioService;
         private bool _isUncontrollable;
+        private IAnalyticsService _analyticsService;
 
         public bool IsUncontrollable
         {
@@ -30,11 +32,12 @@ namespace Gameplay.Players
         public HealthService HealthService => _healthService;
 
         [Inject]
-        public void Construct(PlayerConfig config, AudioService audioService)
+        public void Construct(PlayerConfig config, AudioService audioService, IAnalyticsService analyticsService)
         {
             transform.SetParent(null);
             _config = config;
             _audioService = audioService;
+            _analyticsService = analyticsService;
 
             _healthService = GetComponent<HealthService>();
             _healthService.Init(_config.Health);
@@ -53,6 +56,7 @@ namespace Gameplay.Players
         public void Die()
         {
             _audioService.PlaySfx(_audioService.Config.PlayerDeath);
+            _analyticsService.LogEvent("player_died");
             OnPlayerDied?.Invoke();
         }
     }

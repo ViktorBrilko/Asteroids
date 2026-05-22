@@ -2,7 +2,6 @@ using System;
 using Gameplay.Base;
 using MVVM;
 using UniRx;
-using UnityEngine;
 using Zenject;
 
 namespace UI.ViewModels
