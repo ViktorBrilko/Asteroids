@@ -2,11 +2,11 @@ using System;
 using Analytics;
 using Core.Audios;
 using Core.Configs;
+using Core.Signals;
 using Gameplay.Base;
 using Gameplay.Players;
 using UnityEngine;
 using Zenject;
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -20,6 +20,7 @@ namespace Gameplay.Players
         private AudioService _audioService;
         private bool _isUncontrollable;
         private IAnalyticsService _analyticsService;
+        private SignalBus _signalBus;
 
         public bool IsUncontrollable
         {
@@ -27,17 +28,17 @@ namespace Gameplay.Players
             set => _isUncontrollable = value;
         }
 
-        public event Action OnPlayerDied;
-
         public HealthService HealthService => _healthService;
 
         [Inject]
-        public void Construct(PlayerConfig config, AudioService audioService, IAnalyticsService analyticsService)
+        public void Construct(PlayerConfig config, AudioService audioService, IAnalyticsService analyticsService,
+            SignalBus signalBus)
         {
             transform.SetParent(null);
             _config = config;
             _audioService = audioService;
             _analyticsService = analyticsService;
+            _signalBus = signalBus;
 
             _healthService = GetComponent<HealthService>();
             _healthService.Init(_config.Health);
@@ -56,8 +57,8 @@ namespace Gameplay.Players
         public void Die()
         {
             _audioService.PlaySfx(_audioService.Config.PlayerDeath);
-            _analyticsService.LogEvent("player_died");
-            OnPlayerDied?.Invoke();
+            _analyticsService.LogEvent("player_died");        
+            _signalBus.Fire<PlayerDiedSignal>();
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using Core;
 using Core.Audios;
-using Gameplay.Players;
+using Core.Signals;
 using MVVM;
 using UniRx;
 using UnityEngine;
@@ -11,28 +11,29 @@ namespace UI.ViewModels
 {
     public class DeathPanelViewModel : IInitializable, IDisposable
     {
-        public readonly Player Player;
         public readonly LoadLevelService LoadLevel;
-        
+
         private AudioService _audioService;
+        private SignalBus _signalBus;
 
         [Data("Interactable")] public readonly ReactiveProperty<bool> IsPlayerDead = new();
 
-        public DeathPanelViewModel(Player player, LoadLevelService loadLevel, AudioService audioService)
+        public DeathPanelViewModel(LoadLevelService loadLevel, AudioService audioService,
+            SignalBus signalBus)
         {
             _audioService = audioService;
-            Player = player;
             LoadLevel = loadLevel;
+            _signalBus = signalBus;
         }
 
         public void Initialize()
         {
-            Player.OnPlayerDied += OnPlayerDied;
+            _signalBus.Subscribe<PlayerDiedSignal>(OnPlayerDied);
         }
 
         public void Dispose()
         {
-            Player.OnPlayerDied -= OnPlayerDied;
+            _signalBus.Unsubscribe<PlayerDiedSignal>(OnPlayerDied);
         }
 
         private void OnPlayerDied()
@@ -44,6 +45,7 @@ namespace UI.ViewModels
         [Method("OnMenuClick")]
         public void OnMenuClicked()
         {
+            Time.timeScale = 1;
             _audioService.PlaySfx(_audioService.Config.UI_Click);
             LoadLevel.LoadMenu();
         }

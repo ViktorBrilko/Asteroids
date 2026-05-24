@@ -1,6 +1,4 @@
-using System.IO;
 using Newtonsoft.Json;
-using UnityEngine;
 
 namespace Core.Configs
 {
@@ -15,6 +13,7 @@ namespace Core.Configs
         public ScoreConfig ScoreConfig { get; private set; }
         public WeaponConfig WeaponConfig { get; private set; }
         public SettingsConfig SettingsConfig { get; private set; }
+        public AdsConfig AdsConfig { get; private set; }
         
         public void LoadAll()
         {
@@ -29,6 +28,7 @@ namespace Core.Configs
             ScoreConfig = LoadFromFile<ScoreConfig>("score_config.json");
             WeaponConfig = LoadFromFile<WeaponConfig>("weapon_config.json");
             SettingsConfig = LoadFromFile<SettingsConfig>("settings_config.json");
+            AdsConfig = LoadFromFile<AdsConfig>("ads_config.json");
         }
     
         private T LoadFromFile<T>(string fileName)

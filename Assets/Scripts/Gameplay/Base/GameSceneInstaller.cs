@@ -52,8 +52,6 @@ namespace Gameplay.Base
         {
             _isMobile = Application.isMobilePlatform;
 
-            SignalBusInstaller.Install(Container);
-
             Container.DeclareSignal<ResetSignal<Bullet>>();
             Container.DeclareSignal<ResetSignal<Asteroid>>();
             Container.DeclareSignal<ResetSignal<SmallAsteroid>>();
@@ -165,7 +163,6 @@ namespace Gameplay.Base
                 .FromResolveGetter<Player>(playerInstance => playerInstance.GetComponent<HealthService>())
                 .AsSingle();
         }
-
 
         private void InstallGameField()
         {
