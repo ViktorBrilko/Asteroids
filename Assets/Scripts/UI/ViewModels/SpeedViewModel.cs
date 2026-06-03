@@ -8,13 +8,18 @@ namespace UI.ViewModels
 {
     public class SpeedViewModel : IInitializable, IDisposable
     {
+        [Data("Speed")] public readonly ReactiveProperty<string> _currentSpeed = new();
+
         public readonly PlayerMovement PlayerMovementLogic;
-        [Data("Speed")]
-        public readonly  ReactiveProperty<string> _currentSpeed = new();
 
         public SpeedViewModel(PlayerMovement playerMovementLogic)
         {
             PlayerMovementLogic = playerMovementLogic;
+        }
+
+        public void Dispose()
+        {
+            PlayerMovementLogic.OnSpeedChanged -= OnSpeedChanged;
         }
 
         public void Initialize()
@@ -23,11 +28,6 @@ namespace UI.ViewModels
             PlayerMovementLogic.OnSpeedChanged += OnSpeedChanged;
         }
 
-        public void Dispose()
-        {
-            PlayerMovementLogic.OnSpeedChanged -= OnSpeedChanged;
-        }
-        
         private void OnSpeedChanged(float speed = 0)
         {
             _currentSpeed.Value = "Speed " + speed.ToString("F1");

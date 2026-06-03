@@ -11,12 +11,11 @@ namespace UI.ViewModels
 {
     public class DeathPanelViewModel : IInitializable, IDisposable
     {
+        [Data("Interactable")] public readonly ReactiveProperty<bool> IsPlayerDead = new();
         public readonly LoadLevelService LoadLevel;
 
-        private AudioService _audioService;
-        private SignalBus _signalBus;
-
-        [Data("Interactable")] public readonly ReactiveProperty<bool> IsPlayerDead = new();
+        private readonly AudioService _audioService;
+        private readonly SignalBus _signalBus;
 
         public DeathPanelViewModel(LoadLevelService loadLevel, AudioService audioService,
             SignalBus signalBus)
@@ -26,14 +25,14 @@ namespace UI.ViewModels
             _signalBus = signalBus;
         }
 
-        public void Initialize()
-        {
-            _signalBus.Subscribe<PlayerDiedSignal>(OnPlayerDied);
-        }
-
         public void Dispose()
         {
             _signalBus.Unsubscribe<PlayerDiedSignal>(OnPlayerDied);
+        }
+
+        public void Initialize()
+        {
+            _signalBus.Subscribe<PlayerDiedSignal>(OnPlayerDied);
         }
 
         private void OnPlayerDied()

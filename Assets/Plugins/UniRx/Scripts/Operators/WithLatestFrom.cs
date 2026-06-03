@@ -1,17 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace UniRx.Operators
 {
     internal class WithLatestFromObservable<TLeft, TRight, TResult> : OperatorObservableBase<TResult>
     {
-        readonly IObservable<TLeft> left;
-        readonly IObservable<TRight> right;
-        readonly Func<TLeft, TRight, TResult> selector;
+        private readonly IObservable<TLeft> left;
+        private readonly IObservable<TRight> right;
+        private readonly Func<TLeft, TRight, TResult> selector;
 
-        public WithLatestFromObservable(IObservable<TLeft> left, IObservable<TRight> right, Func<TLeft, TRight, TResult> selector)
+        public WithLatestFromObservable(IObservable<TLeft> left, IObservable<TRight> right,
+            Func<TLeft, TRight, TResult> selector)
             : base(left.IsRequiredSubscribeOnCurrentThread() || right.IsRequiredSubscribeOnCurrentThread())
         {
             this.left = left;
@@ -24,15 +22,16 @@ namespace UniRx.Operators
             return new WithLatestFrom(this, observer, cancel).Run();
         }
 
-        class WithLatestFrom : OperatorObserverBase<TResult, TResult>
+        private class WithLatestFrom : OperatorObserverBase<TResult, TResult>
         {
-            readonly WithLatestFromObservable<TLeft, TRight, TResult> parent;
-            readonly object gate = new object();
+            private readonly object gate = new();
+            private readonly WithLatestFromObservable<TLeft, TRight, TResult> parent;
 
-            volatile bool hasLatest;
-            TRight latestValue = default(TRight);
+            private volatile bool hasLatest;
+            private TRight latestValue;
 
-            public WithLatestFrom(WithLatestFromObservable<TLeft, TRight, TResult> parent, IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
+            public WithLatestFrom(WithLatestFromObservable<TLeft, TRight, TResult> parent, IObserver<TResult> observer,
+                IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
             }
@@ -41,31 +40,43 @@ namespace UniRx.Operators
             {
                 var l = parent.left.Subscribe(new LeftObserver(this));
                 var rSubscription = new SingleAssignmentDisposable();
-                rSubscription.Disposable  = parent.right.Subscribe(new RightObserver(this, rSubscription));
+                rSubscription.Disposable = parent.right.Subscribe(new RightObserver(this, rSubscription));
 
                 return StableCompositeDisposable.Create(l, rSubscription);
             }
 
             public override void OnNext(TResult value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
-            class LeftObserver : IObserver<TLeft>
+            private class LeftObserver : IObserver<TLeft>
             {
-                readonly WithLatestFrom parent;
+                private readonly WithLatestFrom parent;
 
                 public LeftObserver(WithLatestFrom parent)
                 {
@@ -87,6 +98,7 @@ namespace UniRx.Operators
                             {
                                 parent.OnError(ex);
                             }
+
                             return;
                         }
 
@@ -114,15 +126,15 @@ namespace UniRx.Operators
                 }
             }
 
-            class RightObserver : IObserver<TRight>
+            private class RightObserver : IObserver<TRight>
             {
-                readonly WithLatestFrom parent;
-                readonly IDisposable selfSubscription;
+                private readonly WithLatestFrom parent;
+                private readonly IDisposable selfSubscription;
 
                 public RightObserver(WithLatestFrom parent, IDisposable subscription)
                 {
                     this.parent = parent;
-                    this.selfSubscription = subscription;
+                    selfSubscription = subscription;
                 }
 
                 public void OnNext(TRight value)

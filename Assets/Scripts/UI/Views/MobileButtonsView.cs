@@ -14,12 +14,18 @@ namespace UI.Views
         [SerializeField] private Joystick _joystick;
         [Data("FireLaser")] [SerializeField] public Button FireLaserButton;
         [Data("FireBullets")] [SerializeField] public Button FireBulletsButton;
+        [Data("MovingState")] public readonly ReactiveProperty<bool> IsMoving = new();
 
         [Data("RotatingLeft")] public readonly ReactiveProperty<bool> IsRotatingLeft = new();
         [Data("RotatingRight")] public readonly ReactiveProperty<bool> IsRotatingRight = new();
-        [Data("MovingState")] public readonly ReactiveProperty<bool> IsMoving = new();
         [Data("XDirection")] public readonly ReactiveProperty<float> XDirection = new();
         [Data("YDirection")] public readonly ReactiveProperty<float> YDirection = new();
+
+        private void Update()
+        {
+            XDirection.Value = _joystick.Horizontal;
+            YDirection.Value = _joystick.Vertical;
+        }
 
         private void OnEnable()
         {
@@ -33,12 +39,6 @@ namespace UI.Views
             _rotateLeftButton.OnStateChanged -= OnLeftRotation;
             _rotateRightButton.OnStateChanged -= OnRightRotation;
             _joystick.OnJoystickPressedDown -= OnChangedMovingState;
-        }
-
-        private void Update()
-        {
-            XDirection.Value = _joystick.Horizontal;
-            YDirection.Value = _joystick.Vertical;
         }
 
         private void OnLeftRotation(bool isRotating)

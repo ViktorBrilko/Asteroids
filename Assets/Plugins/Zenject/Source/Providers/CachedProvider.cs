@@ -7,14 +7,14 @@ namespace Zenject
     [NoReflectionBaking]
     public class CachedProvider : IProvider
     {
-        readonly IProvider _creator;
+        private readonly IProvider _creator;
 
-        List<object> _instances;
+        private List<object> _instances;
 
 #if ZEN_MULTITHREADING
         readonly object _locker = new object();
 #else
-        bool _isCreatingInstance;
+        private bool _isCreatingInstance;
 #endif
 
         public CachedProvider(IProvider creator)
@@ -22,19 +22,11 @@ namespace Zenject
             _creator = creator;
         }
 
-        public bool IsCached
-        {
-            get { return true; }
-        }
+        public bool IsCached => true;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get
-            {
-                // Should not call this
-                throw Assert.CreateException();
-            }
-        }
+        public bool TypeVariesBasedOnMemberType => throw
+            // Should not call this
+            Assert.CreateException();
 
         public int NumInstances
         {

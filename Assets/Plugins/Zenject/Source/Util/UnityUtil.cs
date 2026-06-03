@@ -13,10 +13,7 @@ namespace ModestTree.Util
         {
             get
             {
-                for (int i = 0; i < SceneManager.sceneCount; i++)
-                {
-                    yield return SceneManager.GetSceneAt(i);
-                }
+                for (var i = 0; i < SceneManager.sceneCount; i++) yield return SceneManager.GetSceneAt(i);
             }
         }
 
@@ -25,37 +22,21 @@ namespace ModestTree.Util
             get { return AllScenes.Where(scene => scene.isLoaded); }
         }
 
-        public static bool IsAltKeyDown
-        {
-            get { return Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt); }
-        }
+        public static bool IsAltKeyDown => Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
 
-        public static bool IsControlKeyDown
-        {
-            get { return Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl); }
-        }
+        public static bool IsControlKeyDown => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
 
-        public static bool IsShiftKeyDown
-        {
-            get { return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift); }
-        }
+        public static bool IsShiftKeyDown => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 
-        public static bool WasShiftKeyJustPressed
-        {
-            get { return Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift); }
-        }
+        public static bool WasShiftKeyJustPressed =>
+            Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift);
 
-        public static bool WasAltKeyJustPressed
-        {
-            get { return Input.GetKeyDown(KeyCode.LeftAlt) || Input.GetKeyDown(KeyCode.RightAlt); }
-        }
+        public static bool WasAltKeyJustPressed =>
+            Input.GetKeyDown(KeyCode.LeftAlt) || Input.GetKeyDown(KeyCode.RightAlt);
 
         public static int GetDepthLevel(Transform transform)
         {
-            if (transform == null)
-            {
-                return 0;
-            }
+            if (transform == null) return 0;
 
             return 1 + GetDepthLevel(transform.parent);
         }
@@ -67,30 +48,18 @@ namespace ModestTree.Util
 
         public static IEnumerable<Transform> GetParents(Transform transform)
         {
-            if (transform == null)
-            {
-                yield break;
-            }
+            if (transform == null) yield break;
 
-            foreach (var ancestor in GetParentsAndSelf(transform.parent))
-            {
-                yield return ancestor;
-            }
+            foreach (var ancestor in GetParentsAndSelf(transform.parent)) yield return ancestor;
         }
 
         public static IEnumerable<Transform> GetParentsAndSelf(Transform transform)
         {
-            if (transform == null)
-            {
-                yield break;
-            }
+            if (transform == null) yield break;
 
             yield return transform;
 
-            foreach (var ancestor in GetParentsAndSelf(transform.parent))
-            {
-                yield return ancestor;
-            }
+            foreach (var ancestor in GetParentsAndSelf(transform.parent)) yield return ancestor;
         }
 
         public static IEnumerable<Component> GetComponentsInChildrenTopDown(GameObject gameObject, bool includeInactive)
@@ -100,7 +69,8 @@ namespace ModestTree.Util
                     x == null ? int.MinValue : GetDepthLevel(x.transform));
         }
 
-        public static IEnumerable<Component> GetComponentsInChildrenBottomUp(GameObject gameObject, bool includeInactive)
+        public static IEnumerable<Component> GetComponentsInChildrenBottomUp(GameObject gameObject,
+            bool includeInactive)
         {
             return gameObject.GetComponentsInChildren<Component>(includeInactive)
                 .OrderByDescending(x =>
@@ -111,18 +81,12 @@ namespace ModestTree.Util
         {
             yield return obj;
 
-            foreach (Transform child in obj.transform)
-            {
-                yield return child.gameObject;
-            }
+            foreach (Transform child in obj.transform) yield return child.gameObject;
         }
 
         public static IEnumerable<GameObject> GetDirectChildren(GameObject obj)
         {
-            foreach (Transform child in obj.transform)
-            {
-                yield return child.gameObject;
-            }
+            foreach (Transform child in obj.transform) yield return child.gameObject;
         }
 
         public static IEnumerable<GameObject> GetAllGameObjects()

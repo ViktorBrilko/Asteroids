@@ -19,10 +19,7 @@ namespace UniRx
             }
 
             var trigger = gameObject.GetComponent<ObservableDestroyTrigger>();
-            if (trigger == null)
-            {
-                trigger = gameObject.AddComponent<ObservableDestroyTrigger>();
-            }
+            if (trigger == null) trigger = gameObject.AddComponent<ObservableDestroyTrigger>();
 
 #pragma warning disable 618
 
@@ -39,7 +36,7 @@ namespace UniRx
             return disposable;
         }
 
-        static IEnumerator MonitorTriggerHealth(ObservableDestroyTrigger trigger, GameObject targetGameObject)
+        private static IEnumerator MonitorTriggerHealth(ObservableDestroyTrigger trigger, GameObject targetGameObject)
         {
             while (true)
             {
@@ -68,8 +65,11 @@ namespace UniRx
         }
 
         /// <summary>
-        /// <para>Add disposable(self) to CompositeDisposable(or other ICollection) and Dispose self on target gameObject has been destroyed.</para>
-        /// <para>Return value is self disposable.</para>
+        ///     <para>
+        ///         Add disposable(self) to CompositeDisposable(or other ICollection) and Dispose self on target gameObject has
+        ///         been destroyed.
+        ///     </para>
+        ///     <para>Return value is self disposable.</para>
         /// </summary>
         public static T AddTo<T>(this T disposable, ICollection<IDisposable> container, GameObject gameObject)
             where T : IDisposable
@@ -78,8 +78,11 @@ namespace UniRx
         }
 
         /// <summary>
-        /// <para>Add disposable(self) to CompositeDisposable(or other ICollection) and Dispose self on target gameObject has been destroyed.</para>
-        /// <para>Return value is self disposable.</para>
+        ///     <para>
+        ///         Add disposable(self) to CompositeDisposable(or other ICollection) and Dispose self on target gameObject has
+        ///         been destroyed.
+        ///     </para>
+        ///     <para>Return value is self disposable.</para>
         /// </summary>
         public static T AddTo<T>(this T disposable, ICollection<IDisposable> container, Component gameObjectComponent)
             where T : IDisposable

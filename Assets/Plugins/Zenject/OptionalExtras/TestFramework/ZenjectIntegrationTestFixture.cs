@@ -1,21 +1,19 @@
 using System;
 using System.Collections;
-using Zenject.Internal;
-using ModestTree;
-using Assert = ModestTree.Assert;
 using System.Linq;
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 using UnityEngine;
+using Zenject.Internal;
+using Assert = ModestTree.Assert;
 
 namespace Zenject
 {
     public abstract class ZenjectIntegrationTestFixture
     {
-        SceneContext _sceneContext;
-
-        bool _hasEndedInstall;
-        bool _hasStartedInstall;
+        private bool _hasEndedInstall;
+        private bool _hasStartedInstall;
+        private SceneContext _sceneContext;
 
         protected DiContainer Container
         {
@@ -41,7 +39,8 @@ namespace Zenject
         public void Setup()
         {
             Assert.That(Application.isPlaying,
-                "ZenjectIntegrationTestFixture is meant to be used for play mode tests only.  Please ensure your test file '{0}' is outside of the editor folder and try again.", GetType());
+                "ZenjectIntegrationTestFixture is meant to be used for play mode tests only.  Please ensure your test file '{0}' is outside of the editor folder and try again.",
+                GetType());
 
             ZenjectTestUtil.DestroyEverythingExceptTestRunner(true);
             StaticContext.Clear();
@@ -55,7 +54,8 @@ namespace Zenject
 
         protected void PreInstall()
         {
-            Assert.That(!_hasStartedInstall, "Called PreInstall twice in test '{0}'!", TestContext.CurrentContext.Test.Name);
+            Assert.That(!_hasStartedInstall, "Called PreInstall twice in test '{0}'!",
+                TestContext.CurrentContext.Test.Name);
             _hasStartedInstall = true;
 
             Assert.That(!ProjectContext.HasInstance);
@@ -74,7 +74,7 @@ namespace Zenject
             Assert.IsEqual(shouldValidate, _sceneContext.Container.IsValidating);
         }
 
-        bool CurrentTestHasAttribute<T>()
+        private bool CurrentTestHasAttribute<T>()
             where T : Attribute
         {
             return GetType().GetMethod(TestContext.CurrentContext.Test.MethodName)
@@ -87,7 +87,8 @@ namespace Zenject
             Assert.That(_hasStartedInstall,
                 "Called PostInstall but did not call PreInstall in test '{0}'!", TestContext.CurrentContext.Test.Name);
 
-            Assert.That(!_hasEndedInstall, "Called PostInstall twice in test '{0}'!", TestContext.CurrentContext.Test.Name);
+            Assert.That(!_hasEndedInstall, "Called PostInstall twice in test '{0}'!",
+                TestContext.CurrentContext.Test.Name);
 
             _hasEndedInstall = true;
             _sceneContext.Resolve();
@@ -95,37 +96,32 @@ namespace Zenject
             Container.Inject(this);
 
             if (!Container.IsValidating)
-            {
                 // We don't have to do this here but it's kind of convenient
                 // We could also remove it and just require that users add a yield after calling
                 // and it would have the same effect
                 Container.Resolve<MonoKernel>().Initialize();
-            }
         }
 
         protected IEnumerator DestroyEverything()
         {
             Assert.That(_hasStartedInstall,
-                "Called DestroyAll but did not call PreInstall (or SkipInstall) in test '{0}'!", TestContext.CurrentContext.Test.Name);
+                "Called DestroyAll but did not call PreInstall (or SkipInstall) in test '{0}'!",
+                TestContext.CurrentContext.Test.Name);
             DestroyEverythingInternal(false);
             // Wait one frame for GC to really destroy everything
             yield return null;
         }
 
-        void DestroyEverythingInternal(bool immediate)
+        private void DestroyEverythingInternal(bool immediate)
         {
             if (_sceneContext != null)
             {
                 // We need to use DestroyImmediate so that all the IDisposable's etc get processed immediately before
                 // next test runs
                 if (immediate)
-                {
                     GameObject.DestroyImmediate(_sceneContext.gameObject);
-                }
                 else
-                {
                     GameObject.Destroy(_sceneContext.gameObject);
-                }
 
                 _sceneContext = null;
             }

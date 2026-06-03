@@ -1,10 +1,10 @@
 ﻿// AsyncInstantiateOperation was added since Unity 2022.3.20 / 2023.3.0b7
+
 #if UNITY_2022_3 && !(UNITY_2022_3_0 || UNITY_2022_3_1 || UNITY_2022_3_2 || UNITY_2022_3_3 || UNITY_2022_3_4 || UNITY_2022_3_5 || UNITY_2022_3_6 || UNITY_2022_3_7 || UNITY_2022_3_8 || UNITY_2022_3_9 || UNITY_2022_3_10 || UNITY_2022_3_11 || UNITY_2022_3_12 || UNITY_2022_3_13 || UNITY_2022_3_14 || UNITY_2022_3_15 || UNITY_2022_3_16 || UNITY_2022_3_17 || UNITY_2022_3_18 || UNITY_2022_3_19)
 #define UNITY_2022_SUPPORT
 #endif
 
 #if UNITY_2022_SUPPORT || UNITY_2023_3_OR_NEWER
-
 using Cysharp.Threading.Tasks.Internal;
 using System;
 using System.Threading;
@@ -27,7 +27,9 @@ namespace Cysharp.Threading.Tasks
             return ToUniTask(asyncOperation, cancellationToken: cancellationToken, cancelImmediately: cancelImmediately);
         }
 
-        public static UniTask<UnityEngine.Object[]> ToUniTask(this AsyncInstantiateOperation asyncOperation, IProgress<float> progress = null, PlayerLoopTiming timing = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken), bool cancelImmediately = false)
+        public static UniTask<UnityEngine.Object[]> ToUniTask(this AsyncInstantiateOperation asyncOperation, IProgress<float> progress
+ = null, PlayerLoopTiming timing = PlayerLoopTiming.Update, CancellationToken cancellationToken =
+ default(CancellationToken), bool cancelImmediately = false)
         {
             Error.ThrowArgumentNullException(asyncOperation, nameof(asyncOperation));
             if (cancellationToken.IsCancellationRequested) return UniTask.FromCanceled<UnityEngine.Object[]>(cancellationToken);
@@ -47,7 +49,9 @@ namespace Cysharp.Threading.Tasks
             return ToUniTask(asyncOperation, cancellationToken: cancellationToken, cancelImmediately: cancelImmediately);
         }
 
-        public static UniTask<T[]> ToUniTask<T>(this AsyncInstantiateOperation<T> asyncOperation, IProgress<float> progress = null, PlayerLoopTiming timing = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken), bool cancelImmediately = false)
+        public static UniTask<T[]> ToUniTask<T>(this AsyncInstantiateOperation<T> asyncOperation, IProgress<float> progress
+ = null, PlayerLoopTiming timing = PlayerLoopTiming.Update, CancellationToken cancellationToken =
+ default(CancellationToken), bool cancelImmediately = false)
             where T : UnityEngine.Object
         {
             Error.ThrowArgumentNullException(asyncOperation, nameof(asyncOperation));
@@ -105,7 +109,8 @@ namespace Cysharp.Threading.Tasks
 
                 if (cancelImmediately && cancellationToken.CanBeCanceled)
                 {
-                    result.cancellationTokenRegistration = cancellationToken.RegisterWithoutCaptureExecutionContext(state =>
+                    result.cancellationTokenRegistration =
+ cancellationToken.RegisterWithoutCaptureExecutionContext(state =>
                     {
                         var source = (AsyncInstantiateOperationConfiguredSource)state;
                         source.core.TrySetCanceled(source.cancellationToken);
@@ -268,7 +273,8 @@ namespace Cysharp.Threading.Tasks
 
                 if (cancelImmediately && cancellationToken.CanBeCanceled)
                 {
-                    result.cancellationTokenRegistration = cancellationToken.RegisterWithoutCaptureExecutionContext(state =>
+                    result.cancellationTokenRegistration =
+ cancellationToken.RegisterWithoutCaptureExecutionContext(state =>
                     {
                         var source = (AsyncInstantiateOperationConfiguredSource<T>)state;
                         source.core.TrySetCanceled(source.cancellationToken);

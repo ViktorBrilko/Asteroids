@@ -9,11 +9,11 @@ namespace Gameplay.Enemies
 {
     public abstract class Enemy : MonoBehaviour
     {
-        protected SignalBus SignalBus;
-        protected EnemyMoveService EnemyMove;
-        protected HealthService HealthService;
-        protected EnemyTypes EnemyType;
         protected AudioService AudioService;
+        protected EnemyMoveService EnemyMove;
+        protected EnemyTypes EnemyType;
+        protected HealthService HealthService;
+        protected SignalBus SignalBus;
 
         public EnemyTypes Type => EnemyType;
 

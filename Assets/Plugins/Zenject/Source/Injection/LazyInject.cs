@@ -6,11 +6,11 @@ namespace Zenject
     [NoReflectionBaking]
     public class LazyInject<T> : IValidatable
     {
-        readonly DiContainer _container;
-        readonly InjectContext _context;
+        private readonly DiContainer _container;
+        private readonly InjectContext _context;
 
-        bool _hasValue;
-        T _value;
+        private bool _hasValue;
+        private T _value;
 
         public LazyInject(DiContainer container, InjectContext context)
         {
@@ -18,11 +18,6 @@ namespace Zenject
 
             _container = container;
             _context = context;
-        }
-
-        void IValidatable.Validate()
-        {
-            _container.Resolve(_context);
         }
 
         public T Value
@@ -37,6 +32,11 @@ namespace Zenject
 
                 return _value;
             }
+        }
+
+        void IValidatable.Validate()
+        {
+            _container.Resolve(_context);
         }
     }
 }

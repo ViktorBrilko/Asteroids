@@ -1,14 +1,7 @@
 #if !ODIN_INSPECTOR
 
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using UnityEditor.SceneManagement;
-using UnityEngine.SceneManagement;
 using UnityEditor;
-using UnityEditorInternal;
-using UnityEngine;
-using ModestTree;
 
 namespace Zenject
 {
@@ -16,13 +9,13 @@ namespace Zenject
     [NoReflectionBaking]
     public class SceneDecoratorContextEditor : ContextEditor
     {
-        SerializedProperty _decoratedContractNameProperty;
+        private SerializedProperty _decoratedContractNameProperty;
 
         protected override string[] PropertyNames
         {
             get
             {
-                return base.PropertyNames.Concat(new string[]
+                return base.PropertyNames.Concat(new[]
                     {
                         "_lateInstallers",
                         "_lateInstallerPrefabs",
@@ -36,7 +29,7 @@ namespace Zenject
         {
             get
             {
-                return base.PropertyDisplayNames.Concat(new string[]
+                return base.PropertyDisplayNames.Concat(new[]
                     {
                         "Late Installers",
                         "Late Prefab Installers",
@@ -50,7 +43,7 @@ namespace Zenject
         {
             get
             {
-                return base.PropertyDescriptions.Concat(new string[]
+                return base.PropertyDescriptions.Concat(new[]
                     {
                         "Drag any MonoInstallers that you have added to your Scene Hierarchy here. They'll be installed after the target installs its bindings",
                         "Drag any prefabs that contain a MonoInstaller on them here. They'll be installed after the target installs its bindings",

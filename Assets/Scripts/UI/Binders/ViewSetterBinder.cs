@@ -6,8 +6,8 @@ namespace UI.Binders
 {
     public class ViewSetterBinder<T> : IBinder, IObserver<T>
     {
-        private readonly Action<T> _view;
         private readonly IReadOnlyReactiveProperty<T> _property;
+        private readonly Action<T> _view;
         private IDisposable _handle;
 
         public ViewSetterBinder(Action<T> view, IReadOnlyReactiveProperty<T> property)

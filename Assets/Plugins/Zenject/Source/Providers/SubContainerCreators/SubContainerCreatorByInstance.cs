@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using ModestTree;
 
 namespace Zenject
@@ -7,7 +7,7 @@ namespace Zenject
     [NoReflectionBaking]
     public class SubContainerCreatorByInstance : ISubContainerCreator
     {
-        readonly DiContainer _subcontainer;
+        private readonly DiContainer _subcontainer;
 
         public SubContainerCreatorByInstance(DiContainer subcontainer)
         {
@@ -27,4 +27,3 @@ namespace Zenject
         }
     }
 }
-

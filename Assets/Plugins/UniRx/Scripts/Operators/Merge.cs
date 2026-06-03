@@ -5,8 +5,8 @@ namespace UniRx.Operators
 {
     internal class MergeObservable<T> : OperatorObservableBase<T>
     {
-        private readonly IObservable<IObservable<T>> sources;
         private readonly int maxConcurrent;
+        private readonly IObservable<IObservable<T>> sources;
 
         public MergeObservable(IObservable<IObservable<T>> sources, bool isRequiredSubscribeOnCurrentThread)
             : base(isRequiredSubscribeOnCurrentThread)
@@ -14,7 +14,8 @@ namespace UniRx.Operators
             this.sources = sources;
         }
 
-        public MergeObservable(IObservable<IObservable<T>> sources, int maxConcurrent, bool isRequiredSubscribeOnCurrentThread)
+        public MergeObservable(IObservable<IObservable<T>> sources, int maxConcurrent,
+            bool isRequiredSubscribeOnCurrentThread)
             : base(isRequiredSubscribeOnCurrentThread)
         {
             this.sources = sources;
@@ -23,26 +24,22 @@ namespace UniRx.Operators
 
         protected override IDisposable SubscribeCore(IObserver<T> observer, IDisposable cancel)
         {
-            if (maxConcurrent > 0)
-            {
-                return new MergeConcurrentObserver(this, observer, cancel).Run();
-            }
-            else
-            {
-                return new MergeOuterObserver(this, observer, cancel).Run();
-            }
+            if (maxConcurrent > 0) return new MergeConcurrentObserver(this, observer, cancel).Run();
+
+            return new MergeOuterObserver(this, observer, cancel).Run();
         }
 
-        class MergeOuterObserver : OperatorObserverBase<IObservable<T>, T>
+        private class MergeOuterObserver : OperatorObserverBase<IObservable<T>, T>
         {
-            readonly MergeObservable<T> parent;
+            private readonly MergeObservable<T> parent;
 
-            CompositeDisposable collectionDisposable;
-            SingleAssignmentDisposable sourceDisposable;
-            object gate = new object();
-            bool isStopped = false;
+            private CompositeDisposable collectionDisposable;
+            private readonly object gate = new();
+            private bool isStopped;
+            private SingleAssignmentDisposable sourceDisposable;
 
-            public MergeOuterObserver(MergeObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public MergeOuterObserver(MergeObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
             }
@@ -69,7 +66,16 @@ namespace UniRx.Operators
             {
                 lock (gate)
                 {
-                    try { observer.OnError(error); } finally { Dispose(); };
+                    try
+                    {
+                        observer.OnError(error);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                 }
             }
 
@@ -77,22 +83,27 @@ namespace UniRx.Operators
             {
                 isStopped = true;
                 if (collectionDisposable.Count == 1)
-                {
                     lock (gate)
                     {
-                        try { observer.OnCompleted(); } finally { Dispose(); };
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
+                        ;
                     }
-                }
                 else
-                {
                     sourceDisposable.Dispose();
-                }
             }
 
-            class Merge : OperatorObserverBase<T, T>
+            private class Merge : OperatorObserverBase<T, T>
             {
-                readonly MergeOuterObserver parent;
-                readonly IDisposable cancel;
+                private readonly IDisposable cancel;
+                private readonly MergeOuterObserver parent;
 
                 public Merge(MergeOuterObserver parent, IDisposable cancel)
                     : base(parent.observer, cancel)
@@ -105,7 +116,7 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        base.observer.OnNext(value);
+                        observer.OnNext(value);
                     }
                 }
 
@@ -113,7 +124,16 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        try { observer.OnError(error); } finally { Dispose(); };
+                        try
+                        {
+                            observer.OnError(error);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
+                        ;
                     }
                 }
 
@@ -121,30 +141,38 @@ namespace UniRx.Operators
                 {
                     parent.collectionDisposable.Remove(cancel);
                     if (parent.isStopped && parent.collectionDisposable.Count == 1)
-                    {
                         lock (parent.gate)
                         {
-                            try { observer.OnCompleted(); } finally { Dispose(); };
+                            try
+                            {
+                                observer.OnCompleted();
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
+
+                            ;
                         }
-                    }
                 }
             }
         }
 
-        class MergeConcurrentObserver : OperatorObserverBase<IObservable<T>, T>
+        private class MergeConcurrentObserver : OperatorObserverBase<IObservable<T>, T>
         {
-            readonly MergeObservable<T> parent;
+            private readonly MergeObservable<T> parent;
+            private int activeCount;
 
-            CompositeDisposable collectionDisposable;
-            SingleAssignmentDisposable sourceDisposable;
-            object gate = new object();
-            bool isStopped = false;
+            private CompositeDisposable collectionDisposable;
+            private readonly object gate = new();
+            private bool isStopped;
 
             // concurrency
-            Queue<IObservable<T>> q;
-            int activeCount;
+            private Queue<IObservable<T>> q;
+            private SingleAssignmentDisposable sourceDisposable;
 
-            public MergeConcurrentObserver(MergeObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public MergeConcurrentObserver(MergeObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
             }
@@ -182,7 +210,16 @@ namespace UniRx.Operators
             {
                 lock (gate)
                 {
-                    try { observer.OnError(error); } finally { Dispose(); };
+                    try
+                    {
+                        observer.OnError(error);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                 }
             }
 
@@ -193,7 +230,16 @@ namespace UniRx.Operators
                     isStopped = true;
                     if (activeCount == 0)
                     {
-                        try { observer.OnCompleted(); } finally { Dispose(); };
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
+                        ;
                     }
                     else
                     {
@@ -202,7 +248,7 @@ namespace UniRx.Operators
                 }
             }
 
-            void Subscribe(IObservable<T> innerSource)
+            private void Subscribe(IObservable<T> innerSource)
             {
                 var disposable = new SingleAssignmentDisposable();
                 collectionDisposable.Add(disposable);
@@ -210,10 +256,10 @@ namespace UniRx.Operators
                 disposable.Disposable = innerSource.Subscribe(collectionObserver);
             }
 
-            class Merge : OperatorObserverBase<T, T>
+            private class Merge : OperatorObserverBase<T, T>
             {
-                readonly MergeConcurrentObserver parent;
-                readonly IDisposable cancel;
+                private readonly IDisposable cancel;
+                private readonly MergeConcurrentObserver parent;
 
                 public Merge(MergeConcurrentObserver parent, IDisposable cancel)
                     : base(parent.observer, cancel)
@@ -226,7 +272,7 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        base.observer.OnNext(value);
+                        observer.OnNext(value);
                     }
                 }
 
@@ -234,7 +280,16 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        try { observer.OnError(error); } finally { Dispose(); };
+                        try
+                        {
+                            observer.OnError(error);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
+                        ;
                     }
                 }
 
@@ -253,7 +308,16 @@ namespace UniRx.Operators
                             parent.activeCount--;
                             if (parent.isStopped && parent.activeCount == 0)
                             {
-                                try { observer.OnCompleted(); } finally { Dispose(); };
+                                try
+                                {
+                                    observer.OnCompleted();
+                                }
+                                finally
+                                {
+                                    Dispose();
+                                }
+
+                                ;
                             }
                         }
                     }

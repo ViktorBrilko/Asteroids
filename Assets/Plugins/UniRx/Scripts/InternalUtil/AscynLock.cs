@@ -6,21 +6,33 @@ using System.Collections.Generic;
 namespace UniRx.InternalUtil
 {
     /// <summary>
-    /// Asynchronous lock.
+    ///     Asynchronous lock.
     /// </summary>
     internal sealed class AsyncLock : IDisposable
     {
-        private readonly Queue<Action> queue = new Queue<Action>();
-        private bool isAcquired = false;
-        private bool hasFaulted = false;
+        private readonly Queue<Action> queue = new();
+        private bool hasFaulted;
+        private bool isAcquired;
 
         /// <summary>
-        /// Queues the action for execution. If the caller acquires the lock and becomes the owner,
-        /// the queue is processed. If the lock is already owned, the action is queued and will get
-        /// processed by the owner.
+        ///     Clears the work items in the queue and drops further work being queued.
+        /// </summary>
+        public void Dispose()
+        {
+            lock (queue)
+            {
+                queue.Clear();
+                hasFaulted = true;
+            }
+        }
+
+        /// <summary>
+        ///     Queues the action for execution. If the caller acquires the lock and becomes the owner,
+        ///     the queue is processed. If the lock is already owned, the action is queued and will get
+        ///     processed by the owner.
         /// </summary>
         /// <param name="action">Action to queue for execution.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="action"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="action" /> is null.</exception>
         public void Wait(Action action)
         {
             if (action == null)
@@ -38,14 +50,15 @@ namespace UniRx.InternalUtil
             }
 
             if (isOwner)
-            {
                 while (true)
                 {
                     var work = default(Action);
                     lock (queue)
                     {
                         if (queue.Count > 0)
+                        {
                             work = queue.Dequeue();
+                        }
                         else
                         {
                             isAcquired = false;
@@ -64,22 +77,10 @@ namespace UniRx.InternalUtil
                             queue.Clear();
                             hasFaulted = true;
                         }
+
                         throw;
                     }
                 }
-            }
-        }
-
-        /// <summary>
-        /// Clears the work items in the queue and drops further work being queued.
-        /// </summary>
-        public void Dispose()
-        {
-            lock (queue)
-            {
-                queue.Clear();
-                hasFaulted = true;
-            }
         }
     }
 }

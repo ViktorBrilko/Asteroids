@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
+using UniRx.InternalUtil;
 
 namespace UniRx.Operators
 {
     internal class AmbObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly IObservable<T> second;
+        private readonly IObservable<T> second;
+        private readonly IObservable<T> source;
 
         public AmbObservable(IObservable<T> source, IObservable<T> second)
             : base(source.IsRequiredSubscribeOnCurrentThread() || second.IsRequiredSubscribeOnCurrentThread())
@@ -20,18 +20,14 @@ namespace UniRx.Operators
             return new AmbOuterObserver(this, observer, cancel).Run();
         }
 
-        class AmbOuterObserver : OperatorObserverBase<T, T>
+        private class AmbOuterObserver : OperatorObserverBase<T, T>
         {
-            enum AmbState
-            {
-                Left, Right, Neither
-            }
+            private readonly object gate = new();
 
-            readonly AmbObservable<T> parent;
-            readonly object gate = new object();
-            SingleAssignmentDisposable leftSubscription;
-            SingleAssignmentDisposable rightSubscription;
-            AmbState choice = AmbState.Neither;
+            private readonly AmbObservable<T> parent;
+            private AmbState choice = AmbState.Neither;
+            private SingleAssignmentDisposable leftSubscription;
+            private SingleAssignmentDisposable rightSubscription;
 
             public AmbOuterObserver(AmbObservable<T> parent, IObserver<T> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -74,10 +70,17 @@ namespace UniRx.Operators
                 // no use
             }
 
-            class Amb : IObserver<T>
+            private enum AmbState
             {
-                public IObserver<T> targetObserver;
+                Left,
+                Right,
+                Neither
+            }
+
+            private class Amb : IObserver<T>
+            {
                 public IDisposable targetDisposable;
+                public IObserver<T> targetObserver;
 
                 public void OnNext(T value)
                 {
@@ -92,7 +95,7 @@ namespace UniRx.Operators
                     }
                     finally
                     {
-                        targetObserver = UniRx.InternalUtil.EmptyObserver<T>.Instance;
+                        targetObserver = EmptyObserver<T>.Instance;
                         targetDisposable.Dispose();
                     }
                 }
@@ -105,20 +108,21 @@ namespace UniRx.Operators
                     }
                     finally
                     {
-                        targetObserver = UniRx.InternalUtil.EmptyObserver<T>.Instance;
+                        targetObserver = EmptyObserver<T>.Instance;
                         targetDisposable.Dispose();
                     }
                 }
             }
 
-            class AmbDecisionObserver : IObserver<T>
+            private class AmbDecisionObserver : IObserver<T>
             {
-                readonly AmbOuterObserver parent;
-                readonly AmbState me;
-                readonly IDisposable otherSubscription;
-                readonly Amb self;
+                private readonly AmbState me;
+                private readonly IDisposable otherSubscription;
+                private readonly AmbOuterObserver parent;
+                private readonly Amb self;
 
-                public AmbDecisionObserver(AmbOuterObserver parent, AmbState me, IDisposable otherSubscription, Amb self)
+                public AmbDecisionObserver(AmbOuterObserver parent, AmbState me, IDisposable otherSubscription,
+                    Amb self)
                 {
                     this.parent = parent;
                     this.me = me;
@@ -152,10 +156,7 @@ namespace UniRx.Operators
                             self.targetObserver = parent.observer;
                         }
 
-                        if (parent.choice == me)
-                        {
-                            self.targetObserver.OnError(error);
-                        }
+                        if (parent.choice == me) self.targetObserver.OnError(error);
                     }
                 }
 
@@ -170,10 +171,7 @@ namespace UniRx.Operators
                             self.targetObserver = parent.observer;
                         }
 
-                        if (parent.choice == me)
-                        {
-                            self.targetObserver.OnCompleted();
-                        }
+                        if (parent.choice == me) self.targetObserver.OnCompleted();
                     }
                 }
             }

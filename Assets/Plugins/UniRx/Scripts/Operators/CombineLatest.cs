@@ -1,25 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace UniRx.Operators
 {
     public delegate TR CombineLatestFunc<T1, T2, T3, TR>(T1 arg1, T2 arg2, T3 arg3);
+
     public delegate TR CombineLatestFunc<T1, T2, T3, T4, TR>(T1 arg1, T2 arg2, T3 arg3, T4 arg4);
+
     public delegate TR CombineLatestFunc<T1, T2, T3, T4, T5, TR>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5);
-    public delegate TR CombineLatestFunc<T1, T2, T3, T4, T5, T6, TR>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6);
-    public delegate TR CombineLatestFunc<T1, T2, T3, T4, T5, T6, T7, TR>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7);
+
+    public delegate TR CombineLatestFunc<T1, T2, T3, T4, T5, T6, TR>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5,
+        T6 arg6);
+
+    public delegate TR CombineLatestFunc<T1, T2, T3, T4, T5, T6, T7, TR>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5,
+        T6 arg6, T7 arg7);
 
 
     // binary
     internal class CombineLatestObservable<TLeft, TRight, TResult> : OperatorObservableBase<TResult>
     {
-        readonly IObservable<TLeft> left;
-        readonly IObservable<TRight> right;
-        readonly Func<TLeft, TRight, TResult> selector;
+        private readonly IObservable<TLeft> left;
+        private readonly IObservable<TRight> right;
+        private readonly Func<TLeft, TRight, TResult> selector;
 
-        public CombineLatestObservable(IObservable<TLeft> left, IObservable<TRight> right, Func<TLeft, TRight, TResult> selector)
+        public CombineLatestObservable(IObservable<TLeft> left, IObservable<TRight> right,
+            Func<TLeft, TRight, TResult> selector)
             : base(left.IsRequiredSubscribeOnCurrentThread() || right.IsRequiredSubscribeOnCurrentThread())
         {
             this.left = left;
@@ -32,20 +37,21 @@ namespace UniRx.Operators
             return new CombineLatest(this, observer, cancel).Run();
         }
 
-        class CombineLatest : OperatorObserverBase<TResult, TResult>
+        private class CombineLatest : OperatorObserverBase<TResult, TResult>
         {
-            readonly CombineLatestObservable<TLeft, TRight, TResult> parent;
-            readonly object gate = new object();
+            private readonly object gate = new();
+            private readonly CombineLatestObservable<TLeft, TRight, TResult> parent;
+            private bool leftCompleted;
+            private bool leftStarted;
 
-            TLeft leftValue = default(TLeft);
-            bool leftStarted = false;
-            bool leftCompleted = false;
+            private TLeft leftValue;
+            private bool rightCompleted;
+            private bool rightStarted;
 
-            TRight rightValue = default(TRight);
-            bool rightStarted = false;
-            bool rightCompleted = false;
+            private TRight rightValue;
 
-            public CombineLatest(CombineLatestObservable<TLeft, TRight, TResult> parent, IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
+            public CombineLatest(CombineLatestObservable<TLeft, TRight, TResult> parent, IObserver<TResult> observer,
+                IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
             }
@@ -63,14 +69,19 @@ namespace UniRx.Operators
             {
                 if ((leftCompleted && !leftStarted) || (rightCompleted && !rightStarted))
                 {
-                    try { observer.OnCompleted(); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnCompleted();
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
-                else if (!(leftStarted && rightStarted))
-                {
-                    return;
-                }
+
+                if (!(leftStarted && rightStarted)) return;
 
                 TResult v;
                 try
@@ -79,8 +90,15 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
@@ -89,24 +107,36 @@ namespace UniRx.Operators
 
             public override void OnNext(TResult value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
-            class LeftObserver : IObserver<TLeft>
+            private class LeftObserver : IObserver<TLeft>
             {
-                readonly CombineLatest parent;
+                private readonly CombineLatest parent;
 
                 public LeftObserver(CombineLatest parent)
                 {
@@ -141,9 +171,9 @@ namespace UniRx.Operators
                 }
             }
 
-            class RightObserver : IObserver<TRight>
+            private class RightObserver : IObserver<TRight>
             {
-                readonly CombineLatest parent;
+                private readonly CombineLatest parent;
 
                 public RightObserver(CombineLatest parent)
                 {
@@ -184,7 +214,7 @@ namespace UniRx.Operators
     // array
     internal class CombineLatestObservable<T> : OperatorObservableBase<IList<T>>
     {
-        readonly IObservable<T>[] sources;
+        private readonly IObservable<T>[] sources;
 
         public CombineLatestObservable(IObservable<T>[] sources)
             : base(true)
@@ -197,18 +227,19 @@ namespace UniRx.Operators
             return new CombineLatest(this, observer, cancel).Run();
         }
 
-        class CombineLatest : OperatorObserverBase<IList<T>, IList<T>>
+        private class CombineLatest : OperatorObserverBase<IList<T>, IList<T>>
         {
-            readonly CombineLatestObservable<T> parent;
-            readonly object gate = new object();
+            private readonly object gate = new();
+            private readonly CombineLatestObservable<T> parent;
+            private bool isAllValueStarted;
+            private bool[] isCompleted;
+            private bool[] isStarted;
 
-            int length;
-            T[] values;
-            bool[] isStarted;
-            bool[] isCompleted;
-            bool isAllValueStarted;
+            private int length;
+            private T[] values;
 
-            public CombineLatest(CombineLatestObservable<T> parent, IObserver<IList<T>> observer, IDisposable cancel) : base(observer, cancel)
+            public CombineLatest(CombineLatestObservable<T> parent, IObserver<IList<T>> observer, IDisposable cancel) :
+                base(observer, cancel)
             {
                 this.parent = parent;
             }
@@ -222,7 +253,7 @@ namespace UniRx.Operators
                 isAllValueStarted = false;
 
                 var disposables = new IDisposable[length];
-                for (int i = 0; i < length; i++)
+                for (var i = 0; i < length; i++)
                 {
                     var source = parent.sources[i];
                     disposables[i] = source.Subscribe(new CombineLatestObserver(this, i));
@@ -232,7 +263,7 @@ namespace UniRx.Operators
             }
 
             // publish is in the lock
-            void Publish(int index)
+            private void Publish(int index)
             {
                 isStarted[index] = true;
 
@@ -243,26 +274,23 @@ namespace UniRx.Operators
                 }
 
                 var allValueStarted = true;
-                for (int i = 0; i < length; i++)
-                {
+                for (var i = 0; i < length; i++)
                     if (!isStarted[i])
                     {
                         allValueStarted = false;
                         break;
                     }
-                }
 
                 isAllValueStarted = allValueStarted;
 
                 if (isAllValueStarted)
                 {
                     OnNext(new List<T>(values));
-                    return;
                 }
                 else
                 {
                     var allCompletedWithoutSelf = true;
-                    for (int i = 0; i < length; i++)
+                    for (var i = 0; i < length; i++)
                     {
                         if (i == index) continue;
                         if (!isCompleted[i])
@@ -273,39 +301,50 @@ namespace UniRx.Operators
                     }
 
                     if (allCompletedWithoutSelf)
-                    {
-                        try { observer.OnCompleted(); }
-                        finally { Dispose(); }
-                        return;
-                    }
-                    else
-                    {
-                        return;
-                    }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                 }
             }
 
             public override void OnNext(IList<T> value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
-            class CombineLatestObserver : IObserver<T>
+            private class CombineLatestObserver : IObserver<T>
             {
-                readonly CombineLatest parent;
-                readonly int index;
+                private readonly int index;
+                private readonly CombineLatest parent;
 
                 public CombineLatestObserver(CombineLatest parent, int index)
                 {
@@ -337,19 +376,14 @@ namespace UniRx.Operators
                         parent.isCompleted[index] = true;
 
                         var allTrue = true;
-                        for (int i = 0; i < parent.length; i++)
-                        {
+                        for (var i = 0; i < parent.length; i++)
                             if (!parent.isCompleted[i])
                             {
                                 allTrue = false;
                                 break;
                             }
-                        }
 
-                        if (allTrue)
-                        {
-                            parent.OnCompleted();
-                        }
+                        if (allTrue) parent.OnCompleted();
                     }
                 }
             }
@@ -357,20 +391,21 @@ namespace UniRx.Operators
     }
 
     // generated from UniRx.Console.CombineLatestGenerator.tt
+
     #region NTH
 
     internal class CombineLatestObservable<T1, T2, T3, TR> : OperatorObservableBase<TR>
     {
-        IObservable<T1> source1;
-        IObservable<T2> source2;
-        IObservable<T3> source3;
-        CombineLatestFunc<T1, T2, T3, TR> resultSelector;
+        private readonly CombineLatestFunc<T1, T2, T3, TR> resultSelector;
+        private readonly IObservable<T1> source1;
+        private readonly IObservable<T2> source2;
+        private readonly IObservable<T3> source3;
 
         public CombineLatestObservable(
             IObservable<T1> source1,
             IObservable<T2> source2,
             IObservable<T3> source3,
-              CombineLatestFunc<T1, T2, T3, TR> resultSelector)
+            CombineLatestFunc<T1, T2, T3, TR> resultSelector)
             : base(
                 source1.IsRequiredSubscribeOnCurrentThread() ||
                 source2.IsRequiredSubscribeOnCurrentThread() ||
@@ -388,15 +423,16 @@ namespace UniRx.Operators
             return new CombineLatest(3, this, observer, cancel).Run();
         }
 
-        class CombineLatest : NthCombineLatestObserverBase<TR>
+        private class CombineLatest : NthCombineLatestObserverBase<TR>
         {
-            readonly CombineLatestObservable<T1, T2, T3, TR> parent;
-            readonly object gate = new object();
-            CombineLatestObserver<T1> c1;
-            CombineLatestObserver<T2> c2;
-            CombineLatestObserver<T3> c3;
+            private readonly object gate = new();
+            private readonly CombineLatestObservable<T1, T2, T3, TR> parent;
+            private CombineLatestObserver<T1> c1;
+            private CombineLatestObserver<T2> c2;
+            private CombineLatestObserver<T3> c3;
 
-            public CombineLatest(int length, CombineLatestObservable<T1, T2, T3, TR> parent, IObserver<TR> observer, IDisposable cancel)
+            public CombineLatest(int length, CombineLatestObservable<T1, T2, T3, TR> parent, IObserver<TR> observer,
+                IDisposable cancel)
                 : base(length, observer, cancel)
             {
                 this.parent = parent;
@@ -422,19 +458,31 @@ namespace UniRx.Operators
 
             public override void OnNext(TR value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
@@ -442,18 +490,18 @@ namespace UniRx.Operators
 
     internal class CombineLatestObservable<T1, T2, T3, T4, TR> : OperatorObservableBase<TR>
     {
-        IObservable<T1> source1;
-        IObservable<T2> source2;
-        IObservable<T3> source3;
-        IObservable<T4> source4;
-        CombineLatestFunc<T1, T2, T3, T4, TR> resultSelector;
+        private readonly CombineLatestFunc<T1, T2, T3, T4, TR> resultSelector;
+        private readonly IObservable<T1> source1;
+        private readonly IObservable<T2> source2;
+        private readonly IObservable<T3> source3;
+        private readonly IObservable<T4> source4;
 
         public CombineLatestObservable(
             IObservable<T1> source1,
             IObservable<T2> source2,
             IObservable<T3> source3,
             IObservable<T4> source4,
-              CombineLatestFunc<T1, T2, T3, T4, TR> resultSelector)
+            CombineLatestFunc<T1, T2, T3, T4, TR> resultSelector)
             : base(
                 source1.IsRequiredSubscribeOnCurrentThread() ||
                 source2.IsRequiredSubscribeOnCurrentThread() ||
@@ -473,16 +521,17 @@ namespace UniRx.Operators
             return new CombineLatest(4, this, observer, cancel).Run();
         }
 
-        class CombineLatest : NthCombineLatestObserverBase<TR>
+        private class CombineLatest : NthCombineLatestObserverBase<TR>
         {
-            readonly CombineLatestObservable<T1, T2, T3, T4, TR> parent;
-            readonly object gate = new object();
-            CombineLatestObserver<T1> c1;
-            CombineLatestObserver<T2> c2;
-            CombineLatestObserver<T3> c3;
-            CombineLatestObserver<T4> c4;
+            private readonly object gate = new();
+            private readonly CombineLatestObservable<T1, T2, T3, T4, TR> parent;
+            private CombineLatestObserver<T1> c1;
+            private CombineLatestObserver<T2> c2;
+            private CombineLatestObserver<T3> c3;
+            private CombineLatestObserver<T4> c4;
 
-            public CombineLatest(int length, CombineLatestObservable<T1, T2, T3, T4, TR> parent, IObserver<TR> observer, IDisposable cancel)
+            public CombineLatest(int length, CombineLatestObservable<T1, T2, T3, T4, TR> parent, IObserver<TR> observer,
+                IDisposable cancel)
                 : base(length, observer, cancel)
             {
                 this.parent = parent;
@@ -510,19 +559,31 @@ namespace UniRx.Operators
 
             public override void OnNext(TR value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
@@ -530,12 +591,12 @@ namespace UniRx.Operators
 
     internal class CombineLatestObservable<T1, T2, T3, T4, T5, TR> : OperatorObservableBase<TR>
     {
-        IObservable<T1> source1;
-        IObservable<T2> source2;
-        IObservable<T3> source3;
-        IObservable<T4> source4;
-        IObservable<T5> source5;
-        CombineLatestFunc<T1, T2, T3, T4, T5, TR> resultSelector;
+        private readonly CombineLatestFunc<T1, T2, T3, T4, T5, TR> resultSelector;
+        private readonly IObservable<T1> source1;
+        private readonly IObservable<T2> source2;
+        private readonly IObservable<T3> source3;
+        private readonly IObservable<T4> source4;
+        private readonly IObservable<T5> source5;
 
         public CombineLatestObservable(
             IObservable<T1> source1,
@@ -543,7 +604,7 @@ namespace UniRx.Operators
             IObservable<T3> source3,
             IObservable<T4> source4,
             IObservable<T5> source5,
-              CombineLatestFunc<T1, T2, T3, T4, T5, TR> resultSelector)
+            CombineLatestFunc<T1, T2, T3, T4, T5, TR> resultSelector)
             : base(
                 source1.IsRequiredSubscribeOnCurrentThread() ||
                 source2.IsRequiredSubscribeOnCurrentThread() ||
@@ -565,17 +626,18 @@ namespace UniRx.Operators
             return new CombineLatest(5, this, observer, cancel).Run();
         }
 
-        class CombineLatest : NthCombineLatestObserverBase<TR>
+        private class CombineLatest : NthCombineLatestObserverBase<TR>
         {
-            readonly CombineLatestObservable<T1, T2, T3, T4, T5, TR> parent;
-            readonly object gate = new object();
-            CombineLatestObserver<T1> c1;
-            CombineLatestObserver<T2> c2;
-            CombineLatestObserver<T3> c3;
-            CombineLatestObserver<T4> c4;
-            CombineLatestObserver<T5> c5;
+            private readonly object gate = new();
+            private readonly CombineLatestObservable<T1, T2, T3, T4, T5, TR> parent;
+            private CombineLatestObserver<T1> c1;
+            private CombineLatestObserver<T2> c2;
+            private CombineLatestObserver<T3> c3;
+            private CombineLatestObserver<T4> c4;
+            private CombineLatestObserver<T5> c5;
 
-            public CombineLatest(int length, CombineLatestObservable<T1, T2, T3, T4, T5, TR> parent, IObserver<TR> observer, IDisposable cancel)
+            public CombineLatest(int length, CombineLatestObservable<T1, T2, T3, T4, T5, TR> parent,
+                IObserver<TR> observer, IDisposable cancel)
                 : base(length, observer, cancel)
             {
                 this.parent = parent;
@@ -605,19 +667,31 @@ namespace UniRx.Operators
 
             public override void OnNext(TR value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
@@ -625,13 +699,13 @@ namespace UniRx.Operators
 
     internal class CombineLatestObservable<T1, T2, T3, T4, T5, T6, TR> : OperatorObservableBase<TR>
     {
-        IObservable<T1> source1;
-        IObservable<T2> source2;
-        IObservable<T3> source3;
-        IObservable<T4> source4;
-        IObservable<T5> source5;
-        IObservable<T6> source6;
-        CombineLatestFunc<T1, T2, T3, T4, T5, T6, TR> resultSelector;
+        private readonly CombineLatestFunc<T1, T2, T3, T4, T5, T6, TR> resultSelector;
+        private readonly IObservable<T1> source1;
+        private readonly IObservable<T2> source2;
+        private readonly IObservable<T3> source3;
+        private readonly IObservable<T4> source4;
+        private readonly IObservable<T5> source5;
+        private readonly IObservable<T6> source6;
 
         public CombineLatestObservable(
             IObservable<T1> source1,
@@ -640,7 +714,7 @@ namespace UniRx.Operators
             IObservable<T4> source4,
             IObservable<T5> source5,
             IObservable<T6> source6,
-              CombineLatestFunc<T1, T2, T3, T4, T5, T6, TR> resultSelector)
+            CombineLatestFunc<T1, T2, T3, T4, T5, T6, TR> resultSelector)
             : base(
                 source1.IsRequiredSubscribeOnCurrentThread() ||
                 source2.IsRequiredSubscribeOnCurrentThread() ||
@@ -664,18 +738,19 @@ namespace UniRx.Operators
             return new CombineLatest(6, this, observer, cancel).Run();
         }
 
-        class CombineLatest : NthCombineLatestObserverBase<TR>
+        private class CombineLatest : NthCombineLatestObserverBase<TR>
         {
-            readonly CombineLatestObservable<T1, T2, T3, T4, T5, T6, TR> parent;
-            readonly object gate = new object();
-            CombineLatestObserver<T1> c1;
-            CombineLatestObserver<T2> c2;
-            CombineLatestObserver<T3> c3;
-            CombineLatestObserver<T4> c4;
-            CombineLatestObserver<T5> c5;
-            CombineLatestObserver<T6> c6;
+            private readonly object gate = new();
+            private readonly CombineLatestObservable<T1, T2, T3, T4, T5, T6, TR> parent;
+            private CombineLatestObserver<T1> c1;
+            private CombineLatestObserver<T2> c2;
+            private CombineLatestObserver<T3> c3;
+            private CombineLatestObserver<T4> c4;
+            private CombineLatestObserver<T5> c5;
+            private CombineLatestObserver<T6> c6;
 
-            public CombineLatest(int length, CombineLatestObservable<T1, T2, T3, T4, T5, T6, TR> parent, IObserver<TR> observer, IDisposable cancel)
+            public CombineLatest(int length, CombineLatestObservable<T1, T2, T3, T4, T5, T6, TR> parent,
+                IObserver<TR> observer, IDisposable cancel)
                 : base(length, observer, cancel)
             {
                 this.parent = parent;
@@ -707,19 +782,31 @@ namespace UniRx.Operators
 
             public override void OnNext(TR value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
@@ -727,14 +814,14 @@ namespace UniRx.Operators
 
     internal class CombineLatestObservable<T1, T2, T3, T4, T5, T6, T7, TR> : OperatorObservableBase<TR>
     {
-        IObservable<T1> source1;
-        IObservable<T2> source2;
-        IObservable<T3> source3;
-        IObservable<T4> source4;
-        IObservable<T5> source5;
-        IObservable<T6> source6;
-        IObservable<T7> source7;
-        CombineLatestFunc<T1, T2, T3, T4, T5, T6, T7, TR> resultSelector;
+        private readonly CombineLatestFunc<T1, T2, T3, T4, T5, T6, T7, TR> resultSelector;
+        private readonly IObservable<T1> source1;
+        private readonly IObservable<T2> source2;
+        private readonly IObservable<T3> source3;
+        private readonly IObservable<T4> source4;
+        private readonly IObservable<T5> source5;
+        private readonly IObservable<T6> source6;
+        private readonly IObservable<T7> source7;
 
         public CombineLatestObservable(
             IObservable<T1> source1,
@@ -744,7 +831,7 @@ namespace UniRx.Operators
             IObservable<T5> source5,
             IObservable<T6> source6,
             IObservable<T7> source7,
-              CombineLatestFunc<T1, T2, T3, T4, T5, T6, T7, TR> resultSelector)
+            CombineLatestFunc<T1, T2, T3, T4, T5, T6, T7, TR> resultSelector)
             : base(
                 source1.IsRequiredSubscribeOnCurrentThread() ||
                 source2.IsRequiredSubscribeOnCurrentThread() ||
@@ -770,19 +857,20 @@ namespace UniRx.Operators
             return new CombineLatest(7, this, observer, cancel).Run();
         }
 
-        class CombineLatest : NthCombineLatestObserverBase<TR>
+        private class CombineLatest : NthCombineLatestObserverBase<TR>
         {
-            readonly CombineLatestObservable<T1, T2, T3, T4, T5, T6, T7, TR> parent;
-            readonly object gate = new object();
-            CombineLatestObserver<T1> c1;
-            CombineLatestObserver<T2> c2;
-            CombineLatestObserver<T3> c3;
-            CombineLatestObserver<T4> c4;
-            CombineLatestObserver<T5> c5;
-            CombineLatestObserver<T6> c6;
-            CombineLatestObserver<T7> c7;
+            private readonly object gate = new();
+            private readonly CombineLatestObservable<T1, T2, T3, T4, T5, T6, T7, TR> parent;
+            private CombineLatestObserver<T1> c1;
+            private CombineLatestObserver<T2> c2;
+            private CombineLatestObserver<T3> c3;
+            private CombineLatestObserver<T4> c4;
+            private CombineLatestObserver<T5> c5;
+            private CombineLatestObserver<T6> c6;
+            private CombineLatestObserver<T7> c7;
 
-            public CombineLatest(int length, CombineLatestObservable<T1, T2, T3, T4, T5, T6, T7, TR> parent, IObserver<TR> observer, IDisposable cancel)
+            public CombineLatest(int length, CombineLatestObservable<T1, T2, T3, T4, T5, T6, T7, TR> parent,
+                IObserver<TR> observer, IDisposable cancel)
                 : base(length, observer, cancel)
             {
                 this.parent = parent;
@@ -816,19 +904,31 @@ namespace UniRx.Operators
 
             public override void OnNext(TR value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
@@ -846,20 +946,19 @@ namespace UniRx.Operators
 
     internal abstract class NthCombineLatestObserverBase<T> : OperatorObserverBase<T, T>, ICombineLatestObservable
     {
-        readonly int length;
-        bool isAllValueStarted;
-        readonly bool[] isStarted;
-        readonly bool[] isCompleted;
+        private readonly bool[] isCompleted;
+        private readonly bool[] isStarted;
+        private readonly int length;
+        private bool isAllValueStarted;
 
-        public NthCombineLatestObserverBase(int length, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+        public NthCombineLatestObserverBase(int length, IObserver<T> observer, IDisposable cancel) : base(observer,
+            cancel)
         {
             this.length = length;
-            this.isAllValueStarted = false;
-            this.isStarted = new bool[length];
-            this.isCompleted = new bool[length];
+            isAllValueStarted = false;
+            isStarted = new bool[length];
+            isCompleted = new bool[length];
         }
-
-        public abstract T GetResult();
 
         // operators in lock
         public void Publish(int index)
@@ -875,23 +974,29 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
+
                 OnNext(result);
                 return;
             }
 
             var allValueStarted = true;
-            for (int i = 0; i < length; i++)
-            {
+            for (var i = 0; i < length; i++)
                 if (!isStarted[i])
                 {
                     allValueStarted = false;
                     break;
                 }
-            }
 
             isAllValueStarted = allValueStarted;
 
@@ -904,17 +1009,24 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
+
                 OnNext(result);
-                return;
             }
             else
             {
                 var allCompletedWithoutSelf = true;
-                for (int i = 0; i < length; i++)
+                for (var i = 0; i < length; i++)
                 {
                     if (i == index) continue;
                     if (!isCompleted[i])
@@ -925,15 +1037,14 @@ namespace UniRx.Operators
                 }
 
                 if (allCompletedWithoutSelf)
-                {
-                    try { observer.OnCompleted(); }
-                    finally { Dispose(); }
-                    return;
-                }
-                else
-                {
-                    return;
-                }
+                    try
+                    {
+                        observer.OnCompleted();
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
             }
         }
 
@@ -942,38 +1053,45 @@ namespace UniRx.Operators
             isCompleted[index] = true;
 
             var allTrue = true;
-            for (int i = 0; i < length; i++)
-            {
+            for (var i = 0; i < length; i++)
                 if (!isCompleted[i])
                 {
                     allTrue = false;
                     break;
                 }
-            }
 
             if (allTrue)
-            {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
-            }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
         }
 
         public void Fail(Exception error)
         {
-            try { observer.OnError(error); }
-            finally { Dispose(); }
+            try
+            {
+                observer.OnError(error);
+            }
+            finally
+            {
+                Dispose();
+            }
         }
+
+        public abstract T GetResult();
     }
 
     // Nth
     internal class CombineLatestObserver<T> : IObserver<T>
     {
-        readonly object gate;
-        readonly ICombineLatestObservable parent;
-        readonly int index;
-        T value;
-
-        public T Value { get { return value; } }
+        private readonly object gate;
+        private readonly int index;
+        private readonly ICombineLatestObservable parent;
 
         public CombineLatestObserver(object gate, ICombineLatestObservable parent, int index)
         {
@@ -982,11 +1100,13 @@ namespace UniRx.Operators
             this.index = index;
         }
 
+        public T Value { get; private set; }
+
         public void OnNext(T value)
         {
             lock (gate)
             {
-                this.value = value;
+                this.Value = value;
                 parent.Publish(index);
             }
         }

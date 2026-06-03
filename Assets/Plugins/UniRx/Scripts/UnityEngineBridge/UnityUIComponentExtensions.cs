@@ -1,4 +1,5 @@
 ﻿// for uGUI(from 4.6)
+
 #if !(UNITY_4_0 || UNITY_4_1 || UNITY_4_2 || UNITY_4_3 || UNITY_4_4 || UNITY_4_5)
 
 using System;
@@ -7,7 +8,7 @@ using UnityEngine.UI;
 
 namespace UniRx
 {
-    public static partial class UnityUIComponentExtensions
+    public static class UnityUIComponentExtensions
     {
         public static IDisposable SubscribeToText(this IObservable<string> source, Text text)
         {

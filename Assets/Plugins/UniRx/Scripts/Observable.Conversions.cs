@@ -11,10 +11,7 @@ namespace UniRx
             if (source == null) throw new ArgumentNullException("source");
 
             // optimize, don't double wrap
-            if (source is UniRx.Operators.AsObservableObservable<T>)
-            {
-                return source;
-            }
+            if (source is AsObservableObservable<T>) return source;
 
             return new AsObservableObservable<T>(source);
         }
@@ -35,7 +32,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// witness is for type inference.
+        ///     witness is for type inference.
         /// </summary>
         public static IObservable<TResult> Cast<TSource, TResult>(this IObservable<TSource> source, TResult witness)
         {
@@ -48,7 +45,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// witness is for type inference.
+        ///     witness is for type inference.
         /// </summary>
         public static IObservable<TResult> OfType<TSource, TResult>(this IObservable<TSource> source, TResult witness)
         {
@@ -56,7 +53,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Converting .Select(_ => Unit.Default) sequence.
+        ///     Converting .Select(_ => Unit.Default) sequence.
         /// </summary>
         public static IObservable<Unit> AsUnitObservable<T>(this IObservable<T> source)
         {
@@ -64,7 +61,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Same as LastOrDefault().AsUnitObservable().
+        ///     Same as LastOrDefault().AsUnitObservable().
         /// </summary>
         public static IObservable<Unit> AsSingleUnitObservable<T>(this IObservable<T> source)
         {

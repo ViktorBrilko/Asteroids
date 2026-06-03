@@ -10,7 +10,8 @@ namespace Zenject
         {
         }
 
-        public FactoryArgumentsToChoiceBinder<TParam1, TParam2, TParam3, TParam4, TParam5, TContract> WithId(object identifier)
+        public FactoryArgumentsToChoiceBinder<TParam1, TParam2, TParam3, TParam4, TParam5, TContract> WithId(
+            object identifier)
         {
             BindInfo.Identifier = identifier;
             return this;

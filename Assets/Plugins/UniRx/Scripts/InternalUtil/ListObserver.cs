@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace UniRx.InternalUtil
 {
@@ -16,28 +14,19 @@ namespace UniRx.InternalUtil
         public void OnCompleted()
         {
             var targetObservers = _observers.Data;
-            for (int i = 0; i < targetObservers.Length; i++)
-            {
-                targetObservers[i].OnCompleted();
-            }
+            for (var i = 0; i < targetObservers.Length; i++) targetObservers[i].OnCompleted();
         }
 
         public void OnError(Exception error)
         {
             var targetObservers = _observers.Data;
-            for (int i = 0; i < targetObservers.Length; i++)
-            {
-                targetObservers[i].OnError(error);
-            }
+            for (var i = 0; i < targetObservers.Length; i++) targetObservers[i].OnError(error);
         }
 
         public void OnNext(T value)
         {
             var targetObservers = _observers.Data;
-            for (int i = 0; i < targetObservers.Length; i++)
-            {
-                targetObservers[i].OnNext(value);
-            }
+            for (var i = 0; i < targetObservers.Length; i++) targetObservers[i].OnNext(value);
         }
 
         internal IObserver<T> Add(IObserver<T> observer)
@@ -51,24 +40,18 @@ namespace UniRx.InternalUtil
             if (i < 0)
                 return this;
 
-            if (_observers.Data.Length == 2)
-            {
-                return _observers.Data[1 - i];
-            }
-            else
-            {
-                return new ListObserver<T>(_observers.Remove(observer));
-            }
+            if (_observers.Data.Length == 2) return _observers.Data[1 - i];
+
+            return new ListObserver<T>(_observers.Remove(observer));
         }
     }
 
     public class EmptyObserver<T> : IObserver<T>
     {
-        public static readonly EmptyObserver<T> Instance = new EmptyObserver<T>();
+        public static readonly EmptyObserver<T> Instance = new();
 
-        EmptyObserver()
+        private EmptyObserver()
         {
-
         }
 
         public void OnCompleted()
@@ -86,11 +69,10 @@ namespace UniRx.InternalUtil
 
     public class ThrowObserver<T> : IObserver<T>
     {
-        public static readonly ThrowObserver<T> Instance = new ThrowObserver<T>();
+        public static readonly ThrowObserver<T> Instance = new();
 
-        ThrowObserver()
+        private ThrowObserver()
         {
-
         }
 
         public void OnCompleted()
@@ -109,11 +91,10 @@ namespace UniRx.InternalUtil
 
     public class DisposedObserver<T> : IObserver<T>
     {
-        public static readonly DisposedObserver<T> Instance = new DisposedObserver<T>();
+        public static readonly DisposedObserver<T> Instance = new();
 
-        DisposedObserver()
+        private DisposedObserver()
         {
-
         }
 
         public void OnCompleted()

@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace UniRx.Operators
 {
     internal class RepeatSafeObservable<T> : OperatorObservableBase<T>
     {
-        readonly IEnumerable<IObservable<T>> sources;
+        private readonly IEnumerable<IObservable<T>> sources;
 
         public RepeatSafeObservable(IEnumerable<IObservable<T>> sources, bool isRequiredSubscribeOnCurrentThread)
             : base(isRequiredSubscribeOnCurrentThread)
@@ -19,18 +18,19 @@ namespace UniRx.Operators
             return new RepeatSafe(this, observer, cancel).Run();
         }
 
-        class RepeatSafe : OperatorObserverBase<T, T>
+        private class RepeatSafe : OperatorObserverBase<T, T>
         {
-            readonly RepeatSafeObservable<T> parent;
-            readonly object gate = new object();
+            private readonly object gate = new();
+            private readonly RepeatSafeObservable<T> parent;
 
-            IEnumerator<IObservable<T>> e;
-            SerialDisposable subscription;
-            Action nextSelf;
-            bool isDisposed;
-            bool isRunNext;
+            private IEnumerator<IObservable<T>> e;
+            private bool isDisposed;
+            private bool isRunNext;
+            private Action nextSelf;
+            private SerialDisposable subscription;
 
-            public RepeatSafe(RepeatSafeObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public RepeatSafe(RepeatSafeObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
             }
@@ -54,11 +54,11 @@ namespace UniRx.Operators
                 }));
             }
 
-            void RecursiveRun(Action self)
+            private void RecursiveRun(Action self)
             {
                 lock (gate)
                 {
-                    this.nextSelf = self;
+                    nextSelf = self;
                     if (isDisposed) return;
 
                     var current = default(IObservable<T>);
@@ -86,15 +86,29 @@ namespace UniRx.Operators
 
                     if (ex != null)
                     {
-                        try { observer.OnError(ex); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnError(ex);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
                         return;
                     }
 
                     if (!hasNext)
                     {
-                        try { observer.OnCompleted(); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
                         return;
                     }
 
@@ -108,12 +122,19 @@ namespace UniRx.Operators
             public override void OnNext(T value)
             {
                 isRunNext = true;
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
+
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
@@ -121,16 +142,20 @@ namespace UniRx.Operators
                 if (isRunNext && !isDisposed)
                 {
                     isRunNext = false;
-                    this.nextSelf();
+                    nextSelf();
                 }
                 else
                 {
                     e.Dispose();
                     if (!isDisposed)
-                    {
-                        try { observer.OnCompleted(); }
-                        finally { Dispose(); }
-                    }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                 }
             }
         }

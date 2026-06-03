@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace UniRx.Operators
 {
     internal class BatchFrameObservable<T> : OperatorObservableBase<IList<T>>
     {
-        readonly IObservable<T> source;
-        readonly int frameCount;
-        readonly FrameCountType frameCountType;
+        private readonly int frameCount;
+        private readonly FrameCountType frameCountType;
+        private readonly IObservable<T> source;
 
         public BatchFrameObservable(IObservable<T> source, int frameCount, FrameCountType frameCountType)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -22,20 +23,21 @@ namespace UniRx.Operators
             return new BatchFrame(this, observer, cancel).Run();
         }
 
-        class BatchFrame : OperatorObserverBase<T, IList<T>>
+        private class BatchFrame : OperatorObserverBase<T, IList<T>>
         {
-            readonly BatchFrameObservable<T> parent;
-            readonly object gate = new object();
-            readonly BooleanDisposable cancellationToken = new BooleanDisposable();
-            readonly System.Collections.IEnumerator timer;
-            bool isRunning;
-            bool isCompleted;
-            List<T> list;
+            private readonly BooleanDisposable cancellationToken = new();
+            private readonly object gate = new();
+            private readonly BatchFrameObservable<T> parent;
+            private readonly IEnumerator timer;
+            private bool isCompleted;
+            private bool isRunning;
+            private List<T> list;
 
-            public BatchFrame(BatchFrameObservable<T> parent, IObserver<IList<T>> observer, IDisposable cancel) : base(observer, cancel)
+            public BatchFrame(BatchFrameObservable<T> parent, IObserver<IList<T>> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
-                this.timer = new ReusableEnumerator(this);
+                timer = new ReusableEnumerator(this);
             }
 
             public IDisposable Run()
@@ -67,8 +69,6 @@ namespace UniRx.Operators
                             case FrameCountType.EndOfFrame:
                                 MainThreadDispatcher.StartEndOfFrameMicroCoroutine(timer);
                                 break;
-                            default:
-                                break;
                         }
                     }
                 }
@@ -76,7 +76,14 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
@@ -87,28 +94,30 @@ namespace UniRx.Operators
                     isCompleted = true;
                     currentList = list;
                 }
-                if (currentList.Count != 0)
+
+                if (currentList.Count != 0) observer.OnNext(currentList);
+                try
                 {
-                    observer.OnNext(currentList);
+                    observer.OnCompleted();
                 }
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             // reuse, no gc allocate
-            class ReusableEnumerator : System.Collections.IEnumerator
+            private class ReusableEnumerator : IEnumerator
             {
-                readonly BatchFrame parent;
-                int currentFrame;
+                private readonly BatchFrame parent;
+                private int currentFrame;
 
                 public ReusableEnumerator(BatchFrame parent)
                 {
                     this.parent = parent;
                 }
 
-                public object Current
-                {
-                    get { return null; }
-                }
+                public object Current => null;
 
                 public bool MoveNext()
                 {
@@ -147,9 +156,9 @@ namespace UniRx.Operators
 
     internal class BatchFrameObservable : OperatorObservableBase<Unit>
     {
-        readonly IObservable<Unit> source;
-        readonly int frameCount;
-        readonly FrameCountType frameCountType;
+        private readonly int frameCount;
+        private readonly FrameCountType frameCountType;
+        private readonly IObservable<Unit> source;
 
         public BatchFrameObservable(IObservable<Unit> source, int frameCount, FrameCountType frameCountType)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -164,20 +173,21 @@ namespace UniRx.Operators
             return new BatchFrame(this, observer, cancel).Run();
         }
 
-        class BatchFrame : OperatorObserverBase<Unit, Unit>
+        private class BatchFrame : OperatorObserverBase<Unit, Unit>
         {
-            readonly BatchFrameObservable parent;
-            readonly object gate = new object();
-            readonly BooleanDisposable cancellationToken = new BooleanDisposable();
-            readonly System.Collections.IEnumerator timer;
+            private readonly BooleanDisposable cancellationToken = new();
+            private readonly object gate = new();
+            private readonly BatchFrameObservable parent;
+            private readonly IEnumerator timer;
+            private bool isCompleted;
 
-            bool isRunning;
-            bool isCompleted;
+            private bool isRunning;
 
-            public BatchFrame(BatchFrameObservable parent, IObserver<Unit> observer, IDisposable cancel) : base(observer, cancel)
+            public BatchFrame(BatchFrameObservable parent, IObserver<Unit> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
-                this.timer = new ReusableEnumerator(this);
+                timer = new ReusableEnumerator(this);
             }
 
             public IDisposable Run()
@@ -206,8 +216,6 @@ namespace UniRx.Operators
                             case FrameCountType.EndOfFrame:
                                 MainThreadDispatcher.StartEndOfFrameMicroCoroutine(timer);
                                 break;
-                            default:
-                                break;
                         }
                     }
                 }
@@ -215,7 +223,14 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
@@ -226,28 +241,30 @@ namespace UniRx.Operators
                     running = isRunning;
                     isCompleted = true;
                 }
-                if (running)
+
+                if (running) observer.OnNext(Unit.Default);
+                try
                 {
-                    observer.OnNext(Unit.Default);
+                    observer.OnCompleted();
                 }
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             // reuse, no gc allocate
-            class ReusableEnumerator : System.Collections.IEnumerator
+            private class ReusableEnumerator : IEnumerator
             {
-                readonly BatchFrame parent;
-                int currentFrame;
+                private readonly BatchFrame parent;
+                private int currentFrame;
 
                 public ReusableEnumerator(BatchFrame parent)
                 {
                     this.parent = parent;
                 }
 
-                public object Current
-                {
-                    get { return null; }
-                }
+                public object Current => null;
 
                 public bool MoveNext()
                 {

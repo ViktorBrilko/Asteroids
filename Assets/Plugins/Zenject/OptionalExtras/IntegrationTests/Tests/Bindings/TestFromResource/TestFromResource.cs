@@ -1,5 +1,4 @@
-﻿
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using ModestTree;
 using UnityEngine;
@@ -9,8 +8,8 @@ namespace Zenject.Tests.Bindings
 {
     public class TestFromResource : ZenjectIntegrationTestFixture
     {
-        const string ResourcePath = "TestFromResource/TestTexture";
-        const string ResourcePath2 = "TestFromResource/TestTexture2";
+        private const string ResourcePath = "TestFromResource/TestTexture";
+        private const string ResourcePath2 = "TestFromResource/TestTexture2";
 
         [UnityTest]
         public IEnumerator TestBasic()
@@ -77,19 +76,11 @@ namespace Zenject.Tests.Bindings
 
         public class Runner : MonoBehaviour
         {
-            List<Texture> _textures;
+            private List<Texture> _textures;
 
-            [Inject]
-            public void Construct(List<Texture> textures, int expectedAmount)
+            private void OnGUI()
             {
-                _textures = textures;
-
-                Assert.IsEqual(textures.Count, expectedAmount);
-            }
-
-            void OnGUI()
-            {
-                int top = 0;
+                var top = 0;
 
                 foreach (var tex in _textures)
                 {
@@ -100,7 +91,14 @@ namespace Zenject.Tests.Bindings
                     top += 200;
                 }
             }
+
+            [Inject]
+            public void Construct(List<Texture> textures, int expectedAmount)
+            {
+                _textures = textures;
+
+                Assert.IsEqual(textures.Count, expectedAmount);
+            }
         }
     }
 }
-

@@ -48,74 +48,61 @@ namespace Zenject.Tests.Injection
             TestListItems(Container.Resolve<Test5>().Values.ToList());
         }
 
-        void BindListItems()
+        private void BindListItems()
         {
             Container.BindInstance("foo");
             Container.BindInstance("bar");
         }
 
-        void TestListItems(List<string> values)
+        private void TestListItems(List<string> values)
         {
             Assert.IsEqual(values[0], "foo");
             Assert.IsEqual(values[1], "bar");
         }
 
-        class Test1
+        private class Test1
         {
             public Test1(List<string> values)
             {
                 Values = values;
             }
 
-            public List<string> Values
-            {
-                get; private set;
-            }
+            public List<string> Values { get; }
         }
 
-        class Test3
+        private class Test3
         {
-            [Inject]
-            public List<string> Values = null;
+            [Inject] public List<string> Values;
         }
 
-        class Test2
+        private class Test2
         {
             public Test2(IList<string> values)
             {
                 Values = values;
             }
 
-            public IList<string> Values
-            {
-                get; private set;
-            }
+            public IList<string> Values { get; }
         }
 
-        class Test4
+        private class Test4
         {
             public Test4(IEnumerable<string> values)
             {
                 Values = values;
             }
 
-            public IEnumerable<string> Values
-            {
-                get; private set;
-            }
+            public IEnumerable<string> Values { get; }
         }
 
-        class Test5
+        private class Test5
         {
             public Test5(string[] values)
             {
                 Values = values;
             }
 
-            public string[] Values
-            {
-                get; private set;
-            }
+            public string[] Values { get; }
         }
     }
 }

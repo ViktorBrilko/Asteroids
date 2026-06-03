@@ -4,8 +4,8 @@ namespace UniRx.Operators
 {
     internal class ContinueWithObservable<TSource, TResult> : OperatorObservableBase<TResult>
     {
-        readonly IObservable<TSource> source;
-        readonly Func<TSource, IObservable<TResult>> selector;
+        private readonly Func<TSource, IObservable<TResult>> selector;
+        private readonly IObservable<TSource> source;
 
         public ContinueWithObservable(IObservable<TSource> source, Func<TSource, IObservable<TResult>> selector)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -19,15 +19,16 @@ namespace UniRx.Operators
             return new ContinueWith(this, observer, cancel).Run();
         }
 
-        class ContinueWith : OperatorObserverBase<TSource, TResult>
+        private class ContinueWith : OperatorObserverBase<TSource, TResult>
         {
-            readonly ContinueWithObservable<TSource, TResult> parent;
-            readonly SerialDisposable serialDisposable = new SerialDisposable();
+            private readonly ContinueWithObservable<TSource, TResult> parent;
+            private readonly SerialDisposable serialDisposable = new();
+            private TSource lastValue;
 
-            bool seenValue;
-            TSource lastValue;
+            private bool seenValue;
 
-            public ContinueWith(ContinueWithObservable<TSource, TResult> parent, IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
+            public ContinueWith(ContinueWithObservable<TSource, TResult> parent, IObserver<TResult> observer,
+                IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
             }
@@ -43,13 +44,22 @@ namespace UniRx.Operators
 
             public override void OnNext(TSource value)
             {
-                this.seenValue = true;
-                this.lastValue = value;
+                seenValue = true;
+                lastValue = value;
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); };
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
 
             public override void OnCompleted()
@@ -57,19 +67,28 @@ namespace UniRx.Operators
                 if (seenValue)
                 {
                     try
-	                {
-		                var v = parent.selector(lastValue);
-		                // dispose source subscription
-		                serialDisposable.Disposable = v.Subscribe(observer);
-	                }
-	                catch (Exception error)
-	                {
-		                OnError(error);
-	                }
+                    {
+                        var v = parent.selector(lastValue);
+                        // dispose source subscription
+                        serialDisposable.Disposable = v.Subscribe(observer);
+                    }
+                    catch (Exception error)
+                    {
+                        OnError(error);
+                    }
                 }
                 else
                 {
-                    try { observer.OnCompleted(); } finally { Dispose(); };
+                    try
+                    {
+                        observer.OnCompleted();
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                 }
             }
         }

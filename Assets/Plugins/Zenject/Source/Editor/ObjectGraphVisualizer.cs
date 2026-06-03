@@ -33,19 +33,14 @@ namespace Zenject
 
             foreach (var entry in graph)
             {
-                if (ShouldIgnoreType(entry.Key, ignoreTypes))
-                {
-                    continue;
-                }
+                if (ShouldIgnoreType(entry.Key, ignoreTypes)) continue;
 
                 foreach (var dependencyType in entry.Value)
                 {
-                    if (ShouldIgnoreType(dependencyType, ignoreTypes))
-                    {
-                        continue;
-                    }
+                    if (ShouldIgnoreType(dependencyType, ignoreTypes)) continue;
 
-                    resultStr += GetFormattedTypeName(entry.Key) + " -> " + GetFormattedTypeName(dependencyType) + "; \n";
+                    resultStr += GetFormattedTypeName(entry.Key) + " -> " + GetFormattedTypeName(dependencyType) +
+                                 "; \n";
                 }
             }
 
@@ -54,12 +49,12 @@ namespace Zenject
             File.WriteAllText(outputPath, resultStr);
         }
 
-        static bool ShouldIgnoreType(Type type, List<Type> ignoreTypes)
+        private static bool ShouldIgnoreType(Type type, List<Type> ignoreTypes)
         {
             return ignoreTypes.Contains(type);
         }
 
-        static Dictionary<Type, List<Type>> CalculateObjectGraph(
+        private static Dictionary<Type, List<Type>> CalculateObjectGraph(
             DiContainer container, IEnumerable<Type> contracts)
         {
             var map = new Dictionary<Type, List<Type>>();
@@ -68,16 +63,13 @@ namespace Zenject
             {
                 var depends = GetDependencies(container, contractType);
 
-                if (depends.Any())
-                {
-                    map.Add(contractType, depends);
-                }
+                if (depends.Any()) map.Add(contractType, depends);
             }
 
             return map;
         }
 
-        static List<Type> GetDependencies(
+        private static List<Type> GetDependencies(
             DiContainer container, Type type)
         {
             var dependencies = new List<Type>();
@@ -100,16 +92,13 @@ namespace Zenject
                     Assert.That(dependTypes.Count <= 1);
                 }
 
-                foreach (var dependType in dependTypes)
-                {
-                    dependencies.Add(dependType);
-                }
+                foreach (var dependType in dependTypes) dependencies.Add(dependType);
             }
 
             return dependencies;
         }
 
-        static string GetFormattedTypeName(Type type)
+        private static string GetFormattedTypeName(Type type)
         {
             var str = type.PrettyName();
 
@@ -122,4 +111,3 @@ namespace Zenject
         }
     }
 }
-

@@ -6,21 +6,20 @@ namespace Zenject.Tests.Conditions
     [TestFixture]
     public class TestIdentifierTypes : ZenjectUnitTestFixture
     {
-        class Foo
+        private class Foo
         {
         }
 
-        enum Things
+        private enum Things
         {
             Thing1,
             Thing2
         }
 
-        class Test0
+        private class Test0
         {
             public Test0(
-                [Inject(Id = "asdf")]
-                Foo foo)
+                [Inject(Id = "asdf")] Foo foo)
             {
             }
         }
@@ -43,11 +42,10 @@ namespace Zenject.Tests.Conditions
             Assert.IsNotNull(Container.Resolve<Test0>());
         }
 
-        class Test1
+        private class Test1
         {
             public Test1(
-                [Inject(Id = 5)]
-                Foo foo)
+                [Inject(Id = 5)] Foo foo)
             {
             }
         }
@@ -79,11 +77,10 @@ namespace Zenject.Tests.Conditions
             Assert.IsNotNull(Container.Resolve<Test1>());
         }
 
-        class Test2
+        private class Test2
         {
             public Test2(
-                [Inject(Id = Things.Thing1)]
-                Foo foo)
+                [Inject(Id = Things.Thing1)] Foo foo)
             {
             }
         }
@@ -116,4 +113,3 @@ namespace Zenject.Tests.Conditions
         }
     }
 }
-

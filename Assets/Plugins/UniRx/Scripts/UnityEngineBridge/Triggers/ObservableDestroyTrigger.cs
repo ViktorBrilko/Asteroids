@@ -1,40 +1,43 @@
-﻿using System; // require keep for Windows Universal App
+﻿using System;
 using UnityEngine;
+// require keep for Windows Universal App
 
 namespace UniRx.Triggers
 {
     [DisallowMultipleComponent]
     public class ObservableDestroyTrigger : MonoBehaviour
     {
-        bool calledDestroy = false;
-        Subject<Unit> onDestroy;
-        CompositeDisposable disposablesOnDestroy;
+        private CompositeDisposable disposablesOnDestroy;
+        private Subject<Unit> onDestroy;
 
-        [Obsolete("Internal Use.")]
-        internal bool IsMonitoredActivate { get; set; }
+        [Obsolete("Internal Use.")] internal bool IsMonitoredActivate { get; set; }
 
         public bool IsActivated { get; private set; }
 
         /// <summary>
-        /// Check called OnDestroy.
-        /// This property does not guarantees GameObject was destroyed,
-        /// when gameObject is deactive, does not raise OnDestroy.
+        ///     Check called OnDestroy.
+        ///     This property does not guarantees GameObject was destroyed,
+        ///     when gameObject is deactive, does not raise OnDestroy.
         /// </summary>
-        public bool IsCalledOnDestroy { get { return calledDestroy; } }
+        public bool IsCalledOnDestroy { get; private set; }
 
-        void Awake()
+        private void Awake()
         {
             IsActivated = true;
         }
 
         /// <summary>This function is called when the MonoBehaviour will be destroyed.</summary>
-        void OnDestroy()
+        private void OnDestroy()
         {
-            if (!calledDestroy)
+            if (!IsCalledOnDestroy)
             {
-                calledDestroy = true;
+                IsCalledOnDestroy = true;
                 if (disposablesOnDestroy != null) disposablesOnDestroy.Dispose();
-                if (onDestroy != null) { onDestroy.OnNext(Unit.Default); onDestroy.OnCompleted(); }
+                if (onDestroy != null)
+                {
+                    onDestroy.OnNext(Unit.Default);
+                    onDestroy.OnCompleted();
+                }
             }
         }
 
@@ -42,7 +45,7 @@ namespace UniRx.Triggers
         public IObservable<Unit> OnDestroyAsObservable()
         {
             if (this == null) return Observable.Return(Unit.Default);
-            if (calledDestroy) return Observable.Return(Unit.Default);
+            if (IsCalledOnDestroy) return Observable.Return(Unit.Default);
             return onDestroy ?? (onDestroy = new Subject<Unit>());
         }
 
@@ -54,7 +57,7 @@ namespace UniRx.Triggers
 
         public void AddDisposableOnDestroy(IDisposable disposable)
         {
-            if (calledDestroy)
+            if (IsCalledOnDestroy)
             {
                 disposable.Dispose();
                 return;

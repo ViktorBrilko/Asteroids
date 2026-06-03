@@ -11,6 +11,11 @@ namespace Core.Audios
 
         public AudioConfig Config => _config;
 
+        public void Initialize()
+        {
+            PlayMusic(_config.Music);
+        }
+
         private void PlayMusic(AudioClip musicClip)
         {
             _musicSource.clip = musicClip;
@@ -20,10 +25,7 @@ namespace Core.Audios
 
         public void PlaySfx(AudioClip clip, bool isLoop = false)
         {
-            if (isLoop)
-            {
-                _sfxSource.loop = true;
-            }
+            if (isLoop) _sfxSource.loop = true;
 
             _sfxSource.PlayOneShot(clip);
         }
@@ -31,11 +33,6 @@ namespace Core.Audios
         public void StopSfx()
         {
             _sfxSource.Stop();
-        }
-
-        public void Initialize()
-        {
-            PlayMusic(_config.Music);
         }
     }
 }

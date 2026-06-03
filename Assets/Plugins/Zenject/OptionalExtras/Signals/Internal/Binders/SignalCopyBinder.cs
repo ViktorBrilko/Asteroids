@@ -5,7 +5,7 @@ namespace Zenject
     [NoReflectionBaking]
     public class SignalCopyBinder
     {
-        readonly List<BindInfo> _bindInfos;
+        private readonly List<BindInfo> _bindInfos;
 
         public SignalCopyBinder()
         {
@@ -50,12 +50,9 @@ namespace Zenject
             SetInheritanceMethod(BindingInheritanceMethods.MoveDirectOnly);
         }
 
-        void SetInheritanceMethod(BindingInheritanceMethods method)
+        private void SetInheritanceMethod(BindingInheritanceMethods method)
         {
-            for (int i = 0; i < _bindInfos.Count; i++)
-            {
-                _bindInfos[i].BindingInheritanceMethod = method;
-            }
+            for (var i = 0; i < _bindInfos.Count; i++) _bindInfos[i].BindingInheritanceMethod = method;
         }
     }
 }

@@ -2,11 +2,11 @@ namespace Zenject.Tests.Factories.BindFactoryFive
 {
     public class FooInstaller : MonoInstaller
     {
-        double _param1;
-        int _param2;
-        float _param3;
-        string _param4;
-        char _param5;
+        private double _param1;
+        private int _param2;
+        private float _param3;
+        private string _param4;
+        private char _param5;
 
         [Inject]
         public void Init(double p1, int p2, float p3, string p4, char p5)

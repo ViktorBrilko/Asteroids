@@ -9,9 +9,9 @@ namespace Zenject
     [NoReflectionBaking]
     public class PrefabResourceBindingFinalizer : ProviderBindingFinalizer
     {
-        readonly GameObjectCreationParameters _gameObjectBindInfo;
-        readonly string _resourcePath;
-        readonly Func<Type, IPrefabInstantiator, IProvider> _providerFactory;
+        private readonly GameObjectCreationParameters _gameObjectBindInfo;
+        private readonly Func<Type, IPrefabInstantiator, IProvider> _providerFactory;
+        private readonly string _resourcePath;
 
         public PrefabResourceBindingFinalizer(
             BindInfo bindInfo,
@@ -37,7 +37,7 @@ namespace Zenject
             }
         }
 
-        void FinalizeBindingConcrete(DiContainer container, List<Type> concreteTypes)
+        private void FinalizeBindingConcrete(DiContainer container, List<Type> concreteTypes)
         {
             var scope = GetScope();
 
@@ -66,10 +66,8 @@ namespace Zenject
                     var argumentTarget = concreteTypes.OnlyOrDefault();
 
                     if (argumentTarget == null)
-                    {
                         Assert.That(BindInfo.Arguments.IsEmpty(),
                             "Cannot provide arguments to prefab instantiator when using more than one concrete type");
-                    }
 
                     var prefabCreator = new PrefabInstantiatorCached(
                         new PrefabInstantiator(
@@ -95,7 +93,7 @@ namespace Zenject
             }
         }
 
-        void FinalizeBindingSelf(DiContainer container)
+        private void FinalizeBindingSelf(DiContainer container)
         {
             var scope = GetScope();
 
@@ -123,10 +121,8 @@ namespace Zenject
                     var argumentTarget = BindInfo.ContractTypes.OnlyOrDefault();
 
                     if (argumentTarget == null)
-                    {
                         Assert.That(BindInfo.Arguments.IsEmpty(),
                             "Cannot provide arguments to prefab instantiator when using more than one concrete type");
-                    }
 
                     var prefabCreator = new PrefabInstantiatorCached(
                         new PrefabInstantiator(

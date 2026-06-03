@@ -7,23 +7,14 @@ namespace UniRx
     [Serializable]
     public struct Pair<T> : IEquatable<Pair<T>>
     {
-        readonly T previous;
-        readonly T current;
+        public T Previous { get; }
 
-        public T Previous
-        {
-            get { return previous; }
-        }
-
-        public T Current
-        {
-            get { return current; }
-        }
+        public T Current { get; }
 
         public Pair(T previous, T current)
         {
-            this.previous = previous;
-            this.current = current;
+            this.Previous = previous;
+            this.Current = current;
         }
 
         public override int GetHashCode()
@@ -31,8 +22,8 @@ namespace UniRx
             var comparer = EqualityComparer<T>.Default;
 
             int h0;
-            h0 = comparer.GetHashCode(previous);
-            h0 = (h0 << 5) + h0 ^ comparer.GetHashCode(current);
+            h0 = comparer.GetHashCode(Previous);
+            h0 = ((h0 << 5) + h0) ^ comparer.GetHashCode(Current);
             return h0;
         }
 
@@ -47,13 +38,13 @@ namespace UniRx
         {
             var comparer = EqualityComparer<T>.Default;
 
-            return comparer.Equals(previous, other.Previous) &&
-                comparer.Equals(current, other.Current);
+            return comparer.Equals(Previous, other.Previous) &&
+                   comparer.Equals(Current, other.Current);
         }
 
         public override string ToString()
         {
-            return string.Format("({0}, {1})", previous, current);
+            return string.Format("({0}, {1})", Previous, Current);
         }
     }
 }

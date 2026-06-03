@@ -1,6 +1,4 @@
-﻿﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 
 namespace UniRx
 {
@@ -9,89 +7,83 @@ namespace UniRx
     {
         /// <summary>Count incremented.</summary>
         Increment,
+
         /// <summary>Count decremented.</summary>
         Decrement,
+
         /// <summary>Count is zero.</summary>
         Empty,
+
         /// <summary>Count arrived max.</summary>
         Max
     }
 
     /// <summary>
-    /// Notify event of count flag.
+    ///     Notify event of count flag.
     /// </summary>
     public class CountNotifier : IObservable<CountChangedStatus>
     {
-        readonly object lockObject = new object();
-        readonly Subject<CountChangedStatus> statusChanged = new Subject<CountChangedStatus>();
-        readonly int max;
-
-        public int Max { get { return max; } }
-        public int Count { get; private set; }
+        private readonly object lockObject = new();
+        private readonly Subject<CountChangedStatus> statusChanged = new();
 
         /// <summary>
-        /// Setup max count of signal.
+        ///     Setup max count of signal.
         /// </summary>
         public CountNotifier(int max = int.MaxValue)
         {
-            if (max <= 0)
-            {
-                throw new ArgumentException("max");
-            }
+            if (max <= 0) throw new ArgumentException("max");
 
-            this.max = max;
+            this.Max = max;
+        }
+
+        public int Max { get; }
+
+        public int Count { get; private set; }
+
+        /// <summary>
+        ///     Subscribe observer.
+        /// </summary>
+        public IDisposable Subscribe(IObserver<CountChangedStatus> observer)
+        {
+            return statusChanged.Subscribe(observer);
         }
 
         /// <summary>
-        /// Increment count and notify status.
+        ///     Increment count and notify status.
         /// </summary>
         public IDisposable Increment(int incrementCount = 1)
         {
-            if (incrementCount < 0)
-            {
-                throw new ArgumentException("incrementCount");
-            }
+            if (incrementCount < 0) throw new ArgumentException("incrementCount");
 
             lock (lockObject)
             {
                 if (Count == Max) return Disposable.Empty;
-                else if (incrementCount + Count > Max) Count = Max;
+                if (incrementCount + Count > Max) Count = Max;
                 else Count += incrementCount;
 
                 statusChanged.OnNext(CountChangedStatus.Increment);
                 if (Count == Max) statusChanged.OnNext(CountChangedStatus.Max);
 
-                return Disposable.Create(() => this.Decrement(incrementCount));
+                return Disposable.Create(() => Decrement(incrementCount));
             }
         }
 
         /// <summary>
-        /// Decrement count and notify status.
+        ///     Decrement count and notify status.
         /// </summary>
         public void Decrement(int decrementCount = 1)
         {
-            if (decrementCount < 0)
-            {
-                throw new ArgumentException("decrementCount");
-            }
+            if (decrementCount < 0) throw new ArgumentException("decrementCount");
 
             lock (lockObject)
             {
                 if (Count == 0) return;
-                else if (Count - decrementCount < 0) Count = 0;
+                if (Count - decrementCount < 0) Count = 0;
                 else Count -= decrementCount;
 
                 statusChanged.OnNext(CountChangedStatus.Decrement);
                 if (Count == 0) statusChanged.OnNext(CountChangedStatus.Empty);
             }
-        }
-
-        /// <summary>
-        /// Subscribe observer.
-        /// </summary>
-        public IDisposable Subscribe(IObserver<CountChangedStatus> observer)
-        {
-            return statusChanged.Subscribe(observer);
         }
     }
 }

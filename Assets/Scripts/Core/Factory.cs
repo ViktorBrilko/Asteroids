@@ -6,9 +6,9 @@ namespace Core
     public class Factory<TProduct> : IFactory<TProduct>
         where TProduct : Component
     {
-        private DiContainer _container;
-        private GameObject _prefab;
-        
+        private readonly DiContainer _container;
+        private readonly GameObject _prefab;
+
         public Factory(DiContainer container, GameObject prefab)
         {
             _container = container;
@@ -17,11 +17,9 @@ namespace Core
 
         public TProduct Create(Transform parent)
         {
-            TProduct product = _container.InstantiatePrefabForComponent<TProduct>(_prefab, parent);
+            var product = _container.InstantiatePrefabForComponent<TProduct>(_prefab, parent);
 
             return product;
         }
-
-      
     }
 }

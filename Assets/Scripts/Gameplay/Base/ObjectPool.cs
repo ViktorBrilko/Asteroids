@@ -5,18 +5,22 @@ using Zenject;
 
 public class ObjectPool<T> : IInitializable where T : Component
 {
-    private int _capacity;
-    private Core.IFactory<T> _factory;
-    private List<T> _pool = new();
-    private Transform _container;
-
-    public Transform Container => _container;
+    private readonly int _capacity;
+    private readonly Core.IFactory<T> _factory;
+    private readonly List<T> _pool = new();
 
     public ObjectPool(Core.IFactory<T> factory, Transform container, int capacity)
     {
         _factory = factory;
         _capacity = capacity;
-        _container = container;
+        Container = container;
+    }
+
+    public Transform Container { get; }
+
+    public void Initialize()
+    {
+        for (var i = 0; i < _capacity; i++) AddNewItem();
     }
 
     public bool TryGetObject(out T result)
@@ -25,17 +29,9 @@ public class ObjectPool<T> : IInitializable where T : Component
         return result != null;
     }
 
-    public void Initialize()
-    {
-        for (int i = 0; i < _capacity; i++)
-        {
-            AddNewItem();
-        }
-    }
-
     public T AddNewItem()
     {
-        T spawned = _factory.Create(_container.transform);
+        var spawned = _factory.Create(Container.transform);
         spawned.gameObject.SetActive(false);
 
         _pool.Add(spawned);

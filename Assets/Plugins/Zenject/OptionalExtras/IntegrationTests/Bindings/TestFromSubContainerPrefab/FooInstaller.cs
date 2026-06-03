@@ -6,8 +6,7 @@ namespace Zenject.Tests.Bindings.FromSubContainerPrefab
 {
     public class FooInstaller : MonoInstaller
     {
-        [SerializeField]
-        Bar _bar;
+        [SerializeField] private Bar _bar;
 
         public override void InstallBindings()
         {

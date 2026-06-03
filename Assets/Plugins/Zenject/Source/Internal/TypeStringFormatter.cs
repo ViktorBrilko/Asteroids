@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 
 namespace ModestTree
 {
     public static class TypeStringFormatter
     {
-        static readonly Dictionary<Type, string> _prettyNameCache = new Dictionary<Type, string>();
+        private static readonly Dictionary<Type, string> _prettyNameCache = new();
 
         public static string PrettyName(this Type type)
         {
@@ -23,7 +22,7 @@ namespace ModestTree
             return prettyName;
         }
 
-        static string PrettyNameInternal(Type type)
+        private static string PrettyNameInternal(Type type)
         {
             var sb = new StringBuilder();
 
@@ -47,13 +46,9 @@ namespace ModestTree
                     var quoteIndex = name.IndexOf('`');
 
                     if (quoteIndex != -1)
-                    {
                         sb.Append(name.Substring(0, name.IndexOf('`')));
-                    }
                     else
-                    {
                         sb.Append(name);
-                    }
 
                     sb.Append("<");
 
@@ -61,10 +56,7 @@ namespace ModestTree
                     {
                         var numArgs = type.GenericArguments().Count();
 
-                        if (numArgs > 0)
-                        {
-                            sb.Append(new String(',', numArgs - 1));
-                        }
+                        if (numArgs > 0) sb.Append(new string(',', numArgs - 1));
                     }
                     else
                     {
@@ -82,7 +74,7 @@ namespace ModestTree
             return sb.ToString();
         }
 
-        static string GetCSharpTypeName(string typeName)
+        private static string GetCSharpTypeName(string typeName)
         {
             switch (typeName)
             {
@@ -109,4 +101,3 @@ namespace ModestTree
         }
     }
 }
-

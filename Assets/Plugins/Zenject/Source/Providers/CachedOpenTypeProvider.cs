@@ -8,13 +8,13 @@ namespace Zenject
     [NoReflectionBaking]
     public class CachedOpenTypeProvider : IProvider
     {
-        readonly IProvider _creator;
-        readonly List<List<object>> _cachedInstances = new List<List<object>>();
+        private readonly IProvider _creator;
+        private readonly List<List<object>> _cachedInstances = new();
 
 #if ZEN_MULTITHREADING
         readonly object _locker = new object();
 #else
-        bool _isCreatingInstance;
+        private bool _isCreatingInstance;
 #endif
 
         public CachedOpenTypeProvider(IProvider creator)
@@ -23,19 +23,11 @@ namespace Zenject
             _creator = creator;
         }
 
-        public bool IsCached
-        {
-            get { return true; }
-        }
+        public bool IsCached => true;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get
-            {
-                // Should not call this
-                throw Assert.CreateException();
-            }
-        }
+        public bool TypeVariesBasedOnMemberType => throw
+            // Should not call this
+            Assert.CreateException();
 
         public int NumInstances
         {
@@ -67,23 +59,23 @@ namespace Zenject
             return _creator.GetInstanceType(context);
         }
 
-        List<object> TryGetMatchFromCache(Type memberType)
+        private List<object> TryGetMatchFromCache(Type memberType)
         {
             List<object> result = null;
 
-            for (int i = 0; i < _cachedInstances.Count; i++) 
+            for (var i = 0; i < _cachedInstances.Count; i++)
             {
                 var instanceList = _cachedInstances[i];
 
-                bool matchesAll = true;
+                var matchesAll = true;
 
-                for (int k = 0; k < instanceList.Count; k++) 
+                for (var k = 0; k < instanceList.Count; k++)
                 {
                     var instance = instanceList[k];
 
-                    if (instance == null) 
+                    if (instance == null)
                     {
-                        if (memberType.IsValueType()) 
+                        if (memberType.IsValueType())
                         {
                             matchesAll = false;
                             break;
@@ -92,14 +84,14 @@ namespace Zenject
                         continue;
                     }
 
-                    if (!instance.GetType().DerivesFromOrEqual(memberType)) 
+                    if (!instance.GetType().DerivesFromOrEqual(memberType))
                     {
                         matchesAll = false;
                         break;
                     }
                 }
 
-                if (matchesAll) 
+                if (matchesAll)
                 {
                     Assert.IsNull(result); // Is there any case where this is hit?
                     result = instanceList;
@@ -155,4 +147,3 @@ namespace Zenject
         }
     }
 }
-

@@ -6,9 +6,9 @@ namespace Zenject.Tests.Injection
     [TestFixture]
     public class TestNullableValues : ZenjectUnitTestFixture
     {
-        class Test1
+        private class Test1
         {
-            public int? val;
+            public readonly int? val;
 
             public Test1(int? val)
             {
@@ -16,13 +16,12 @@ namespace Zenject.Tests.Injection
             }
         }
 
-        class Test2
+        private class Test2
         {
-            public int? val;
+            public readonly int? val;
 
             public Test2(
-                [InjectOptional]
-                int? val)
+                [InjectOptional] int? val)
             {
                 this.val = val;
             }

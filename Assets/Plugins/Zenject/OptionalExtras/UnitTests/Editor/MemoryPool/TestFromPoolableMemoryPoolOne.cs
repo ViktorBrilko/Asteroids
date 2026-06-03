@@ -9,53 +9,40 @@ namespace Zenject.Tests.Bindings
     {
         public class Foo : IPoolable<string, IMemoryPool>, IDisposable
         {
-            IMemoryPool _pool;
-            string _data;
-            string _initialData;
-
             public Foo(string initialData)
             {
-                _initialData = initialData;
+                InitialData = initialData;
                 SetDefaults();
             }
 
-            public string InitialData
-            {
-                get { return _initialData; }
-            }
+            public string InitialData { get; }
 
-            public IMemoryPool Pool
-            {
-                get { return _pool; }
-            }
+            public IMemoryPool Pool { get; private set; }
 
-            public string Data
-            {
-                get { return _data; }
-            }
-
-            void SetDefaults()
-            {
-                _pool = null;
-                _data = null;
-            }
+            public string Data { get; private set; }
 
             public void Dispose()
             {
-                _pool.Despawn(this);
+                Pool.Despawn(this);
             }
 
             public void OnDespawned()
             {
-                _data = null;
-                _pool = null;
+                Data = null;
+                Pool = null;
                 SetDefaults();
             }
 
             public void OnSpawned(string data, IMemoryPool pool)
             {
-                _pool = pool;
-                _data = data;
+                Pool = pool;
+                Data = data;
+            }
+
+            private void SetDefaults()
+            {
+                Pool = null;
+                Data = null;
             }
 
             public class Factory : PlaceholderFactory<string, Foo>
@@ -66,7 +53,8 @@ namespace Zenject.Tests.Bindings
         [Test]
         public void Test1()
         {
-            Container.BindFactory<string, Foo, Foo.Factory>().FromPoolableMemoryPool(x => x.WithInitialSize(2).WithArguments("blurg"));
+            Container.BindFactory<string, Foo, Foo.Factory>()
+                .FromPoolableMemoryPool(x => x.WithInitialSize(2).WithArguments("blurg"));
 
             var factory = Container.Resolve<Foo.Factory>();
 

@@ -4,9 +4,9 @@ namespace UniRx.Operators
 {
     internal class RepeatObservable<T> : OperatorObservableBase<T>
     {
-        readonly T value;
-        readonly int? repeatCount;
-        readonly IScheduler scheduler;
+        private readonly int? repeatCount;
+        private readonly IScheduler scheduler;
+        private readonly T value;
 
         public RepeatObservable(T value, int? repeatCount, IScheduler scheduler)
             : base(scheduler == Scheduler.CurrentThread)
@@ -21,49 +21,40 @@ namespace UniRx.Operators
             observer = new Repeat(observer, cancel);
 
             if (repeatCount == null)
-            {
-                return scheduler.Schedule((Action self) =>
+                return scheduler.Schedule(self =>
                 {
                     observer.OnNext(value);
                     self();
                 });
-            }
-            else
+
+            if (scheduler == Scheduler.Immediate)
             {
-                if (scheduler == Scheduler.Immediate)
-                {
-                    var count = this.repeatCount.Value;
-                    for (int i = 0; i < count; i++)
-                    {
-                        observer.OnNext(value);
-                    }
-                    observer.OnCompleted();
-                    return Disposable.Empty;
-                }
-                else
-                {
-                    var currentCount = this.repeatCount.Value;
-                    return scheduler.Schedule((Action self) =>
-                    {
-                        if (currentCount > 0)
-                        {
-                            observer.OnNext(value);
-                            currentCount--;
-                        }
-
-                        if (currentCount == 0)
-                        {
-                            observer.OnCompleted();
-                            return;
-                        }
-
-                        self();
-                    });
-                }
+                var count = repeatCount.Value;
+                for (var i = 0; i < count; i++) observer.OnNext(value);
+                observer.OnCompleted();
+                return Disposable.Empty;
             }
+
+            var currentCount = repeatCount.Value;
+            return scheduler.Schedule(self =>
+            {
+                if (currentCount > 0)
+                {
+                    observer.OnNext(value);
+                    currentCount--;
+                }
+
+                if (currentCount == 0)
+                {
+                    observer.OnCompleted();
+                    return;
+                }
+
+                self();
+            });
         }
 
-        class Repeat : OperatorObserverBase<T, T>
+        private class Repeat : OperatorObserverBase<T, T>
         {
             public Repeat(IObserver<T> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -74,7 +65,7 @@ namespace UniRx.Operators
             {
                 try
                 {
-                    base.observer.OnNext(value);
+                    observer.OnNext(value);
                 }
                 catch
                 {
@@ -85,14 +76,26 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

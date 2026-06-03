@@ -4,7 +4,7 @@ namespace UniRx.Operators
 {
     internal class DeferObservable<T> : OperatorObservableBase<T>
     {
-        readonly Func<IObservable<T>> observableFactory;
+        private readonly Func<IObservable<T>> observableFactory;
 
         public DeferObservable(Func<IObservable<T>> observableFactory)
             : base(false)
@@ -29,7 +29,7 @@ namespace UniRx.Operators
             return source.Subscribe(observer);
         }
 
-        class Defer : OperatorObserverBase<T, T>
+        private class Defer : OperatorObserverBase<T, T>
         {
             public Defer(IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
             {
@@ -39,7 +39,7 @@ namespace UniRx.Operators
             {
                 try
                 {
-                    base.observer.OnNext(value);
+                    observer.OnNext(value);
                 }
                 catch
                 {
@@ -50,14 +50,26 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

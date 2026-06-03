@@ -9,9 +9,9 @@ namespace Zenject
     [NoReflectionBaking]
     public class SubContainerCreatorByNewPrefab : ISubContainerCreator
     {
-        readonly GameObjectCreationParameters _gameObjectBindInfo;
-        readonly IPrefabProvider _prefabProvider;
-        readonly DiContainer _container;
+        private readonly DiContainer _container;
+        private readonly GameObjectCreationParameters _gameObjectBindInfo;
+        private readonly IPrefabProvider _prefabProvider;
 
         public SubContainerCreatorByNewPrefab(
             DiContainer container, IPrefabProvider prefabProvider,
@@ -36,7 +36,8 @@ namespace Zenject
             var context = gameObject.GetComponent<GameObjectContext>();
 
             Assert.That(context != null,
-                "Expected prefab with name '{0}' to contain a component of type 'GameObjectContext' on the root", prefab.name);
+                "Expected prefab with name '{0}' to contain a component of type 'GameObjectContext' on the root",
+                prefab.name);
 
             context.Install(_container);
 

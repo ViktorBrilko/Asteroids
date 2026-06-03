@@ -5,7 +5,7 @@ namespace UniRx.Operators
 {
     internal class ToArrayObservable<TSource> : OperatorObservableBase<TSource[]>
     {
-        readonly IObservable<TSource> source;
+        private readonly IObservable<TSource> source;
 
         public ToArrayObservable(IObservable<TSource> source)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -18,9 +18,9 @@ namespace UniRx.Operators
             return source.Subscribe(new ToArray(observer, cancel));
         }
 
-        class ToArray : OperatorObserverBase<TSource, TSource[]>
+        private class ToArray : OperatorObserverBase<TSource, TSource[]>
         {
-            readonly List<TSource> list = new List<TSource>();
+            private readonly List<TSource> list = new();
 
             public ToArray(IObserver<TSource[]> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -35,14 +35,27 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); } finally { Dispose(); }
-                    return;
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
@@ -52,14 +65,31 @@ namespace UniRx.Operators
                 {
                     result = list.ToArray();
                 }
-                catch (Exception ex) 
+                catch (Exception ex)
                 {
-                    try { observer.OnError(ex); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
-                base.observer.OnNext(result);
-                try { observer.OnCompleted(); } finally { Dispose(); };
+                observer.OnNext(result);
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
         }
     }

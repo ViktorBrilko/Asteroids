@@ -6,9 +6,9 @@ namespace UI.Binders
 {
     public class NumberBinder : IBinder, IObserver<float>
     {
-        private Action<float> _view;
-        private ReactiveProperty<float> _property;
         private IDisposable _handle;
+        private readonly ReactiveProperty<float> _property;
+        private readonly Action<float> _view;
 
         public NumberBinder(Action<float> view, ReactiveProperty<float> property)
         {

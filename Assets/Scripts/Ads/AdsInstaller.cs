@@ -6,7 +6,7 @@ namespace Ads
     public class AdsInstaller : MonoInstaller
     {
         private ConfigProvider _provider;
-        
+
         [Inject]
         public void Construct(ConfigProvider provider)
         {

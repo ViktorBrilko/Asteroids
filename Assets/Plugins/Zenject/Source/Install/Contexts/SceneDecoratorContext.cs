@@ -11,18 +11,22 @@ namespace Zenject
 {
     public class SceneDecoratorContext : Context
     {
-        [SerializeField]
-        List<MonoInstaller> _lateInstallers = new List<MonoInstaller>();
+        [SerializeField] private List<MonoInstaller> _lateInstallers = new();
 
-        [SerializeField]
-        List<MonoInstaller> _lateInstallerPrefabs = new List<MonoInstaller>();
+        [SerializeField] private List<MonoInstaller> _lateInstallerPrefabs = new();
 
-        [SerializeField]
-        List<ScriptableObjectInstaller> _lateScriptableObjectInstallers = new List<ScriptableObjectInstaller>();
+        [SerializeField] private List<ScriptableObjectInstaller> _lateScriptableObjectInstallers = new();
+
+        [FormerlySerializedAs("SceneName")] [SerializeField]
+        private string _decoratedContractName;
+
+        private readonly List<MonoBehaviour> _injectableMonoBehaviours = new();
+
+        private DiContainer _container;
 
         public IEnumerable<MonoInstaller> LateInstallers
         {
-            get { return _lateInstallers; }
+            get => _lateInstallers;
             set
             {
                 _lateInstallers.Clear();
@@ -32,7 +36,7 @@ namespace Zenject
 
         public IEnumerable<MonoInstaller> LateInstallerPrefabs
         {
-            get { return _lateInstallerPrefabs; }
+            get => _lateInstallerPrefabs;
             set
             {
                 _lateInstallerPrefabs.Clear();
@@ -42,7 +46,7 @@ namespace Zenject
 
         public IEnumerable<ScriptableObjectInstaller> LateScriptableObjectInstallers
         {
-            get { return _lateScriptableObjectInstallers; }
+            get => _lateScriptableObjectInstallers;
             set
             {
                 _lateScriptableObjectInstallers.Clear();
@@ -50,17 +54,7 @@ namespace Zenject
             }
         }
 
-        [FormerlySerializedAs("SceneName")]
-        [SerializeField]
-        string _decoratedContractName = null;
-
-        DiContainer _container;
-        readonly List<MonoBehaviour> _injectableMonoBehaviours = new List<MonoBehaviour>();
-
-        public string DecoratedContractName
-        {
-            get { return _decoratedContractName; }
-        }
+        public string DecoratedContractName => _decoratedContractName;
 
         public override DiContainer Container
         {
@@ -87,10 +81,7 @@ namespace Zenject
 
             GetInjectableMonoBehaviours(_injectableMonoBehaviours);
 
-            foreach (var instance in _injectableMonoBehaviours)
-            {
-                container.QueueForInject(instance);
-            }
+            foreach (var instance in _injectableMonoBehaviours) container.QueueForInject(instance);
         }
 
         public void InstallDecoratorSceneBindings()
@@ -114,7 +105,8 @@ namespace Zenject
 
         public void InstallLateDecoratorInstallers()
         {
-            InstallInstallers(new List<InstallerBase>(), new List<Type>(), _lateScriptableObjectInstallers, _lateInstallers, _lateInstallerPrefabs);
+            InstallInstallers(new List<InstallerBase>(), new List<Type>(), _lateScriptableObjectInstallers,
+                _lateInstallers, _lateInstallerPrefabs);
         }
     }
 }

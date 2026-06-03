@@ -9,9 +9,9 @@ namespace Zenject
     [NoReflectionBaking]
     public class GetFromPrefabComponentProvider : IProvider
     {
-        readonly IPrefabInstantiator _prefabInstantiator;
-        readonly Type _componentType;
-        readonly bool _matchSingle;
+        private readonly Type _componentType;
+        private readonly bool _matchSingle;
+        private readonly IPrefabInstantiator _prefabInstantiator;
 
         // if concreteType is null we use the contract type from inject context
         public GetFromPrefabComponentProvider(
@@ -23,15 +23,9 @@ namespace Zenject
             _matchSingle = matchSingle;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -54,7 +48,7 @@ namespace Zenject
                 var match = gameObject.GetComponentInChildren(_componentType, true);
 
                 Assert.IsNotNull(match, "Could not find component with type '{0}' on prefab '{1}'",
-                _componentType, _prefabInstantiator.GetPrefab(context).name);
+                    _componentType, _prefabInstantiator.GetPrefab(context).name);
 
                 buffer.Add(match);
                 return;

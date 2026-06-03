@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
-using Zenject;
 
 namespace MVVM
 {
@@ -15,18 +13,18 @@ namespace MVVM
 
         public virtual void Bind()
         {
-            for (int i = 0, count = this.children.Count; i < count; i++)
+            for (int i = 0, count = children.Count; i < count; i++)
             {
-                IBinder child = this.children[i];
+                var child = children[i];
                 child.Bind();
             }
         }
 
         public virtual void Unbind()
         {
-            for (int i = 0, count = this.children.Count; i < count; i++)
+            for (int i = 0, count = children.Count; i < count; i++)
             {
-                IBinder child = this.children[i];
+                var child = children[i];
                 child.Unbind();
             }
         }

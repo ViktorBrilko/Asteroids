@@ -7,7 +7,7 @@ namespace Zenject
     [NoReflectionBaking]
     public class RunnableContextEditor : ContextEditor
     {
-        SerializedProperty _autoRun;
+        private SerializedProperty _autoRun;
 
         public override void OnEnable()
         {

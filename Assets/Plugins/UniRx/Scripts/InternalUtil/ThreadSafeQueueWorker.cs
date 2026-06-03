@@ -4,19 +4,19 @@ namespace UniRx.InternalUtil
 {
     public class ThreadSafeQueueWorker
     {
-        const int MaxArrayLength = 0X7FEFFFFF;
-        const int InitialSize = 16;
+        private const int MaxArrayLength = 0X7FEFFFFF;
+        private const int InitialSize = 16;
+        private Action<object>[] actionList = new Action<object>[InitialSize];
 
-        object gate = new object();
-        bool dequing = false;
+        private int actionListCount;
+        private object[] actionStates = new object[InitialSize];
+        private bool dequing;
 
-        int actionListCount = 0;
-        Action<object>[] actionList = new Action<object>[InitialSize];
-        object[] actionStates = new object[InitialSize];
+        private readonly object gate = new();
+        private Action<object>[] waitingList = new Action<object>[InitialSize];
 
-        int waitingListCount = 0;
-        Action<object>[] waitingList = new Action<object>[InitialSize];
-        object[] waitingStates = new object[InitialSize];
+        private int waitingListCount;
+        private object[] waitingStates = new object[InitialSize];
 
         public void Enqueue(Action<object> action, object state)
         {
@@ -37,6 +37,7 @@ namespace UniRx.InternalUtil
                         waitingList = newArray;
                         waitingStates = newArrayState;
                     }
+
                     waitingList[waitingListCount] = action;
                     waitingStates[waitingListCount] = state;
                     waitingListCount++;
@@ -56,6 +57,7 @@ namespace UniRx.InternalUtil
                         actionList = newArray;
                         actionStates = newArrayState;
                     }
+
                     actionList[actionListCount] = action;
                     actionStates[actionListCount] = state;
                     actionListCount++;
@@ -72,7 +74,7 @@ namespace UniRx.InternalUtil
                 dequing = true;
             }
 
-            for (int i = 0; i < actionListCount; i++)
+            for (var i = 0; i < actionListCount; i++)
             {
                 var action = actionList[i];
                 var state = actionStates[i];

@@ -7,7 +7,7 @@ namespace Zenject.Tests.Other
     [TestFixture]
     public class TestSubContainers4 : ZenjectUnitTestFixture
     {
-        readonly Dictionary<object, DiContainer> _subContainers = new Dictionary<object, DiContainer>();
+        private readonly Dictionary<object, DiContainer> _subContainers = new();
 
         [Test]
         public void RunTest()
@@ -26,7 +26,7 @@ namespace Zenject.Tests.Other
             Assert.IsNotEqual(view2, view1);
         }
 
-        void SetupContainer()
+        private void SetupContainer()
         {
             Container.Bind<RotorController>().FromMethod(SubContainerResolve<RotorController>).AsTransient()
                 .WhenInjectedInto<RotorView>();
@@ -37,7 +37,7 @@ namespace Zenject.Tests.Other
             Container.Bind<RotorView>().AsTransient();
         }
 
-        T SubContainerResolve<T>(InjectContext context)
+        private T SubContainerResolve<T>(InjectContext context)
         {
             Assert.IsNotNull(context.ObjectInstance);
             DiContainer subContainer;
@@ -53,7 +53,7 @@ namespace Zenject.Tests.Other
             return (T)subContainer.Resolve(context);
         }
 
-        void InstallViewBindings(DiContainer subContainer)
+        private void InstallViewBindings(DiContainer subContainer)
         {
             subContainer.Bind<RotorController>().AsSingle();
             subContainer.Bind<RotorModel>().AsSingle();
@@ -61,17 +61,14 @@ namespace Zenject.Tests.Other
 
         public class RotorController
         {
-            [Inject]
-            public RotorModel Model;
+            [Inject] public RotorModel Model;
         }
 
         public class RotorView
         {
-            [Inject]
-            public RotorController Controller;
+            [Inject] public RotorController Controller;
 
-            [Inject]
-            public RotorModel Model;
+            [Inject] public RotorModel Model;
         }
 
         public class RotorModel
@@ -79,4 +76,3 @@ namespace Zenject.Tests.Other
         }
     }
 }
-

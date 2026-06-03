@@ -1,26 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace UniRx.Diagnostics
 {
-    public partial class Logger
+    public class Logger
     {
-        static bool isInitialized = false;
-        static bool isDebugBuild = false;
-
-        public string Name { get; private set; }
+        private static bool isInitialized;
+        private static bool isDebugBuild;
         protected readonly Action<LogEntry> logPublisher;
 
         public Logger(string loggerName)
         {
-            this.Name = loggerName;
-            this.logPublisher = ObservableLogger.RegisterLogger(this);
+            Name = loggerName;
+            logPublisher = ObservableLogger.RegisterLogger(this);
         }
 
+        public string Name { get; }
+
         /// <summary>Output LogType.Log but only enables isDebugBuild</summary>
-        public virtual void Debug(object message, UnityEngine.Object context = null)
+        public virtual void Debug(object message, Object context = null)
         {
             if (!isInitialized)
             {
@@ -29,14 +28,12 @@ namespace UniRx.Diagnostics
             }
 
             if (isDebugBuild)
-            {
                 logPublisher(new LogEntry(
-                    message: (message != null) ? message.ToString() : "",
+                    message: message != null ? message.ToString() : "",
                     logType: LogType.Log,
                     timestamp: DateTime.Now,
                     loggerName: Name,
                     context: context));
-            }
         }
 
         /// <summary>Output LogType.Log but only enables isDebugBuild</summary>
@@ -49,20 +46,18 @@ namespace UniRx.Diagnostics
             }
 
             if (isDebugBuild)
-            {
                 logPublisher(new LogEntry(
-                    message: (format != null) ? string.Format(format, args) : "",
+                    message: format != null ? string.Format(format, args) : "",
                     logType: LogType.Log,
                     timestamp: DateTime.Now,
                     loggerName: Name,
                     context: null));
-            }
         }
 
-        public virtual void Log(object message, UnityEngine.Object context = null)
+        public virtual void Log(object message, Object context = null)
         {
             logPublisher(new LogEntry(
-                message: (message != null) ? message.ToString() : "",
+                message: message != null ? message.ToString() : "",
                 logType: LogType.Log,
                 timestamp: DateTime.Now,
                 loggerName: Name,
@@ -72,17 +67,17 @@ namespace UniRx.Diagnostics
         public virtual void LogFormat(string format, params object[] args)
         {
             logPublisher(new LogEntry(
-                message: (format != null) ? string.Format(format, args) : "",
+                message: format != null ? string.Format(format, args) : "",
                 logType: LogType.Log,
                 timestamp: DateTime.Now,
                 loggerName: Name,
                 context: null));
         }
 
-        public virtual void Warning(object message, UnityEngine.Object context = null)
+        public virtual void Warning(object message, Object context = null)
         {
             logPublisher(new LogEntry(
-                message: (message != null) ? message.ToString() : "",
+                message: message != null ? message.ToString() : "",
                 logType: LogType.Warning,
                 timestamp: DateTime.Now,
                 loggerName: Name,
@@ -92,17 +87,17 @@ namespace UniRx.Diagnostics
         public virtual void WarningFormat(string format, params object[] args)
         {
             logPublisher(new LogEntry(
-                message: (format != null) ? string.Format(format, args) : "",
+                message: format != null ? string.Format(format, args) : "",
                 logType: LogType.Warning,
                 timestamp: DateTime.Now,
                 loggerName: Name,
                 context: null));
         }
 
-        public virtual void Error(object message, UnityEngine.Object context = null)
+        public virtual void Error(object message, Object context = null)
         {
             logPublisher(new LogEntry(
-                message: (message != null) ? message.ToString() : "",
+                message: message != null ? message.ToString() : "",
                 logType: LogType.Error,
                 timestamp: DateTime.Now,
                 loggerName: Name,
@@ -112,17 +107,17 @@ namespace UniRx.Diagnostics
         public virtual void ErrorFormat(string format, params object[] args)
         {
             logPublisher(new LogEntry(
-                message: (format != null) ? string.Format(format, args) : "",
+                message: format != null ? string.Format(format, args) : "",
                 logType: LogType.Error,
                 timestamp: DateTime.Now,
                 loggerName: Name,
                 context: null));
         }
 
-        public virtual void Exception(Exception exception, UnityEngine.Object context = null)
+        public virtual void Exception(Exception exception, Object context = null)
         {
             logPublisher(new LogEntry(
-                message: (exception != null) ? exception.ToString() : "",
+                message: exception != null ? exception.ToString() : "",
                 exception: exception,
                 logType: LogType.Exception,
                 timestamp: DateTime.Now,

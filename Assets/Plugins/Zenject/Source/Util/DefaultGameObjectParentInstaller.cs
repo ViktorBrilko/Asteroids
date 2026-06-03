@@ -7,7 +7,7 @@ namespace Zenject
 {
     public class DefaultGameObjectParentInstaller : Installer<string, DefaultGameObjectParentInstaller>
     {
-        readonly string _name;
+        private readonly string _name;
 
         public DefaultGameObjectParentInstaller(string name)
         {
@@ -33,9 +33,9 @@ namespace Zenject
 #endif
         }
 
-        class DefaultParentObjectDestroyer : IDisposable
+        private class DefaultParentObjectDestroyer : IDisposable
         {
-            readonly GameObject _gameObject;
+            private readonly GameObject _gameObject;
 
             public DefaultParentObjectDestroyer(GameObject gameObject)
             {

@@ -1,15 +1,16 @@
-﻿using System; // require keep for Windows Universal App
+﻿using System;
 using UnityEngine;
+// require keep for Windows Universal App
 
 namespace UniRx.Triggers
 {
     [DisallowMultipleComponent]
     public class ObservableFixedUpdateTrigger : ObservableTriggerBase
     {
-        Subject<Unit> fixedUpdate;
+        private Subject<Unit> fixedUpdate;
 
         /// <summary>This function is called every fixed framerate frame, if the MonoBehaviour is enabled.</summary>
-        void FixedUpdate()
+        private void FixedUpdate()
         {
             if (fixedUpdate != null) fixedUpdate.OnNext(Unit.Default);
         }
@@ -22,10 +23,7 @@ namespace UniRx.Triggers
 
         protected override void RaiseOnCompletedOnDestroy()
         {
-            if (fixedUpdate != null)
-            {
-                fixedUpdate.OnCompleted();
-            }
+            if (fixedUpdate != null) fixedUpdate.OnCompleted();
         }
     }
 }

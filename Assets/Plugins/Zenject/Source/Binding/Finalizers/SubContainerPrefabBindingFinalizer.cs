@@ -9,9 +9,9 @@ namespace Zenject
     [NoReflectionBaking]
     public class SubContainerPrefabBindingFinalizer : ProviderBindingFinalizer
     {
-        readonly object _subIdentifier;
-        readonly bool _resolveAll;
-        readonly Func<DiContainer, ISubContainerCreator> _subContainerCreatorFactory;
+        private readonly bool _resolveAll;
+        private readonly Func<DiContainer, ISubContainerCreator> _subContainerCreatorFactory;
+        private readonly object _subIdentifier;
 
         public SubContainerPrefabBindingFinalizer(
             BindInfo bindInfo,
@@ -37,7 +37,7 @@ namespace Zenject
             }
         }
 
-        void FinalizeBindingConcrete(DiContainer container, List<Type> concreteTypes)
+        private void FinalizeBindingConcrete(DiContainer container, List<Type> concreteTypes)
         {
             var scope = GetScope();
 
@@ -62,8 +62,8 @@ namespace Zenject
                         container,
                         concreteTypes,
                         (_, concreteType) =>
-                        new SubContainerDependencyProvider(
-                            concreteType, _subIdentifier, containerCreator, _resolveAll));
+                            new SubContainerDependencyProvider(
+                                concreteType, _subIdentifier, containerCreator, _resolveAll));
                     break;
                 }
                 default:
@@ -73,7 +73,7 @@ namespace Zenject
             }
         }
 
-        void FinalizeBindingSelf(DiContainer container)
+        private void FinalizeBindingSelf(DiContainer container)
         {
             var scope = GetScope();
 
@@ -96,8 +96,8 @@ namespace Zenject
                     RegisterProviderPerContract(
                         container,
                         (_, contractType) =>
-                        new SubContainerDependencyProvider(
-                            contractType, _subIdentifier, containerCreator, _resolveAll));
+                            new SubContainerDependencyProvider(
+                                contractType, _subIdentifier, containerCreator, _resolveAll));
                     break;
                 }
                 default:

@@ -6,9 +6,9 @@ namespace UniRx.Operators
 {
     internal class DelayFrameObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly int frameCount;
-        readonly FrameCountType frameCountType;
+        private readonly int frameCount;
+        private readonly FrameCountType frameCountType;
+        private readonly IObservable<T> source;
 
         public DelayFrameObservable(IObservable<T> source, int frameCount, FrameCountType frameCountType)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -23,22 +23,23 @@ namespace UniRx.Operators
             return new DelayFrame(this, observer, cancel).Run();
         }
 
-        class DelayFrame : OperatorObserverBase<T, T>
+        private class DelayFrame : OperatorObserverBase<T, T>
         {
-            readonly DelayFrameObservable<T> parent;
-            readonly object gate = new object();
-            readonly QueuePool pool = new QueuePool();
-            int runningEnumeratorCount;
-            bool readyDrainEnumerator;
-            bool running;
-            IDisposable sourceSubscription;
-            Queue<T> currentQueueReference;
-            bool calledCompleted;
-            bool hasError;
-            Exception error;
-            BooleanDisposable cancelationToken;
+            private readonly object gate = new();
+            private readonly DelayFrameObservable<T> parent;
+            private readonly QueuePool pool = new();
+            private bool calledCompleted;
+            private BooleanDisposable cancelationToken;
+            private Queue<T> currentQueueReference;
+            private Exception error;
+            private bool hasError;
+            private bool readyDrainEnumerator;
+            private bool running;
+            private int runningEnumeratorCount;
+            private IDisposable sourceSubscription;
 
-            public DelayFrame(DelayFrameObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public DelayFrame(DelayFrameObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
             }
@@ -54,7 +55,7 @@ namespace UniRx.Operators
                 return StableCompositeDisposable.Create(cancelationToken, sourceSubscription);
             }
 
-            IEnumerator DrainQueue(Queue<T> q, int frameCount)
+            private IEnumerator DrainQueue(Queue<T> q, int frameCount)
             {
                 lock (gate)
                 {
@@ -62,10 +63,7 @@ namespace UniRx.Operators
                     running = false;
                 }
 
-                while (!cancelationToken.IsDisposed && frameCount-- != 0)
-                {
-                    yield return null;
-                }
+                while (!cancelationToken.IsDisposed && frameCount-- != 0) yield return null;
 
                 try
                 {
@@ -89,10 +87,7 @@ namespace UniRx.Operators
                             }
                         }
 
-                        if (q.Count == 0)
-                        {
-                            pool.Return(q);
-                        }
+                        if (q.Count == 0) pool.Return(q);
                     }
 
                     if (hasError)
@@ -101,7 +96,14 @@ namespace UniRx.Operators
                         {
                             cancelationToken.Dispose();
 
-                            try { observer.OnError(error); } finally { Dispose(); }
+                            try
+                            {
+                                observer.OnError(error);
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
                         }
                     }
                     else if (calledCompleted)
@@ -116,8 +118,14 @@ namespace UniRx.Operators
                         {
                             cancelationToken.Dispose();
 
-                            try { observer.OnCompleted(); }
-                            finally { Dispose(); }
+                            try
+                            {
+                                observer.OnCompleted();
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
                         }
                     }
                 }
@@ -147,9 +155,7 @@ namespace UniRx.Operators
                     else
                     {
                         if (currentQueueReference != null) // null - if doesn't start OnNext and start OnCompleted
-                        {
                             currentQueueReference.Enqueue(value);
-                        }
                         return;
                     }
                 }
@@ -187,7 +193,14 @@ namespace UniRx.Operators
                 }
 
                 cancelationToken.Dispose();
-                try { base.observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
@@ -228,23 +241,18 @@ namespace UniRx.Operators
             }
         }
 
-        class QueuePool
+        private class QueuePool
         {
-            readonly object gate = new object();
-            readonly Queue<Queue<T>> pool = new Queue<Queue<T>>(2);
+            private readonly object gate = new();
+            private readonly Queue<Queue<T>> pool = new(2);
 
             public Queue<T> Get()
             {
                 lock (gate)
                 {
-                    if (pool.Count == 0)
-                    {
-                        return new Queue<T>(2);
-                    }
-                    else
-                    {
-                        return pool.Dequeue();
-                    }
+                    if (pool.Count == 0) return new Queue<T>(2);
+
+                    return pool.Dequeue();
                 }
             }
 

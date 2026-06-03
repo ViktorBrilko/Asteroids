@@ -13,19 +13,17 @@ namespace Analytics.Firebase
         {
             _analyticsService = analyticsService;
         }
-        
+
         public void Initialize()
         {
-            FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task => 
+            FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task =>
             {
-                if (task.Result == DependencyStatus.Available) 
-                {
+                if (task.Result == DependencyStatus.Available)
                     if (_analyticsService is FirebaseAnalyticsService fbAnalytics)
                     {
                         fbAnalytics.Enable();
                         Debug.Log("Firebase Analytics Enabled");
                     }
-                }
             });
         }
     }

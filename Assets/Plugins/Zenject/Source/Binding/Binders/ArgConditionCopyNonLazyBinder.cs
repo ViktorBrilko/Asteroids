@@ -21,7 +21,8 @@ namespace Zenject
             return this;
         }
 
-        public InstantiateCallbackConditionCopyNonLazyBinder WithArguments<TParam1, TParam2>(TParam1 param1, TParam2 param2)
+        public InstantiateCallbackConditionCopyNonLazyBinder WithArguments<TParam1, TParam2>(TParam1 param1,
+            TParam2 param2)
         {
             BindInfo.Arguments.Clear();
             BindInfo.Arguments.Add(InjectUtil.CreateTypePair(param1));
@@ -62,7 +63,8 @@ namespace Zenject
             return this;
         }
 
-        public InstantiateCallbackConditionCopyNonLazyBinder WithArguments<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6>(
+        public InstantiateCallbackConditionCopyNonLazyBinder WithArguments<TParam1, TParam2, TParam3, TParam4, TParam5,
+            TParam6>(
             TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6)
         {
             BindInfo.Arguments.Clear();
@@ -79,7 +81,7 @@ namespace Zenject
         {
             BindInfo.Arguments.Clear();
 
-            for (int i = 0; i < args.Length; i++)
+            for (var i = 0; i < args.Length; i++)
             {
                 var arg = args[i];
 
@@ -89,6 +91,7 @@ namespace Zenject
                 BindInfo.Arguments.Add(
                     new TypeValuePair(arg.GetType(), arg));
             }
+
             return this;
         }
 
@@ -96,10 +99,7 @@ namespace Zenject
         {
             BindInfo.Arguments.Clear();
 
-            foreach (var arg in extraArgs)
-            {
-                BindInfo.Arguments.Add(arg);
-            }
+            foreach (var arg in extraArgs) BindInfo.Arguments.Add(arg);
             return this;
         }
     }

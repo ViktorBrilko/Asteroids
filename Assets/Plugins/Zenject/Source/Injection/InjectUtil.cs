@@ -108,7 +108,7 @@ namespace Zenject
         public static bool PopValueWithType(
             List<TypeValuePair> extraArgMap, Type injectedFieldType, out object value)
         {
-            for (int i = 0; i < extraArgMap.Count; i++)
+            for (var i = 0; i < extraArgMap.Count; i++)
             {
                 var arg = extraArgMap[i];
 

@@ -9,10 +9,10 @@ namespace Zenject
     [NoReflectionBaking]
     public class SubContainerCreatorByInstaller : ISubContainerCreator
     {
-        readonly Type _installerType;
-        readonly DiContainer _container;
-        readonly List<TypeValuePair> _extraArgs;
-        readonly SubContainerCreatorBindInfo _containerBindInfo;
+        private readonly DiContainer _container;
+        private readonly SubContainerCreatorBindInfo _containerBindInfo;
+        private readonly List<TypeValuePair> _extraArgs;
+        private readonly Type _installerType;
 
         public SubContainerCreatorByInstaller(
             DiContainer container,
@@ -26,7 +26,8 @@ namespace Zenject
             _containerBindInfo = containerBindInfo;
 
             Assert.That(installerType.DerivesFrom<InstallerBase>(),
-                "Invalid installer type given during bind command.  Expected type '{0}' to derive from 'Installer<>'", installerType);
+                "Invalid installer type given during bind command.  Expected type '{0}' to derive from 'Installer<>'",
+                installerType);
         }
 
         public SubContainerCreatorByInstaller(
@@ -55,10 +56,7 @@ namespace Zenject
 
             installer.InstallBindings();
 
-            injectAction = () => 
-            {
-                subContainer.ResolveRoots();
-            };
+            injectAction = () => { subContainer.ResolveRoots(); };
 
             return subContainer;
         }

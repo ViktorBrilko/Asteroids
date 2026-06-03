@@ -1,22 +1,16 @@
 ﻿using System;
-using System.Collections;
 
 namespace UniRx
 {
     public sealed class SerialDisposable : IDisposable, ICancelable
     {
-        readonly object gate = new object();
-        IDisposable current;
-        bool disposed;
-
-        public bool IsDisposed { get { lock (gate) { return disposed; } } }
+        private readonly object gate = new();
+        private IDisposable current;
+        private bool disposed;
 
         public IDisposable Disposable
         {
-            get
-            {
-                return current;
-            }
+            get => current;
             set
             {
                 var shouldDispose = false;
@@ -30,13 +24,19 @@ namespace UniRx
                         current = value;
                     }
                 }
-                if (old != null)
+
+                if (old != null) old.Dispose();
+                if (shouldDispose && value != null) value.Dispose();
+            }
+        }
+
+        public bool IsDisposed
+        {
+            get
+            {
+                lock (gate)
                 {
-                    old.Dispose();
-                }
-                if (shouldDispose && value != null)
-                {
-                    value.Dispose();
+                    return disposed;
                 }
             }
         }
@@ -55,10 +55,7 @@ namespace UniRx
                 }
             }
 
-            if (old != null)
-            {
-                old.Dispose();
-            }
+            if (old != null) old.Dispose();
         }
     }
 }

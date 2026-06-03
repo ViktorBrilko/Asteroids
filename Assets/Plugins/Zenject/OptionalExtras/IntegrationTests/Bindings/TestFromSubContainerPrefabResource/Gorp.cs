@@ -4,4 +4,3 @@ namespace Zenject.Tests.Bindings.FromSubContainerPrefabResource
     {
     }
 }
-

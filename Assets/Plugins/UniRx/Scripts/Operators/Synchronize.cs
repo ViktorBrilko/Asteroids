@@ -1,12 +1,11 @@
 ﻿using System;
-using UniRx.Operators;
 
 namespace UniRx.Operators
 {
     internal class SynchronizeObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly object gate;
+        private readonly object gate;
+        private readonly IObservable<T> source;
 
         public SynchronizeObservable(IObservable<T> source, object gate)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -20,11 +19,12 @@ namespace UniRx.Operators
             return source.Subscribe(new Synchronize(this, observer, cancel));
         }
 
-        class Synchronize : OperatorObserverBase<T, T>
+        private class Synchronize : OperatorObserverBase<T, T>
         {
-            readonly SynchronizeObservable<T> parent;
+            private readonly SynchronizeObservable<T> parent;
 
-            public Synchronize(SynchronizeObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public Synchronize(SynchronizeObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
             }
@@ -33,7 +33,7 @@ namespace UniRx.Operators
             {
                 lock (parent.gate)
                 {
-                    base.observer.OnNext(value);
+                    observer.OnNext(value);
                 }
             }
 
@@ -41,7 +41,16 @@ namespace UniRx.Operators
             {
                 lock (parent.gate)
                 {
-                    try { observer.OnError(error); } finally { Dispose(); };
+                    try
+                    {
+                        observer.OnError(error);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                 }
             }
 
@@ -49,7 +58,16 @@ namespace UniRx.Operators
             {
                 lock (parent.gate)
                 {
-                    try { observer.OnCompleted(); } finally { Dispose(); };
+                    try
+                    {
+                        observer.OnCompleted();
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                 }
             }
         }

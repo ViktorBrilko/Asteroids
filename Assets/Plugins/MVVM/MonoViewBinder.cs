@@ -9,24 +9,18 @@ namespace Plugins.MVVM
 {
     public sealed class MonoViewBinder : MonoBehaviour
     {
-        private enum BindingMode
-        {
-            FromInstance = 0,
-            FromResolve = 1
-        }
-
         [SerializeField] private BindingMode viewBinding;
 
         [SerializeField] private Object view;
 
         [Space(8)] [SerializeField] private BindingMode viewModelBinding;
 
-        [SerializeField, HideInInspector] private string viewModelTypeName;
-
-        [Inject] private DiContainer diContainer;
+        [SerializeField] [HideInInspector] private string viewModelTypeName;
 
         private IBinder _binder;
         private Type _viewModelType;
+
+        [Inject] private DiContainer diContainer;
 
         private void Awake()
         {
@@ -44,37 +38,39 @@ namespace Plugins.MVVM
             _binder.Unbind();
         }
 
+        private IBinder CreateBinder()
+        {
+            object view = viewBinding switch
+            {
+                BindingMode.FromInstance => this.view,
+                _ => throw new Exception($"Binding type of view {viewBinding} is not found!")
+            };
+
+            var model = viewModelBinding switch
+            {
+                BindingMode.FromResolve => diContainer.Resolve(_viewModelType),
+                _ => throw new Exception($"Binding type of view {viewBinding} is not found!")
+            };
+
+            return BinderFactory.CreateComposite(view, model);
+        }
+
+        private enum BindingMode
+        {
+            FromInstance = 0,
+            FromResolve = 1
+        }
+
 #if UNITY_EDITOR
         [SerializeField] private MonoScript _viewModelScript;
 
         private void OnValidate()
         {
             if (_viewModelScript != null)
-            {
                 viewModelTypeName = _viewModelScript.GetClass()?.AssemblyQualifiedName;
-            }
             else
-            {
                 viewModelTypeName = string.Empty;
-            }
         }
 #endif
-
-        private IBinder CreateBinder()
-        {
-            object view = this.viewBinding switch
-            {
-                BindingMode.FromInstance => this.view,
-                _ => throw new Exception($"Binding type of view {this.viewBinding} is not found!")
-            };
-
-            object model = this.viewModelBinding switch
-            {
-                BindingMode.FromResolve => this.diContainer.Resolve(_viewModelType),
-                _ => throw new Exception($"Binding type of view {this.viewBinding} is not found!")
-            };
-
-            return BinderFactory.CreateComposite(view, model);
-        }
     }
 }

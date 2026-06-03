@@ -1,4 +1,3 @@
-using System;
 using Analytics;
 using Core.Audios;
 using Core.Configs;
@@ -15,20 +14,24 @@ namespace Gameplay.Players
 {
     public class Player : MonoBehaviour
     {
-        private PlayerConfig _config;
-        private HealthService _healthService;
-        private AudioService _audioService;
-        private bool _isUncontrollable;
         private IAnalyticsService _analyticsService;
+        private AudioService _audioService;
+        private PlayerConfig _config;
         private SignalBus _signalBus;
 
-        public bool IsUncontrollable
+        public bool IsUncontrollable { get; set; }
+
+        public HealthService HealthService { get; private set; }
+
+        public void OnEnable()
         {
-            get => _isUncontrollable;
-            set => _isUncontrollable = value;
+            HealthService.OnDied += Die;
         }
 
-        public HealthService HealthService => _healthService;
+        public void OnDisable()
+        {
+            HealthService.OnDied -= Die;
+        }
 
         [Inject]
         public void Construct(PlayerConfig config, AudioService audioService, IAnalyticsService analyticsService,
@@ -40,24 +43,14 @@ namespace Gameplay.Players
             _analyticsService = analyticsService;
             _signalBus = signalBus;
 
-            _healthService = GetComponent<HealthService>();
-            _healthService.Init(_config.Health);
-        }
-
-        public void OnEnable()
-        {
-            _healthService.OnDied += Die;
-        }
-
-        public void OnDisable()
-        {
-            _healthService.OnDied -= Die;
+            HealthService = GetComponent<HealthService>();
+            HealthService.Init(_config.Health);
         }
 
         public void Die()
         {
             _audioService.PlaySfx(_audioService.Config.PlayerDeath);
-            _analyticsService.LogEvent("player_died");        
+            _analyticsService.LogEvent("player_died");
             _signalBus.Fire<PlayerDiedSignal>();
         }
     }
@@ -71,12 +64,9 @@ public class PlayerEditor : Editor
     {
         DrawDefaultInspector();
 
-        Player player = (Player)target;
+        var player = (Player)target;
 
-        if (GUILayout.Button("Убить игрока"))
-        {
-            player.Die();
-        }
+        if (GUILayout.Button("Убить игрока")) player.Die();
     }
 }
 #endif

@@ -9,46 +9,37 @@ namespace Zenject.Tests.Bindings
     {
         public class Foo : IPoolable<string, int, float, char, double, long, IMemoryPool>, IDisposable
         {
-            IMemoryPool _pool;
-            string _data;
-
             public Foo()
             {
                 SetDefaults();
             }
 
-            public IMemoryPool Pool
-            {
-                get { return _pool; }
-            }
+            public IMemoryPool Pool { get; private set; }
 
-            public string Data
-            {
-                get { return _data; }
-            }
-
-            void SetDefaults()
-            {
-                _pool = null;
-                _data = null;
-            }
+            public string Data { get; private set; }
 
             public void Dispose()
             {
-                _pool.Despawn(this);
+                Pool.Despawn(this);
             }
 
             public void OnDespawned()
             {
-                _data = null;
-                _pool = null;
+                Data = null;
+                Pool = null;
                 SetDefaults();
             }
 
             public void OnSpawned(string p1, int p2, float p3, char p4, double p5, long p6, IMemoryPool pool)
             {
-                _pool = pool;
-                _data = p1;
+                Pool = pool;
+                Data = p1;
+            }
+
+            private void SetDefaults()
+            {
+                Pool = null;
+                Data = null;
             }
 
             public class Factory : PlaceholderFactory<string, int, float, char, double, long, Foo>
@@ -59,7 +50,8 @@ namespace Zenject.Tests.Bindings
         [Test]
         public void Test1()
         {
-            Container.BindFactory<string, int, float, char, double, long, Foo, Foo.Factory>().FromPoolableMemoryPool(x => x.WithInitialSize(2));
+            Container.BindFactory<string, int, float, char, double, long, Foo, Foo.Factory>()
+                .FromPoolableMemoryPool(x => x.WithInitialSize(2));
 
             var factory = Container.Resolve<Foo.Factory>();
 
@@ -81,4 +73,3 @@ namespace Zenject.Tests.Bindings
         }
     }
 }
-

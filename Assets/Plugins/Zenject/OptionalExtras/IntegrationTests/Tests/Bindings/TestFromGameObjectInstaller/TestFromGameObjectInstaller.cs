@@ -1,7 +1,5 @@
-﻿
-using System.Collections;
+﻿using System.Collections;
 using ModestTree;
-using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace Zenject.Tests.Bindings.FromGameObjectInstaller
@@ -36,15 +34,14 @@ namespace Zenject.Tests.Bindings.FromGameObjectInstaller
             yield break;
         }
 
-        void InstallFoo(DiContainer subContainer)
+        private void InstallFoo(DiContainer subContainer)
         {
             subContainer.Bind<Qux>().AsSingle().WithArguments("asdf");
         }
 
         public class Qux
         {
-            [Inject]
-            public string Data;
+            [Inject] public string Data;
         }
 
         public class FooInstaller : Installer<FooInstaller>
@@ -56,4 +53,3 @@ namespace Zenject.Tests.Bindings.FromGameObjectInstaller
         }
     }
 }
-

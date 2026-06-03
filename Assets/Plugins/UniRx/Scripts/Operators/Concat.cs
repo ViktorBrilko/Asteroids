@@ -7,7 +7,7 @@ namespace UniRx.Operators
 
     internal class ConcatObservable<T> : OperatorObservableBase<T>
     {
-        readonly IEnumerable<IObservable<T>> sources;
+        private readonly IEnumerable<IObservable<T>> sources;
 
         public ConcatObservable(IEnumerable<IObservable<T>> sources)
             : base(true)
@@ -17,19 +17,14 @@ namespace UniRx.Operators
 
         public IObservable<T> Combine(IEnumerable<IObservable<T>> combineSources)
         {
-            return new ConcatObservable<T>(CombineSources(this.sources, combineSources));
+            return new ConcatObservable<T>(CombineSources(sources, combineSources));
         }
 
-        static IEnumerable<IObservable<T>> CombineSources(IEnumerable<IObservable<T>> first, IEnumerable<IObservable<T>> second)
+        private static IEnumerable<IObservable<T>> CombineSources(IEnumerable<IObservable<T>> first,
+            IEnumerable<IObservable<T>> second)
         {
-            foreach (var item in first)
-            {
-                yield return item;
-            }
-            foreach (var item in second)
-            {
-                yield return item;
-            }
+            foreach (var item in first) yield return item;
+            foreach (var item in second) yield return item;
         }
 
         protected override IDisposable SubscribeCore(IObserver<T> observer, IDisposable cancel)
@@ -37,15 +32,15 @@ namespace UniRx.Operators
             return new Concat(this, observer, cancel).Run();
         }
 
-        class Concat : OperatorObserverBase<T, T>
+        private class Concat : OperatorObserverBase<T, T>
         {
-            readonly ConcatObservable<T> parent;
-            readonly object gate = new object();
+            private readonly object gate = new();
+            private readonly ConcatObservable<T> parent;
+            private IEnumerator<IObservable<T>> e;
 
-            bool isDisposed;
-            IEnumerator<IObservable<T>> e;
-            SerialDisposable subscription;
-            Action nextSelf;
+            private bool isDisposed;
+            private Action nextSelf;
+            private SerialDisposable subscription;
 
             public Concat(ConcatObservable<T> parent, IObserver<T> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -62,20 +57,20 @@ namespace UniRx.Operators
                 var schedule = Scheduler.DefaultSchedulers.TailRecursion.Schedule(RecursiveRun);
 
                 return StableCompositeDisposable.Create(schedule, subscription, Disposable.Create(() =>
-               {
-                   lock (gate)
-                   {
-                       this.isDisposed = true;
-                       this.e.Dispose();
-                   }
-               }));
+                {
+                    lock (gate)
+                    {
+                        isDisposed = true;
+                        e.Dispose();
+                    }
+                }));
             }
 
-            void RecursiveRun(Action self)
+            private void RecursiveRun(Action self)
             {
                 lock (gate)
                 {
-                    this.nextSelf = self;
+                    nextSelf = self;
                     if (isDisposed) return;
 
                     var current = default(IObservable<T>);
@@ -103,15 +98,29 @@ namespace UniRx.Operators
 
                     if (ex != null)
                     {
-                        try { observer.OnError(ex); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnError(ex);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
                         return;
                     }
 
                     if (!hasNext)
                     {
-                        try { observer.OnCompleted(); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
                         return;
                     }
 
@@ -124,18 +133,24 @@ namespace UniRx.Operators
 
             public override void OnNext(T value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                this.nextSelf();
+                nextSelf();
             }
         }
     }

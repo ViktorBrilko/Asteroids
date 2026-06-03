@@ -7,8 +7,7 @@ namespace Zenject.Tests.Bindings.FromPrefabResource
 {
     public class Gorp : MonoBehaviour
     {
-        [Inject]
-        string _arg;
+        [Inject] private string _arg;
 
         [Inject]
         public void Initialize()

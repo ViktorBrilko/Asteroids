@@ -3,7 +3,7 @@
     public enum EnemyTypes
     {
         Asteroid,
-        SmallAsteroid, 
+        SmallAsteroid,
         Ufo
     }
 }

@@ -35,13 +35,9 @@ namespace Zenject.Tests
 
         public class Foo : IPoolable<string>, IDisposable
         {
-            public static readonly PoolableStaticMemoryPool<string, Foo> Pool =
-                new PoolableStaticMemoryPool<string, Foo>();
+            public static readonly PoolableStaticMemoryPool<string, Foo> Pool = new();
 
-            public string Data
-            {
-                get; private set;
-            }
+            public string Data { get; private set; }
 
             public void Dispose()
             {
@@ -60,4 +56,3 @@ namespace Zenject.Tests
         }
     }
 }
-

@@ -1,12 +1,11 @@
 ﻿using System;
-using UniRx.Operators;
 
 namespace UniRx.Operators
 {
     internal class DefaultIfEmptyObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly T defaultValue;
+        private readonly T defaultValue;
+        private readonly IObservable<T> source;
 
         public DefaultIfEmptyObservable(IObservable<T> source, T defaultValue)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -20,15 +19,16 @@ namespace UniRx.Operators
             return source.Subscribe(new DefaultIfEmpty(this, observer, cancel));
         }
 
-        class DefaultIfEmpty : OperatorObserverBase<T, T>
+        private class DefaultIfEmpty : OperatorObserverBase<T, T>
         {
-            readonly DefaultIfEmptyObservable<T> parent;
-            bool hasValue;
+            private readonly DefaultIfEmptyObservable<T> parent;
+            private bool hasValue;
 
-            public DefaultIfEmpty(DefaultIfEmptyObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public DefaultIfEmpty(DefaultIfEmptyObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
-                this.hasValue = false;
+                hasValue = false;
             }
 
             public override void OnNext(T value)
@@ -39,19 +39,28 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                if (!hasValue)
-                {
-                    observer.OnNext(parent.defaultValue);
-                }
+                if (!hasValue) observer.OnNext(parent.defaultValue);
 
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

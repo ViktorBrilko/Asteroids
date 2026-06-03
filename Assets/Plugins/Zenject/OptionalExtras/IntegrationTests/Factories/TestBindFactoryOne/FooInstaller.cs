@@ -2,7 +2,7 @@ namespace Zenject.Tests.Factories.BindFactoryOne
 {
     public class FooInstaller : MonoInstaller
     {
-        string _param1;
+        private string _param1;
 
         [Inject]
         public void Init(string param1)

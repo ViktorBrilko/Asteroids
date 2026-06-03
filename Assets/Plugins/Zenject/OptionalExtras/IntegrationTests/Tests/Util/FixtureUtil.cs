@@ -40,14 +40,14 @@ namespace Zenject.Tests
             int expectedNumComponents)
         {
             Assert.That(typeof(TComponent).DerivesFromOrEqual<Component>()
-                || typeof(TComponent).IsAbstract());
+                        || typeof(TComponent).IsAbstract());
 
             var actualCount = SceneManager.GetActiveScene().GetRootGameObjects()
                 .SelectMany(x => x.GetComponentsInChildren<TComponent>()).Count();
 
             Assert.IsEqual(actualCount, expectedNumComponents,
                 "Expected to find '{0}' components of type '{1}' but instead found '{2}'"
-                .Fmt(expectedNumComponents, typeof(TComponent).PrettyName(), actualCount));
+                    .Fmt(expectedNumComponents, typeof(TComponent).PrettyName(), actualCount));
         }
 
         public static void AssertResolveCount<TContract>(

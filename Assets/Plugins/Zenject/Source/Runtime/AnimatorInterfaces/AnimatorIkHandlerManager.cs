@@ -5,24 +5,19 @@ namespace Zenject
 {
     public class AnimatorIkHandlerManager : MonoBehaviour
     {
-        List<IAnimatorIkHandler> _handlers;
+        private List<IAnimatorIkHandler> _handlers;
 
         [Inject]
         public void Construct(
             // Use local to avoid inheriting handlers from a parent context
-            [Inject(Source = InjectSources.Local)]
-            List<IAnimatorIkHandler> handlers)
+            [Inject(Source = InjectSources.Local)] List<IAnimatorIkHandler> handlers)
         {
             _handlers = handlers;
         }
 
         public void OnAnimatorIk()
         {
-            foreach (var handler in _handlers)
-            {
-                handler.OnAnimatorIk();
-            }
+            foreach (var handler in _handlers) handler.OnAnimatorIk();
         }
     }
 }
-

@@ -6,11 +6,10 @@ namespace Zenject
 {
     public class SignalSubscription : IDisposable, IPoolable<Action<object>, SignalDeclaration>
     {
-        readonly Pool _pool;
+        private readonly Pool _pool;
 
-        Action<object> _callback;
-        SignalDeclaration _declaration;
-        BindingId _signalId;
+        private Action<object> _callback;
+        private SignalDeclaration _declaration;
 
         public SignalSubscription(Pool pool)
         {
@@ -19,9 +18,14 @@ namespace Zenject
             SetDefaults();
         }
 
-        public BindingId SignalId
+        public BindingId SignalId { get; private set; }
+
+        public void Dispose()
         {
-            get { return _signalId; }
+            // Allow calling this twice since signals automatically unsubscribe in SignalBus.LateDispose
+            // and so this causes issues if users also unsubscribe in a MonoBehaviour OnDestroy on a
+            // root game object
+            if (!_pool.InactiveItems.Contains(this)) _pool.Despawn(this);
         }
 
         public void OnSpawned(
@@ -31,37 +35,23 @@ namespace Zenject
             _callback = callback;
             _declaration = declaration;
             // Cache this in case OnDeclarationDespawned is called
-            _signalId = declaration.BindingId;
+            SignalId = declaration.BindingId;
 
             declaration.Add(this);
         }
 
         public void OnDespawned()
         {
-            if (_declaration != null)
-            {
-                _declaration.Remove(this);
-            }
+            if (_declaration != null) _declaration.Remove(this);
 
             SetDefaults();
         }
 
-        void SetDefaults()
+        private void SetDefaults()
         {
             _callback = null;
             _declaration = null;
-            _signalId = new BindingId();
-        }
-
-        public void Dispose()
-        {
-            // Allow calling this twice since signals automatically unsubscribe in SignalBus.LateDispose
-            // and so this causes issues if users also unsubscribe in a MonoBehaviour OnDestroy on a
-            // root game object
-            if (!_pool.InactiveItems.Contains(this))
-            {
-                _pool.Despawn(this);
-            }
+            SignalId = new BindingId();
         }
 
         // See comment in SignalDeclaration for why this exists

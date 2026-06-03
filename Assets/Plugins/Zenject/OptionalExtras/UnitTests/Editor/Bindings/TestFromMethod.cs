@@ -37,7 +37,7 @@ namespace Zenject.Tests.Bindings
             Assert.IsEqual(Container.Resolve<Foo>(), foo);
         }
 
-        Foo CreateFoo(InjectContext ctx)
+        private Foo CreateFoo(InjectContext ctx)
         {
             return new Foo();
         }
@@ -45,7 +45,7 @@ namespace Zenject.Tests.Bindings
         [Test]
         public void TestTransient2()
         {
-            int numCalls = 0;
+            var numCalls = 0;
 
             Func<InjectContext, Foo> method = ctx =>
             {
@@ -73,13 +73,12 @@ namespace Zenject.Tests.Bindings
             Assert.IsEqual(Container.Resolve<Foo>(), Container.Resolve<IFoo>());
         }
 
-        interface IFoo
+        private interface IFoo
         {
         }
 
-        class Foo : IFoo
+        private class Foo : IFoo
         {
         }
     }
 }
-

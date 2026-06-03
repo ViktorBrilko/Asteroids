@@ -1,5 +1,6 @@
 using System;
 using ModestTree;
+using Object = UnityEngine.Object;
 
 namespace Zenject
 {
@@ -18,38 +19,21 @@ namespace Zenject
             factoryBindInfo.ProviderFunc = null;
         }
 
-        protected DiContainer BindContainer
-        {
-            get; private set;
-        }
+        protected DiContainer BindContainer { get; private set; }
 
-        protected FactoryBindInfo FactoryBindInfo
-        {
-            get; private set;
-        }
+        protected FactoryBindInfo FactoryBindInfo { get; }
 
         protected Func<DiContainer, IProvider> ProviderFunc
         {
-            get { return FactoryBindInfo.ProviderFunc; }
-            set { FactoryBindInfo.ProviderFunc = value; }
+            get => FactoryBindInfo.ProviderFunc;
+            set => FactoryBindInfo.ProviderFunc = value;
         }
 
-        protected BindInfo BindInfo
-        {
-            get;
-            private set;
-        }
+        protected BindInfo BindInfo { get; }
 
-        protected object SubIdentifier
-        {
-            get;
-            private set;
-        }
+        protected object SubIdentifier { get; }
 
-        protected Type ContractType
-        {
-            get { return typeof(TContract); }
-        }
+        protected Type ContractType => typeof(TContract);
 
         public ScopeConcreteIdArgConditionCopyNonLazyBinder ByInstaller<TInstaller>()
             where TInstaller : InstallerBase
@@ -60,12 +44,13 @@ namespace Zenject
         public ScopeConcreteIdArgConditionCopyNonLazyBinder ByInstaller(Type installerType)
         {
             Assert.That(installerType.DerivesFrom<InstallerBase>(),
-                "Invalid installer type given during bind command.  Expected type '{0}' to derive from 'Installer<>'", installerType);
+                "Invalid installer type given during bind command.  Expected type '{0}' to derive from 'Installer<>'",
+                installerType);
 
             var subcontainerBindInfo = new SubContainerCreatorBindInfo();
 
             ProviderFunc =
-                (container) => new SubContainerDependencyProvider(
+                container => new SubContainerDependencyProvider(
                     ContractType, SubIdentifier,
                     new SubContainerCreatorByInstaller(
                         container, subcontainerBindInfo, installerType, BindInfo.Arguments), false);
@@ -83,12 +68,13 @@ namespace Zenject
         public NameTransformScopeConcreteIdArgConditionCopyNonLazyBinder ByNewGameObjectInstaller(Type installerType)
         {
             Assert.That(installerType.DerivesFrom<InstallerBase>(),
-                "Invalid installer type given during bind command.  Expected type '{0}' to derive from 'Installer<>'", installerType);
+                "Invalid installer type given during bind command.  Expected type '{0}' to derive from 'Installer<>'",
+                installerType);
 
             var gameObjectInfo = new GameObjectCreationParameters();
 
             ProviderFunc =
-                (container) => new SubContainerDependencyProvider(
+                container => new SubContainerDependencyProvider(
                     ContractType, SubIdentifier,
                     new SubContainerCreatorByNewGameObjectInstaller(
                         container, gameObjectInfo, installerType, BindInfo.Arguments), false);
@@ -97,22 +83,23 @@ namespace Zenject
         }
 
         public NameTransformScopeConcreteIdArgConditionCopyNonLazyBinder ByNewPrefabInstaller<TInstaller>(
-            Func<InjectContext, UnityEngine.Object> prefabGetter)
+            Func<InjectContext, Object> prefabGetter)
             where TInstaller : InstallerBase
         {
             return ByNewPrefabInstaller(prefabGetter, typeof(TInstaller));
         }
 
         public NameTransformScopeConcreteIdArgConditionCopyNonLazyBinder ByNewPrefabInstaller(
-            Func<InjectContext, UnityEngine.Object> prefabGetter, Type installerType)
+            Func<InjectContext, Object> prefabGetter, Type installerType)
         {
             Assert.That(installerType.DerivesFrom<InstallerBase>(),
-                "Invalid installer type given during bind command.  Expected type '{0}' to derive from 'Installer<>'", installerType);
+                "Invalid installer type given during bind command.  Expected type '{0}' to derive from 'Installer<>'",
+                installerType);
 
             var gameObjectInfo = new GameObjectCreationParameters();
 
             ProviderFunc =
-                (container) => new SubContainerDependencyProvider(
+                container => new SubContainerDependencyProvider(
                     ContractType, SubIdentifier,
                     new SubContainerCreatorByNewPrefabInstaller(
                         container,
@@ -123,22 +110,23 @@ namespace Zenject
         }
 
         public NameTransformScopeConcreteIdArgConditionCopyNonLazyBinder ByNewPrefabInstaller<TInstaller>(
-            UnityEngine.Object prefab)
+            Object prefab)
             where TInstaller : InstallerBase
         {
             return ByNewPrefabInstaller(prefab, typeof(TInstaller));
         }
 
         public NameTransformScopeConcreteIdArgConditionCopyNonLazyBinder ByNewPrefabInstaller(
-            UnityEngine.Object prefab, Type installerType)
+            Object prefab, Type installerType)
         {
             Assert.That(installerType.DerivesFrom<InstallerBase>(),
-                "Invalid installer type given during bind command.  Expected type '{0}' to derive from 'Installer<>'", installerType);
+                "Invalid installer type given during bind command.  Expected type '{0}' to derive from 'Installer<>'",
+                installerType);
 
             var gameObjectInfo = new GameObjectCreationParameters();
 
             ProviderFunc =
-                (container) => new SubContainerDependencyProvider(
+                container => new SubContainerDependencyProvider(
                     ContractType, SubIdentifier,
                     new SubContainerCreatorByNewPrefabInstaller(
                         container,
@@ -160,12 +148,13 @@ namespace Zenject
         {
             BindingUtil.AssertIsValidResourcePath(resourcePath);
             Assert.That(installerType.DerivesFrom<InstallerBase>(),
-                "Invalid installer type given during bind command.  Expected type '{0}' to derive from 'Installer<>'", installerType);
+                "Invalid installer type given during bind command.  Expected type '{0}' to derive from 'Installer<>'",
+                installerType);
 
             var gameObjectInfo = new GameObjectCreationParameters();
 
             ProviderFunc =
-                (container) => new SubContainerDependencyProvider(
+                container => new SubContainerDependencyProvider(
                     ContractType, SubIdentifier,
                     new SubContainerCreatorByNewPrefabInstaller(
                         container,

@@ -7,8 +7,8 @@ namespace Zenject
     [NoReflectionBaking]
     public class MethodProviderMultiple<TReturn> : IProvider
     {
-        readonly DiContainer _container;
-        readonly Func<InjectContext, IEnumerable<TReturn>> _method;
+        private readonly DiContainer _container;
+        private readonly Func<InjectContext, IEnumerable<TReturn>> _method;
 
         public MethodProviderMultiple(
             Func<InjectContext, IEnumerable<TReturn>> method,
@@ -18,15 +18,9 @@ namespace Zenject
             _method = method;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -51,16 +45,11 @@ namespace Zenject
                 var result = _method(context);
 
                 if (result == null)
-                {
                     throw Assert.CreateException(
                         "Method '{0}' returned null when list was expected. Object graph:\n {1}",
                         _method.ToDebugString(), context.GetObjectGraphString());
-                }
 
-                foreach (var obj in result)
-                {
-                    buffer.Add(obj);
-                }
+                foreach (var obj in result) buffer.Add(obj);
             }
         }
     }

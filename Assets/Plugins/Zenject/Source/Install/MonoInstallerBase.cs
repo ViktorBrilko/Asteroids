@@ -11,21 +11,14 @@ namespace Zenject
     [DebuggerStepThrough]
     public class MonoInstallerBase : MonoBehaviour, IInstaller
     {
-        [Inject]
-        protected DiContainer Container
-        {
-            get; set;
-        }
-
-        public virtual bool IsEnabled
-        {
-            get { return enabled; }
-        }
+        [Inject] protected DiContainer Container { get; set; }
 
         public virtual void Start()
         {
             // Define this method so we expose the enabled check box
         }
+
+        public virtual bool IsEnabled => enabled;
 
         public virtual void InstallBindings()
         {
@@ -35,4 +28,3 @@ namespace Zenject
 }
 
 #endif
-

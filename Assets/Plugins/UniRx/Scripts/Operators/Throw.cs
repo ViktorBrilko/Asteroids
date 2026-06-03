@@ -4,8 +4,8 @@ namespace UniRx.Operators
 {
     internal class ThrowObservable<T> : OperatorObservableBase<T>
     {
-        readonly Exception error;
-        readonly IScheduler scheduler;
+        private readonly Exception error;
+        private readonly IScheduler scheduler;
 
         public ThrowObservable(Exception error, IScheduler scheduler)
             : base(scheduler == Scheduler.CurrentThread)
@@ -23,17 +23,15 @@ namespace UniRx.Operators
                 observer.OnError(error);
                 return Disposable.Empty;
             }
-            else
+
+            return scheduler.Schedule(() =>
             {
-                return scheduler.Schedule(() =>
-                {
-                    observer.OnError(error);
-                    observer.OnCompleted();
-                });
-            }
+                observer.OnError(error);
+                observer.OnCompleted();
+            });
         }
 
-        class Throw : OperatorObserverBase<T, T>
+        private class Throw : OperatorObserverBase<T, T>
         {
             public Throw(IObserver<T> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -44,7 +42,7 @@ namespace UniRx.Operators
             {
                 try
                 {
-                    base.observer.OnNext(value);
+                    observer.OnNext(value);
                 }
                 catch
                 {
@@ -55,14 +53,26 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

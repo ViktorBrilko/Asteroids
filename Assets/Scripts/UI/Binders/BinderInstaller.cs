@@ -1,5 +1,4 @@
 ﻿using MVVM;
-using UnityEngine;
 using Zenject;
 
 namespace UI.Binders

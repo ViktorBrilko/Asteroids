@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace UniRx.Operators
 {
@@ -10,11 +7,12 @@ namespace UniRx.Operators
     internal class FromEventPatternObservable<TDelegate, TEventArgs> : OperatorObservableBase<EventPattern<TEventArgs>>
         where TEventArgs : EventArgs
     {
-        readonly Func<EventHandler<TEventArgs>, TDelegate> conversion;
-        readonly Action<TDelegate> addHandler;
-        readonly Action<TDelegate> removeHandler;
+        private readonly Action<TDelegate> addHandler;
+        private readonly Func<EventHandler<TEventArgs>, TDelegate> conversion;
+        private readonly Action<TDelegate> removeHandler;
 
-        public FromEventPatternObservable(Func<EventHandler<TEventArgs>, TDelegate> conversion, Action<TDelegate> addHandler, Action<TDelegate> removeHandler)
+        public FromEventPatternObservable(Func<EventHandler<TEventArgs>, TDelegate> conversion,
+            Action<TDelegate> addHandler, Action<TDelegate> removeHandler)
             : base(false)
         {
             this.conversion = conversion;
@@ -25,19 +23,29 @@ namespace UniRx.Operators
         protected override IDisposable SubscribeCore(IObserver<EventPattern<TEventArgs>> observer, IDisposable cancel)
         {
             var fe = new FromEventPattern(this, observer);
-            return fe.Register() ?  fe : Disposable.Empty;
+            return fe.Register() ? fe : Disposable.Empty;
         }
 
-        class FromEventPattern : IDisposable
+        private class FromEventPattern : IDisposable
         {
-            readonly FromEventPatternObservable<TDelegate, TEventArgs> parent;
-            readonly IObserver<EventPattern<TEventArgs>> observer;
-            TDelegate handler;
+            private readonly IObserver<EventPattern<TEventArgs>> observer;
+            private readonly FromEventPatternObservable<TDelegate, TEventArgs> parent;
+            private TDelegate handler;
 
-            public FromEventPattern(FromEventPatternObservable<TDelegate, TEventArgs> parent, IObserver<EventPattern<TEventArgs>> observer)
+            public FromEventPattern(FromEventPatternObservable<TDelegate, TEventArgs> parent,
+                IObserver<EventPattern<TEventArgs>> observer)
             {
                 this.parent = parent;
                 this.observer = observer;
+            }
+
+            public void Dispose()
+            {
+                if (handler != null)
+                {
+                    parent.removeHandler(handler);
+                    handler = default;
+                }
             }
 
             public bool Register()
@@ -52,32 +60,25 @@ namespace UniRx.Operators
                     observer.OnError(ex);
                     return false;
                 }
+
                 return true;
             }
 
-            void OnNext(object sender, TEventArgs eventArgs)
+            private void OnNext(object sender, TEventArgs eventArgs)
             {
                 observer.OnNext(new EventPattern<TEventArgs>(sender, eventArgs));
-            }
-
-            public void Dispose()
-            {
-                if (handler != null)
-                {
-                    parent.removeHandler(handler);
-                    handler = default(TDelegate);
-                }
             }
         }
     }
 
     internal class FromEventObservable<TDelegate> : OperatorObservableBase<Unit>
     {
-        readonly Func<Action, TDelegate> conversion;
-        readonly Action<TDelegate> addHandler;
-        readonly Action<TDelegate> removeHandler;
+        private readonly Action<TDelegate> addHandler;
+        private readonly Func<Action, TDelegate> conversion;
+        private readonly Action<TDelegate> removeHandler;
 
-        public FromEventObservable(Func<Action, TDelegate> conversion, Action<TDelegate> addHandler, Action<TDelegate> removeHandler)
+        public FromEventObservable(Func<Action, TDelegate> conversion, Action<TDelegate> addHandler,
+            Action<TDelegate> removeHandler)
             : base(false)
         {
             this.conversion = conversion;
@@ -88,19 +89,28 @@ namespace UniRx.Operators
         protected override IDisposable SubscribeCore(IObserver<Unit> observer, IDisposable cancel)
         {
             var fe = new FromEvent(this, observer);
-            return fe.Register() ?  fe : Disposable.Empty;
+            return fe.Register() ? fe : Disposable.Empty;
         }
 
-        class FromEvent : IDisposable
+        private class FromEvent : IDisposable
         {
-            readonly FromEventObservable<TDelegate> parent;
-            readonly IObserver<Unit> observer;
-            TDelegate handler;
+            private readonly IObserver<Unit> observer;
+            private readonly FromEventObservable<TDelegate> parent;
+            private TDelegate handler;
 
             public FromEvent(FromEventObservable<TDelegate> parent, IObserver<Unit> observer)
             {
                 this.parent = parent;
                 this.observer = observer;
+            }
+
+            public void Dispose()
+            {
+                if (handler != null)
+                {
+                    parent.removeHandler(handler);
+                    handler = default;
+                }
             }
 
             public bool Register()
@@ -116,32 +126,25 @@ namespace UniRx.Operators
                     observer.OnError(ex);
                     return false;
                 }
+
                 return true;
             }
 
-            void OnNext()
+            private void OnNext()
             {
                 observer.OnNext(Unit.Default);
-            }
-
-            public void Dispose()
-            {
-                if (handler != null)
-                {
-                    parent.removeHandler(handler);
-                    handler = default(TDelegate);
-                }
             }
         }
     }
 
     internal class FromEventObservable<TDelegate, TEventArgs> : OperatorObservableBase<TEventArgs>
     {
-        readonly Func<Action<TEventArgs>, TDelegate> conversion;
-        readonly Action<TDelegate> addHandler;
-        readonly Action<TDelegate> removeHandler;
+        private readonly Action<TDelegate> addHandler;
+        private readonly Func<Action<TEventArgs>, TDelegate> conversion;
+        private readonly Action<TDelegate> removeHandler;
 
-        public FromEventObservable(Func<Action<TEventArgs>, TDelegate> conversion, Action<TDelegate> addHandler, Action<TDelegate> removeHandler)
+        public FromEventObservable(Func<Action<TEventArgs>, TDelegate> conversion, Action<TDelegate> addHandler,
+            Action<TDelegate> removeHandler)
             : base(false)
         {
             this.conversion = conversion;
@@ -152,19 +155,28 @@ namespace UniRx.Operators
         protected override IDisposable SubscribeCore(IObserver<TEventArgs> observer, IDisposable cancel)
         {
             var fe = new FromEvent(this, observer);
-            return fe.Register() ?  fe : Disposable.Empty;
+            return fe.Register() ? fe : Disposable.Empty;
         }
 
-        class FromEvent : IDisposable
+        private class FromEvent : IDisposable
         {
-            readonly FromEventObservable<TDelegate, TEventArgs> parent;
-            readonly IObserver<TEventArgs> observer;
-            TDelegate handler;
+            private readonly IObserver<TEventArgs> observer;
+            private readonly FromEventObservable<TDelegate, TEventArgs> parent;
+            private TDelegate handler;
 
             public FromEvent(FromEventObservable<TDelegate, TEventArgs> parent, IObserver<TEventArgs> observer)
             {
                 this.parent = parent;
                 this.observer = observer;
+            }
+
+            public void Dispose()
+            {
+                if (handler != null)
+                {
+                    parent.removeHandler(handler);
+                    handler = default;
+                }
             }
 
             public bool Register()
@@ -180,29 +192,21 @@ namespace UniRx.Operators
                     observer.OnError(ex);
                     return false;
                 }
+
                 return true;
             }
 
-            void OnNext(TEventArgs args)
+            private void OnNext(TEventArgs args)
             {
                 observer.OnNext(args);
-            }
-
-            public void Dispose()
-            {
-                if (handler != null)
-                {
-                    parent.removeHandler(handler);
-                    handler = default(TDelegate);
-                }
             }
         }
     }
 
     internal class FromEventObservable : OperatorObservableBase<Unit>
     {
-        readonly Action<Action> addHandler;
-        readonly Action<Action> removeHandler;
+        private readonly Action<Action> addHandler;
+        private readonly Action<Action> removeHandler;
 
         public FromEventObservable(Action<Action> addHandler, Action<Action> removeHandler)
             : base(false)
@@ -214,20 +218,29 @@ namespace UniRx.Operators
         protected override IDisposable SubscribeCore(IObserver<Unit> observer, IDisposable cancel)
         {
             var fe = new FromEvent(this, observer);
-            return fe.Register() ?  fe : Disposable.Empty;
+            return fe.Register() ? fe : Disposable.Empty;
         }
 
-        class FromEvent : IDisposable
+        private class FromEvent : IDisposable
         {
-            readonly FromEventObservable parent;
-            readonly IObserver<Unit> observer;
-            Action handler;
+            private readonly IObserver<Unit> observer;
+            private readonly FromEventObservable parent;
+            private Action handler;
 
             public FromEvent(FromEventObservable parent, IObserver<Unit> observer)
             {
                 this.parent = parent;
                 this.observer = observer;
-                this.handler = OnNext;
+                handler = OnNext;
+            }
+
+            public void Dispose()
+            {
+                if (handler != null)
+                {
+                    parent.removeHandler(handler);
+                    handler = null;
+                }
             }
 
             public bool Register()
@@ -241,29 +254,21 @@ namespace UniRx.Operators
                     observer.OnError(ex);
                     return false;
                 }
+
                 return true;
             }
 
-            void OnNext()
+            private void OnNext()
             {
                 observer.OnNext(Unit.Default);
-            }
-
-            public void Dispose()
-            {
-                if (handler != null)
-                {
-                    parent.removeHandler(handler);
-                    handler = null;
-                }
             }
         }
     }
 
     internal class FromEventObservable_<T> : OperatorObservableBase<T>
     {
-        readonly Action<Action<T>> addHandler;
-        readonly Action<Action<T>> removeHandler;
+        private readonly Action<Action<T>> addHandler;
+        private readonly Action<Action<T>> removeHandler;
 
         public FromEventObservable_(Action<Action<T>> addHandler, Action<Action<T>> removeHandler)
             : base(false)
@@ -275,20 +280,29 @@ namespace UniRx.Operators
         protected override IDisposable SubscribeCore(IObserver<T> observer, IDisposable cancel)
         {
             var fe = new FromEvent(this, observer);
-            return fe.Register() ?  fe : Disposable.Empty;
+            return fe.Register() ? fe : Disposable.Empty;
         }
 
-        class FromEvent : IDisposable
+        private class FromEvent : IDisposable
         {
-            readonly FromEventObservable_<T> parent;
-            readonly IObserver<T> observer;
-            Action<T> handler;
+            private readonly IObserver<T> observer;
+            private readonly FromEventObservable_<T> parent;
+            private Action<T> handler;
 
             public FromEvent(FromEventObservable_<T> parent, IObserver<T> observer)
             {
                 this.parent = parent;
                 this.observer = observer;
-                this.handler = OnNext;
+                handler = OnNext;
+            }
+
+            public void Dispose()
+            {
+                if (handler != null)
+                {
+                    parent.removeHandler(handler);
+                    handler = null;
+                }
             }
 
             public bool Register()
@@ -302,21 +316,13 @@ namespace UniRx.Operators
                     observer.OnError(ex);
                     return false;
                 }
+
                 return true;
             }
 
-            void OnNext(T value)
+            private void OnNext(T value)
             {
                 observer.OnNext(value);
-            }
-
-            public void Dispose()
-            {
-                if (handler != null)
-                {
-                    parent.removeHandler(handler);
-                    handler = null;
-                }
             }
         }
     }

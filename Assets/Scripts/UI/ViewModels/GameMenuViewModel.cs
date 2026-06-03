@@ -10,10 +10,10 @@ namespace UI.ViewModels
 {
     public class GameMenuViewModel : IInitializable, IDisposable
     {
-        private LoadLevelService _loadLevel;
-        private WindowsState _windowsState;
-        private AudioService _audioService;
-        
+        private readonly AudioService _audioService;
+        private readonly LoadLevelService _loadLevel;
+        private readonly WindowsState _windowsState;
+
         [Data("GameMenuPanelState")] public ReactiveProperty<bool> IsPanelOpen;
 
         public GameMenuViewModel(LoadLevelService loadLevel, AudioService audioService, WindowsState windowsState)
@@ -24,15 +24,15 @@ namespace UI.ViewModels
             IsPanelOpen = _windowsState.IsGameMenuOpen;
         }
 
+        public void Dispose()
+        {
+        }
+
         public void Initialize()
         {
             _windowsState.IsGameMenuOpen.Value = false;
         }
 
-        public void Dispose()
-        {
-        }
-        
         [Method("OnCloseClick")]
         public void OnCloseClicked()
         {
@@ -59,4 +59,3 @@ namespace UI.ViewModels
         }
     }
 }
-

@@ -9,18 +9,11 @@ namespace Zenject
     // can get lost during compile errors for classes that are abstract
     public class ScriptableObjectInstallerBase : ScriptableObject, IInstaller
     {
-        [Inject]
-        DiContainer _container = null;
+        [Inject] private DiContainer _container;
 
-        protected DiContainer Container
-        {
-            get { return _container; }
-        }
+        protected DiContainer Container => _container;
 
-        bool IInstaller.IsEnabled
-        {
-            get { return true; }
-        }
+        bool IInstaller.IsEnabled => true;
 
         public virtual void InstallBindings()
         {
@@ -30,4 +23,3 @@ namespace Zenject
 }
 
 #endif
-

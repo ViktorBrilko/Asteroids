@@ -1,13 +1,12 @@
 ﻿using System;
-using UniRx.Operators;
 
 namespace UniRx.Operators
 {
     internal class FirstObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly bool useDefault;
-        readonly Func<T, bool> predicate;
+        private readonly Func<T, bool> predicate;
+        private readonly IObservable<T> source;
+        private readonly bool useDefault;
 
         public FirstObservable(IObservable<T> source, bool useDefault)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -26,25 +25,20 @@ namespace UniRx.Operators
 
         protected override IDisposable SubscribeCore(IObserver<T> observer, IDisposable cancel)
         {
-            if (predicate == null)
-            {
-                return source.Subscribe(new First(this, observer, cancel));
-            }
-            else
-            {
-                return source.Subscribe(new First_(this, observer, cancel));
-            }
+            if (predicate == null) return source.Subscribe(new First(this, observer, cancel));
+
+            return source.Subscribe(new First_(this, observer, cancel));
         }
 
-        class First : OperatorObserverBase<T, T>
+        private class First : OperatorObserverBase<T, T>
         {
-            readonly FirstObservable<T> parent;
-            bool notPublished;
+            private readonly FirstObservable<T> parent;
+            private bool notPublished;
 
             public First(FirstObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
-                this.notPublished = true;
+                notPublished = true;
             }
 
             public override void OnNext(T value)
@@ -53,55 +47,77 @@ namespace UniRx.Operators
                 {
                     notPublished = false;
                     observer.OnNext(value);
-                    try { observer.OnCompleted(); }
-                    finally { Dispose(); }
-                    return;
+                    try
+                    {
+                        observer.OnCompleted();
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
                 if (parent.useDefault)
                 {
-                    if (notPublished)
+                    if (notPublished) observer.OnNext(default);
+                    try
                     {
-                        observer.OnNext(default(T));
+                        observer.OnCompleted();
                     }
-                    try { observer.OnCompleted(); }
-                    finally { Dispose(); }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
                 else
                 {
                     if (notPublished)
-                    {
-                        try { observer.OnError(new InvalidOperationException("sequence is empty")); }
-                        finally { Dispose(); }
-                    }
+                        try
+                        {
+                            observer.OnError(new InvalidOperationException("sequence is empty"));
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                     else
-                    {
-                        try { observer.OnCompleted(); }
-                        finally { Dispose(); }
-                    }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                 }
             }
         }
 
         // with predicate
-        class First_ : OperatorObserverBase<T, T>
+        private class First_ : OperatorObserverBase<T, T>
         {
-            readonly FirstObservable<T> parent;
-            bool notPublished;
+            private readonly FirstObservable<T> parent;
+            private bool notPublished;
 
             public First_(FirstObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
-                this.notPublished = true;
+                notPublished = true;
             }
 
             public override void OnNext(T value)
@@ -115,8 +131,15 @@ namespace UniRx.Operators
                     }
                     catch (Exception ex)
                     {
-                        try { observer.OnError(ex); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnError(ex);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
                         return;
                     }
 
@@ -124,41 +147,64 @@ namespace UniRx.Operators
                     {
                         notPublished = false;
                         observer.OnNext(value);
-                        try { observer.OnCompleted(); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                     }
                 }
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
                 if (parent.useDefault)
                 {
-                    if (notPublished)
+                    if (notPublished) observer.OnNext(default);
+                    try
                     {
-                        observer.OnNext(default(T));
+                        observer.OnCompleted();
                     }
-                    try { observer.OnCompleted(); }
-                    finally { Dispose(); }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
                 else
                 {
                     if (notPublished)
-                    {
-                        try { observer.OnError(new InvalidOperationException("sequence is empty")); }
-                        finally { Dispose(); }
-                    }
+                        try
+                        {
+                            observer.OnError(new InvalidOperationException("sequence is empty"));
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                     else
-                    {
-                        try { observer.OnCompleted(); }
-                        finally { Dispose(); }
-                    }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                 }
             }
         }

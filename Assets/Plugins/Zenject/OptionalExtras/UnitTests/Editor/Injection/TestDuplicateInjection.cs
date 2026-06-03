@@ -6,11 +6,11 @@ namespace Zenject.Tests.Injection
     [TestFixture]
     public class TestDuplicateInjection : ZenjectUnitTestFixture
     {
-        class Test0
+        private class Test0
         {
         }
 
-        class Test1
+        private class Test1
         {
             public Test1(Test0 test1)
             {
@@ -30,5 +30,3 @@ namespace Zenject.Tests.Injection
         }
     }
 }
-
-

@@ -4,7 +4,8 @@ namespace UniRx
 {
     public static partial class Observable
     {
-        public static Func<IObservable<TResult>> FromAsyncPattern<TResult>(Func<AsyncCallback, object, IAsyncResult> begin, Func<IAsyncResult, TResult> end)
+        public static Func<IObservable<TResult>> FromAsyncPattern<TResult>(
+            Func<AsyncCallback, object, IAsyncResult> begin, Func<IAsyncResult, TResult> end)
         {
             return () =>
             {
@@ -23,19 +24,22 @@ namespace UniRx
                             subject.OnError(exception);
                             return;
                         }
+
                         subject.OnNext(result);
                         subject.OnCompleted();
                     }, null);
                 }
                 catch (Exception exception)
                 {
-                    return Observable.Throw<TResult>(exception, Scheduler.DefaultSchedulers.AsyncConversions);
+                    return Throw<TResult>(exception, Scheduler.DefaultSchedulers.AsyncConversions);
                 }
+
                 return subject.AsObservable();
             };
         }
 
-        public static Func<T1, IObservable<TResult>> FromAsyncPattern<T1, TResult>(Func<T1, AsyncCallback, object, IAsyncResult> begin, Func<IAsyncResult, TResult> end)
+        public static Func<T1, IObservable<TResult>> FromAsyncPattern<T1, TResult>(
+            Func<T1, AsyncCallback, object, IAsyncResult> begin, Func<IAsyncResult, TResult> end)
         {
             return x =>
             {
@@ -54,19 +58,22 @@ namespace UniRx
                             subject.OnError(exception);
                             return;
                         }
+
                         subject.OnNext(result);
                         subject.OnCompleted();
                     }, null);
                 }
                 catch (Exception exception)
                 {
-                    return Observable.Throw<TResult>(exception, Scheduler.DefaultSchedulers.AsyncConversions);
+                    return Throw<TResult>(exception, Scheduler.DefaultSchedulers.AsyncConversions);
                 }
+
                 return subject.AsObservable();
             };
         }
 
-        public static Func<T1, T2, IObservable<TResult>> FromAsyncPattern<T1, T2, TResult>(Func<T1, T2, AsyncCallback, object, IAsyncResult> begin, Func<IAsyncResult, TResult> end)
+        public static Func<T1, T2, IObservable<TResult>> FromAsyncPattern<T1, T2, TResult>(
+            Func<T1, T2, AsyncCallback, object, IAsyncResult> begin, Func<IAsyncResult, TResult> end)
         {
             return (x, y) =>
             {
@@ -85,19 +92,22 @@ namespace UniRx
                             subject.OnError(exception);
                             return;
                         }
+
                         subject.OnNext(result);
                         subject.OnCompleted();
                     }, null);
                 }
                 catch (Exception exception)
                 {
-                    return Observable.Throw<TResult>(exception, Scheduler.DefaultSchedulers.AsyncConversions);
+                    return Throw<TResult>(exception, Scheduler.DefaultSchedulers.AsyncConversions);
                 }
+
                 return subject.AsObservable();
             };
         }
 
-        public static Func<IObservable<Unit>> FromAsyncPattern(Func<AsyncCallback, object, IAsyncResult> begin, Action<IAsyncResult> end)
+        public static Func<IObservable<Unit>> FromAsyncPattern(Func<AsyncCallback, object, IAsyncResult> begin,
+            Action<IAsyncResult> end)
         {
             return FromAsyncPattern(begin, iar =>
             {
@@ -106,7 +116,8 @@ namespace UniRx
             });
         }
 
-        public static Func<T1, IObservable<Unit>> FromAsyncPattern<T1>(Func<T1, AsyncCallback, object, IAsyncResult> begin, Action<IAsyncResult> end)
+        public static Func<T1, IObservable<Unit>> FromAsyncPattern<T1>(
+            Func<T1, AsyncCallback, object, IAsyncResult> begin, Action<IAsyncResult> end)
         {
             return FromAsyncPattern(begin, iar =>
             {
@@ -115,7 +126,8 @@ namespace UniRx
             });
         }
 
-        public static Func<T1, T2, IObservable<Unit>> FromAsyncPattern<T1, T2>(Func<T1, T2, AsyncCallback, object, IAsyncResult> begin, Action<IAsyncResult> end)
+        public static Func<T1, T2, IObservable<Unit>> FromAsyncPattern<T1, T2>(
+            Func<T1, T2, AsyncCallback, object, IAsyncResult> begin, Action<IAsyncResult> end)
         {
             return FromAsyncPattern(begin, iar =>
             {

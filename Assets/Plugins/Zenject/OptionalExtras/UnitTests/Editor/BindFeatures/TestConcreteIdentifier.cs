@@ -21,27 +21,19 @@ namespace Zenject.Tests.BindFeatures
             Assert.IsEqual(foos[1].Value, "b");
         }
 
-        interface IFoo
+        private interface IFoo
         {
-            string Value
-            {
-                get;
-            }
+            string Value { get; }
         }
 
-        class Foo : IFoo
+        private class Foo : IFoo
         {
             public Foo(string data)
             {
                 Value = data;
             }
 
-            public string Value
-            {
-                get; private set;
-            }
+            public string Value { get; }
         }
     }
 }
-
-

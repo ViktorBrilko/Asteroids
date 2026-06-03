@@ -4,8 +4,8 @@ namespace UniRx.Operators
 {
     internal class PairwiseObservable<T, TR> : OperatorObservableBase<TR>
     {
-        readonly IObservable<T> source;
-        readonly Func<T, T, TR> selector;
+        private readonly Func<T, T, TR> selector;
+        private readonly IObservable<T> source;
 
         public PairwiseObservable(IObservable<T> source, Func<T, T, TR> selector)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -19,11 +19,11 @@ namespace UniRx.Operators
             return source.Subscribe(new Pairwise(this, observer, cancel));
         }
 
-        class Pairwise : OperatorObserverBase<T, TR>
+        private class Pairwise : OperatorObserverBase<T, TR>
         {
-            readonly PairwiseObservable<T, TR> parent;
-            T prev = default(T);
-            bool isFirst = true;
+            private readonly PairwiseObservable<T, TR> parent;
+            private bool isFirst = true;
+            private T prev;
 
             public Pairwise(PairwiseObservable<T, TR> parent, IObserver<TR> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -48,7 +48,15 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
@@ -57,19 +65,33 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
 
     internal class PairwiseObservable<T> : OperatorObservableBase<Pair<T>>
     {
-        readonly IObservable<T> source;
+        private readonly IObservable<T> source;
 
         public PairwiseObservable(IObservable<T> source)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -82,10 +104,10 @@ namespace UniRx.Operators
             return source.Subscribe(new Pairwise(observer, cancel));
         }
 
-        class Pairwise : OperatorObserverBase<T, Pair<T>>
+        private class Pairwise : OperatorObserverBase<T, Pair<T>>
         {
-            T prev = default(T);
-            bool isFirst = true;
+            private bool isFirst = true;
+            private T prev;
 
             public Pairwise(IObserver<Pair<T>> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -108,12 +130,26 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

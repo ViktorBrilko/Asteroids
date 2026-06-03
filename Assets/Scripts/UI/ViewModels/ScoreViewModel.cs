@@ -8,13 +8,18 @@ namespace UI.ViewModels
 {
     public class ScoreViewModel : IInitializable, IDisposable
     {
+        [Data("Score")] public readonly ReactiveProperty<string> _currentScore = new();
+
         public readonly ScoreLogic ScoreLogic;
-        [Data("Score")]
-        public readonly  ReactiveProperty<string> _currentScore = new();
 
         public ScoreViewModel(ScoreLogic scoreLogic)
         {
             ScoreLogic = scoreLogic;
+        }
+
+        public void Dispose()
+        {
+            ScoreLogic.OnScoreChanged -= OnScoreChanged;
         }
 
         public void Initialize()
@@ -23,11 +28,6 @@ namespace UI.ViewModels
             ScoreLogic.OnScoreChanged += OnScoreChanged;
         }
 
-        public void Dispose()
-        {
-            ScoreLogic.OnScoreChanged -= OnScoreChanged;
-        }
-        
         private void OnScoreChanged(int score)
         {
             _currentScore.Value = score.ToString();

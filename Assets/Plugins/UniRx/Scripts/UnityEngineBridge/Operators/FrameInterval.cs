@@ -1,10 +1,11 @@
 ﻿using System;
+using UnityEngine;
 
 namespace UniRx.Operators
 {
-    internal class FrameIntervalObservable<T> : OperatorObservableBase<UniRx.FrameInterval<T>>
+    internal class FrameIntervalObservable<T> : OperatorObservableBase<FrameInterval<T>>
     {
-        readonly IObservable<T> source;
+        private readonly IObservable<T> source;
 
         public FrameIntervalObservable(IObservable<T> source)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -12,40 +13,52 @@ namespace UniRx.Operators
             this.source = source;
         }
 
-        protected override IDisposable SubscribeCore(IObserver<UniRx.FrameInterval<T>> observer, IDisposable cancel)
+        protected override IDisposable SubscribeCore(IObserver<FrameInterval<T>> observer, IDisposable cancel)
         {
             return source.Subscribe(new FrameInterval(observer, cancel));
         }
 
-        class FrameInterval : OperatorObserverBase<T, UniRx.FrameInterval<T>>
+        private class FrameInterval : OperatorObserverBase<T, FrameInterval<T>>
         {
-            int lastFrame;
+            private int lastFrame;
 
-            public FrameInterval(IObserver<UniRx.FrameInterval<T>> observer, IDisposable cancel)
+            public FrameInterval(IObserver<FrameInterval<T>> observer, IDisposable cancel)
                 : base(observer, cancel)
             {
-                this.lastFrame = UnityEngine.Time.frameCount;
+                lastFrame = Time.frameCount;
             }
 
             public override void OnNext(T value)
             {
-                var now = UnityEngine.Time.frameCount;
+                var now = Time.frameCount;
                 var span = now - lastFrame;
                 lastFrame = now;
 
-                base.observer.OnNext(new UniRx.FrameInterval<T>(value, span));
+                observer.OnNext(new FrameInterval<T>(value, span));
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

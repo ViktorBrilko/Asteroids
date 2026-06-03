@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using UniRx.Operators;
 
 namespace UniRx.Operators
 {
     internal class TakeLastObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-
         // count
-        readonly int count;
+        private readonly int count;
 
         // duration
-        readonly TimeSpan duration;
-        readonly IScheduler scheduler;
+        private readonly TimeSpan duration;
+        private readonly IScheduler scheduler;
+        private readonly IObservable<T> source;
 
         public TakeLastObservable(IObservable<T> source, int count)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -32,26 +30,22 @@ namespace UniRx.Operators
 
         protected override IDisposable SubscribeCore(IObserver<T> observer, IDisposable cancel)
         {
-            if (scheduler == null)
-            {
-                return new TakeLast(this, observer, cancel).Run();
-            }
-            else
-            {
-                return new TakeLast_(this, observer, cancel).Run();
-            }
+            if (scheduler == null) return new TakeLast(this, observer, cancel).Run();
+
+            return new TakeLast_(this, observer, cancel).Run();
         }
 
         // count
-        class TakeLast : OperatorObserverBase<T, T>
+        private class TakeLast : OperatorObserverBase<T, T>
         {
-            readonly TakeLastObservable<T> parent;
-            readonly Queue<T> q;
+            private readonly TakeLastObservable<T> parent;
+            private readonly Queue<T> q;
 
-            public TakeLast(TakeLastObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public TakeLast(TakeLastObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer,
+                cancel)
             {
                 this.parent = parent;
-                this.q = new Queue<T>();
+                q = new Queue<T>();
             }
 
             public IDisposable Run()
@@ -62,38 +56,47 @@ namespace UniRx.Operators
             public override void OnNext(T value)
             {
                 q.Enqueue(value);
-                if (q.Count > parent.count)
-                {
-                    q.Dequeue();
-                }
+                if (q.Count > parent.count) q.Dequeue();
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                foreach (var item in q)
+                foreach (var item in q) observer.OnNext(item);
+                try
                 {
-                    observer.OnNext(item);
+                    observer.OnCompleted();
                 }
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
 
         // time
-        class TakeLast_ : OperatorObserverBase<T, T>
+        private class TakeLast_ : OperatorObserverBase<T, T>
         {
-            DateTimeOffset startTime;
-            readonly TakeLastObservable<T> parent;
-            readonly Queue<TimeInterval<T>> q;
+            private readonly TakeLastObservable<T> parent;
+            private readonly Queue<TimeInterval<T>> q;
+            private DateTimeOffset startTime;
 
-            public TakeLast_(TakeLastObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public TakeLast_(TakeLastObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer,
+                cancel)
             {
                 this.parent = parent;
-                this.q = new Queue<TimeInterval<T>>();
+                q = new Queue<TimeInterval<T>>();
             }
 
             public IDisposable Run()
@@ -112,7 +115,16 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); };
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
 
             public override void OnCompleted()
@@ -121,19 +133,22 @@ namespace UniRx.Operators
                 var elapsed = now - startTime;
                 Trim(elapsed);
 
-                foreach (var item in q)
+                foreach (var item in q) observer.OnNext(item.Value);
+                try
                 {
-                    observer.OnNext(item.Value);
+                    observer.OnCompleted();
                 }
-                try { observer.OnCompleted(); } finally { Dispose(); };
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
 
-            void Trim(TimeSpan now)
+            private void Trim(TimeSpan now)
             {
-                while (q.Count > 0 && now - q.Peek().Interval >= parent.duration)
-                {
-                    q.Dequeue();
-                }
+                while (q.Count > 0 && now - q.Peek().Interval >= parent.duration) q.Dequeue();
             }
         }
     }

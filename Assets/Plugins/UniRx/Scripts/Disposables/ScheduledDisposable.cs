@@ -5,30 +5,20 @@ namespace UniRx
 {
     public sealed class ScheduledDisposable : ICancelable
     {
-        private readonly IScheduler scheduler;
         private volatile IDisposable disposable;
-        private int isDisposed = 0;
+        private int isDisposed;
 
         public ScheduledDisposable(IScheduler scheduler, IDisposable disposable)
         {
-            this.scheduler = scheduler;
+            this.Scheduler = scheduler;
             this.disposable = disposable;
         }
 
-        public IScheduler Scheduler
-        {
-            get { return scheduler; }
-        }
+        public IScheduler Scheduler { get; }
 
-        public IDisposable Disposable
-        {
-            get { return disposable; }
-        }
+        public IDisposable Disposable => disposable;
 
-        public bool IsDisposed
-        {
-            get { return isDisposed != 0; }
-        }
+        public bool IsDisposed => isDisposed != 0;
 
         public void Dispose()
         {
@@ -37,10 +27,7 @@ namespace UniRx
 
         private void DisposeInner()
         {
-            if (Interlocked.Increment(ref isDisposed) == 1)
-            {
-                disposable.Dispose();
-            }
+            if (Interlocked.Increment(ref isDisposed) == 1) disposable.Dispose();
         }
     }
 }

@@ -8,16 +8,9 @@ namespace Gameplay.Weapons
 {
     public class Bullet : MonoBehaviour, IResetable
     {
-        private SignalBus _signalBus;
         private BulletConfig _bulletConfig;
         private float _currentLifetime;
-
-        [Inject]
-        public void Construct(SignalBus signalBus, BulletConfig bulletConfig)
-        {
-            _signalBus = signalBus;
-            _bulletConfig = bulletConfig;
-        }
+        private SignalBus _signalBus;
 
         private void Update()
         {
@@ -34,13 +27,17 @@ namespace Gameplay.Weapons
             }
         }
 
+        [Inject]
+        public void Construct(SignalBus signalBus, BulletConfig bulletConfig)
+        {
+            _signalBus = signalBus;
+            _bulletConfig = bulletConfig;
+        }
+
         private void CheckLifetime()
         {
             _currentLifetime += Time.deltaTime;
-            if (_currentLifetime >= _bulletConfig.MaxLifetime)
-            {
-                DestroyBullet();
-            }
+            if (_currentLifetime >= _bulletConfig.MaxLifetime) DestroyBullet();
         }
 
         private void Move()

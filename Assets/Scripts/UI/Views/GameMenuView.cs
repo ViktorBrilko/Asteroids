@@ -8,15 +8,15 @@ namespace UI.Views
     {
         [Data("OnCloseClick")] [SerializeField]
         public Button ClosePanelButton;
-        
+
         [Data("OpenMenuSceneClick")] [SerializeField]
         public Button OpenMenuSceneButton;
 
         [Data("OpenSettingsPanelClick")] [SerializeField]
         public Button OpenSettingsPanelButton;
-        
+
         [SerializeField] public GameObject MenuPanel;
-        
+
         [Setter("GameMenuPanelState")]
         public bool Interactable
         {

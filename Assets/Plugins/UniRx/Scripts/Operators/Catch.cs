@@ -6,8 +6,8 @@ namespace UniRx.Operators
     internal class CatchObservable<T, TException> : OperatorObservableBase<T>
         where TException : Exception
     {
-        readonly IObservable<T> source;
-        readonly Func<TException, IObservable<T>> errorHandler;
+        private readonly Func<TException, IObservable<T>> errorHandler;
+        private readonly IObservable<T> source;
 
         public CatchObservable(IObservable<T> source, Func<TException, IObservable<T>> errorHandler)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -21,11 +21,11 @@ namespace UniRx.Operators
             return new Catch(this, observer, cancel).Run();
         }
 
-        class Catch : OperatorObserverBase<T, T>
+        private class Catch : OperatorObserverBase<T, T>
         {
-            readonly CatchObservable<T, TException> parent;
-            SingleAssignmentDisposable sourceSubscription;
-            SingleAssignmentDisposable exceptionSubscription;
+            private readonly CatchObservable<T, TException> parent;
+            private SingleAssignmentDisposable exceptionSubscription;
+            private SingleAssignmentDisposable sourceSubscription;
 
             public Catch(CatchObservable<T, TException> parent, IObserver<T> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -35,16 +35,16 @@ namespace UniRx.Operators
 
             public IDisposable Run()
             {
-                this.sourceSubscription = new SingleAssignmentDisposable();
-                this.exceptionSubscription = new SingleAssignmentDisposable();
+                sourceSubscription = new SingleAssignmentDisposable();
+                exceptionSubscription = new SingleAssignmentDisposable();
 
-                this.sourceSubscription.Disposable = parent.source.Subscribe(this);
+                sourceSubscription.Disposable = parent.source.Subscribe(this);
                 return StableCompositeDisposable.Create(sourceSubscription, exceptionSubscription);
             }
 
             public override void OnNext(T value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
@@ -56,17 +56,22 @@ namespace UniRx.Operators
                     try
                     {
                         if (parent.errorHandler == Stubs.CatchIgnore<T>)
-                        {
                             next = Observable.Empty<T>(); // for avoid iOS AOT
-                        }
                         else
-                        {
                             next = parent.errorHandler(e);
-                        }
                     }
                     catch (Exception ex)
                     {
-                        try { observer.OnError(ex); } finally { Dispose(); };
+                        try
+                        {
+                            observer.OnError(ex);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
+                        ;
                         return;
                     }
 
@@ -74,14 +79,31 @@ namespace UniRx.Operators
                 }
                 else
                 {
-                    try { observer.OnError(error); } finally { Dispose(); };
-                    return;
+                    try
+                    {
+                        observer.OnError(error);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                 }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); };
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
         }
     }
@@ -89,7 +111,7 @@ namespace UniRx.Operators
 
     internal class CatchObservable<T> : OperatorObservableBase<T>
     {
-        readonly IEnumerable<IObservable<T>> sources;
+        private readonly IEnumerable<IObservable<T>> sources;
 
         public CatchObservable(IEnumerable<IObservable<T>> sources)
             : base(true)
@@ -102,15 +124,15 @@ namespace UniRx.Operators
             return new Catch(this, observer, cancel).Run();
         }
 
-        class Catch : OperatorObserverBase<T, T>
+        private class Catch : OperatorObserverBase<T, T>
         {
-            readonly CatchObservable<T> parent;
-            readonly object gate = new object();
-            bool isDisposed;
-            IEnumerator<IObservable<T>> e;
-            SerialDisposable subscription;
-            Exception lastException;
-            Action nextSelf;
+            private readonly object gate = new();
+            private readonly CatchObservable<T> parent;
+            private IEnumerator<IObservable<T>> e;
+            private bool isDisposed;
+            private Exception lastException;
+            private Action nextSelf;
+            private SerialDisposable subscription;
 
             public Catch(CatchObservable<T> parent, IObserver<T> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -130,13 +152,13 @@ namespace UniRx.Operators
                 {
                     lock (gate)
                     {
-                        this.isDisposed = true;
-                        this.e.Dispose();
+                        isDisposed = true;
+                        e.Dispose();
                     }
                 }));
             }
 
-            void RecursiveRun(Action self)
+            private void RecursiveRun(Action self)
             {
                 lock (gate)
                 {
@@ -168,23 +190,39 @@ namespace UniRx.Operators
 
                     if (ex != null)
                     {
-                        try { observer.OnError(ex); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnError(ex);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
                         return;
                     }
 
                     if (!hasNext)
                     {
                         if (lastException != null)
-                        {
-                            try { observer.OnError(lastException); }
-                            finally { Dispose(); }
-                        }
+                            try
+                            {
+                                observer.OnError(lastException);
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
                         else
-                        {
-                            try { observer.OnCompleted(); }
-                            finally { Dispose(); }
-                        }
+                            try
+                            {
+                                observer.OnCompleted();
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
+
                         return;
                     }
 
@@ -197,7 +235,7 @@ namespace UniRx.Operators
 
             public override void OnNext(T value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
@@ -208,9 +246,14 @@ namespace UniRx.Operators
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
-                return;
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

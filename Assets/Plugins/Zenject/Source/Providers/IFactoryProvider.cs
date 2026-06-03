@@ -13,27 +13,13 @@ namespace Zenject
             FactoryId = factoryId;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        protected Guid FactoryId { get; }
 
-        protected Guid FactoryId
-        {
-            get;
-            private set;
-        }
+        protected DiContainer Container { get; }
 
-        protected DiContainer Container
-        {
-            get;
-            private set;
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -69,15 +55,11 @@ namespace Zenject
 
             injectAction = null;
             if (Container.IsValidating)
-            {
                 // We assume here that we are creating a user-defined factory so there's
                 // nothing else we can validate here
                 buffer.Add(new ValidationMarker(typeof(TContract)));
-            }
             else
-            {
                 buffer.Add(((IFactory<TContract>)factory).Create());
-            }
         }
     }
 
@@ -105,16 +87,11 @@ namespace Zenject
 
             injectAction = null;
             if (Container.IsValidating)
-            {
                 // We assume here that we are creating a user-defined factory so there's
                 // nothing else we can validate here
-
                 buffer.Add(new ValidationMarker(typeof(TContract)));
-            }
             else
-            {
                 buffer.Add(((IFactory<TParam1, TContract>)factory).Create((TParam1)args[0].Value));
-            }
         }
     }
 
@@ -143,18 +120,14 @@ namespace Zenject
 
             injectAction = null;
             if (Container.IsValidating)
-            {
                 // We assume here that we are creating a user-defined factory so there's
                 // nothing else we can validate here
                 buffer.Add(new ValidationMarker(typeof(TContract)));
-            }
             else
-            {
                 buffer.Add(
                     ((IFactory<TParam1, TParam2, TContract>)factory).Create(
                         (TParam1)args[0].Value,
                         (TParam2)args[1].Value));
-            }
         }
     }
 
@@ -184,19 +157,15 @@ namespace Zenject
 
             injectAction = null;
             if (Container.IsValidating)
-            {
                 // We assume here that we are creating a user-defined factory so there's
                 // nothing else we can validate here
                 buffer.Add(new ValidationMarker(typeof(TContract)));
-            }
             else
-            {
                 buffer.Add(
                     ((IFactory<TParam1, TParam2, TParam3, TContract>)factory).Create(
                         (TParam1)args[0].Value,
                         (TParam2)args[1].Value,
                         (TParam3)args[2].Value));
-            }
         }
     }
 
@@ -223,31 +192,29 @@ namespace Zenject
             Assert.That(args[3].Type.DerivesFromOrEqual<TParam4>());
 
             // Do this even when validating in case it has its own dependencies
-            var factory = Container.ResolveId(typeof(IFactory<TParam1, TParam2, TParam3, TParam4, TContract>), FactoryId);
+            var factory = Container.ResolveId(typeof(IFactory<TParam1, TParam2, TParam3, TParam4, TContract>),
+                FactoryId);
 
             injectAction = null;
             if (Container.IsValidating)
-            {
                 // We assume here that we are creating a user-defined factory so there's
                 // nothing else we can validate here
                 buffer.Add(new ValidationMarker(typeof(TContract)));
-            }
             else
-            {
                 buffer.Add(
                     ((IFactory<TParam1, TParam2, TParam3, TParam4, TContract>)factory).Create(
                         (TParam1)args[0].Value,
                         (TParam2)args[1].Value,
                         (TParam3)args[2].Value,
                         (TParam4)args[3].Value));
-            }
         }
     }
 
     // Five parameters
 
     [NoReflectionBaking]
-    public class IFactoryProvider<TParam1, TParam2, TParam3, TParam4, TParam5, TContract> : IFactoryProviderBase<TContract>
+    public class
+        IFactoryProvider<TParam1, TParam2, TParam3, TParam4, TParam5, TContract> : IFactoryProviderBase<TContract>
     {
         public IFactoryProvider(DiContainer container, Guid factoryId)
             : base(container, factoryId)
@@ -268,17 +235,15 @@ namespace Zenject
             Assert.That(args[4].Type.DerivesFromOrEqual<TParam5>());
 
             // Do this even when validating in case it has its own dependencies
-            var factory = Container.ResolveId(typeof(IFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TContract>), FactoryId);
+            var factory = Container.ResolveId(typeof(IFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TContract>),
+                FactoryId);
 
             injectAction = null;
             if (Container.IsValidating)
-            {
                 // We assume here that we are creating a user-defined factory so there's
                 // nothing else we can validate here
                 buffer.Add(new ValidationMarker(typeof(TContract)));
-            }
             else
-            {
                 buffer.Add(
                     ((IFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TContract>)factory).Create(
                         (TParam1)args[0].Value,
@@ -286,14 +251,15 @@ namespace Zenject
                         (TParam3)args[2].Value,
                         (TParam4)args[3].Value,
                         (TParam5)args[4].Value));
-            }
         }
     }
 
     // Six parameters
 
     [NoReflectionBaking]
-    public class IFactoryProvider<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TContract> : IFactoryProviderBase<TContract>
+    public class
+        IFactoryProvider<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6,
+            TContract> : IFactoryProviderBase<TContract>
     {
         public IFactoryProvider(DiContainer container, Guid factoryId)
             : base(container, factoryId)
@@ -315,17 +281,16 @@ namespace Zenject
             Assert.That(args[5].Type.DerivesFromOrEqual<TParam6>());
 
             // Do this even when validating in case it has its own dependencies
-            var factory = Container.ResolveId(typeof(IFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TContract>), FactoryId);
+            var factory =
+                Container.ResolveId(typeof(IFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TContract>),
+                    FactoryId);
 
             injectAction = null;
             if (Container.IsValidating)
-            {
                 // We assume here that we are creating a user-defined factory so there's
                 // nothing else we can validate here
                 buffer.Add(new ValidationMarker(typeof(TContract)));
-            }
             else
-            {
                 buffer.Add(
                     ((IFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TContract>)factory).Create(
                         (TParam1)args[0].Value,
@@ -334,14 +299,14 @@ namespace Zenject
                         (TParam4)args[3].Value,
                         (TParam5)args[4].Value,
                         (TParam6)args[5].Value));
-            }
         }
     }
 
     // Ten parameters
 
     [NoReflectionBaking]
-    public class IFactoryProvider<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9, TParam10, TContract> : IFactoryProviderBase<TContract>
+    public class IFactoryProvider<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9,
+        TParam10, TContract> : IFactoryProviderBase<TContract>
     {
         public IFactoryProvider(DiContainer container, Guid factoryId)
             : base(container, factoryId)
@@ -367,19 +332,20 @@ namespace Zenject
             Assert.That(args[9].Type.DerivesFromOrEqual<TParam10>());
 
             // Do this even when validating in case it has its own dependencies
-            var factory = Container.ResolveId(typeof(IFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9, TParam10, TContract>), FactoryId);
+            var factory =
+                Container.ResolveId(
+                    typeof(IFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9,
+                        TParam10, TContract>), FactoryId);
 
             injectAction = null;
             if (Container.IsValidating)
-            {
                 // We assume here that we are creating a user-defined factory so there's
                 // nothing else we can validate here
                 buffer.Add(new ValidationMarker(typeof(TContract)));
-            }
             else
-            {
                 buffer.Add(
-                    ((IFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9, TParam10, TContract>)factory).Create(
+                    ((IFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9, TParam10
+                        , TContract>)factory).Create(
                         (TParam1)args[0].Value,
                         (TParam2)args[1].Value,
                         (TParam3)args[2].Value,
@@ -390,7 +356,6 @@ namespace Zenject
                         (TParam8)args[7].Value,
                         (TParam9)args[8].Value,
                         (TParam10)args[9].Value));
-            }
         }
     }
 }

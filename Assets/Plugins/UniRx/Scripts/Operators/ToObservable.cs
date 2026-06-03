@@ -5,8 +5,8 @@ namespace UniRx.Operators
 {
     internal class ToObservableObservable<T> : OperatorObservableBase<T>
     {
-        readonly IEnumerable<T> source;
-        readonly IScheduler scheduler;
+        private readonly IScheduler scheduler;
+        private readonly IEnumerable<T> source;
 
         public ToObservableObservable(IEnumerable<T> source, IScheduler scheduler)
             : base(scheduler == Scheduler.CurrentThread)
@@ -20,11 +20,12 @@ namespace UniRx.Operators
             return new ToObservable(this, observer, cancel).Run();
         }
 
-        class ToObservable : OperatorObserverBase<T, T>
+        private class ToObservable : OperatorObserverBase<T, T>
         {
-            readonly ToObservableObservable<T> parent;
+            private readonly ToObservableObservable<T> parent;
 
-            public ToObservable(ToObservableObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public ToObservable(ToObservableObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
             }
@@ -56,8 +57,15 @@ namespace UniRx.Operators
                         catch (Exception ex)
                         {
                             e.Dispose();
-                            try { observer.OnError(ex); }
-                            finally { Dispose(); }
+                            try
+                            {
+                                observer.OnError(ex);
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
+
                             break;
                         }
 
@@ -68,8 +76,15 @@ namespace UniRx.Operators
                         else
                         {
                             e.Dispose();
-                            try { observer.OnCompleted(); }
-                            finally { Dispose(); }
+                            try
+                            {
+                                observer.OnCompleted();
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
+
                             break;
                         }
                     }
@@ -96,8 +111,15 @@ namespace UniRx.Operators
                     catch (Exception ex)
                     {
                         e.Dispose();
-                        try { observer.OnError(ex); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnError(ex);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
                         return;
                     }
 
@@ -109,8 +131,14 @@ namespace UniRx.Operators
                     else
                     {
                         e.Dispose();
-                        try { observer.OnCompleted(); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                     }
                 });
 
@@ -124,14 +152,26 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

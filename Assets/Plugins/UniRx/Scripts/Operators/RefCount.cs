@@ -1,14 +1,13 @@
 ﻿using System;
-using UniRx.Operators;
 
 namespace UniRx.Operators
 {
     internal class RefCountObservable<T> : OperatorObservableBase<T>
     {
-        readonly IConnectableObservable<T> source;
-        readonly object gate = new object();
-        int refCount = 0;
-        IDisposable connection;
+        private readonly object gate = new();
+        private readonly IConnectableObservable<T> source;
+        private IDisposable connection;
+        private int refCount;
 
         public RefCountObservable(IConnectableObservable<T> source)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -21,11 +20,12 @@ namespace UniRx.Operators
             return new RefCount(this, observer, cancel).Run();
         }
 
-        class RefCount : OperatorObserverBase<T, T>
+        private class RefCount : OperatorObserverBase<T, T>
         {
-            readonly RefCountObservable<T> parent;
+            private readonly RefCountObservable<T> parent;
 
-            public RefCount(RefCountObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public RefCount(RefCountObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer,
+                cancel)
             {
                 this.parent = parent;
             }
@@ -36,10 +36,7 @@ namespace UniRx.Operators
 
                 lock (parent.gate)
                 {
-                    if (++parent.refCount == 1)
-                    {
-                        parent.connection = parent.source.Connect();
-                    }
+                    if (++parent.refCount == 1) parent.connection = parent.source.Connect();
                 }
 
                 return Disposable.Create(() =>
@@ -48,29 +45,38 @@ namespace UniRx.Operators
 
                     lock (parent.gate)
                     {
-                        if (--parent.refCount == 0)
-                        {
-                            parent.connection.Dispose();
-                        }
+                        if (--parent.refCount == 0) parent.connection.Dispose();
                     }
                 });
             }
 
             public override void OnNext(T value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

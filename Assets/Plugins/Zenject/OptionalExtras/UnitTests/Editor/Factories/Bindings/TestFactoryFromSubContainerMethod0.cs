@@ -6,7 +6,7 @@ namespace Zenject.Tests.Bindings
     [TestFixture]
     public class TestFactoryFromSubContainerMethod0 : ZenjectUnitTestFixture
     {
-        static Foo ConstFoo = new Foo();
+        private static readonly Foo ConstFoo = new();
 
         [Test]
         public void TestSelf()
@@ -25,20 +25,20 @@ namespace Zenject.Tests.Bindings
             Assert.IsEqual(Container.Resolve<IFooFactory>().Create(), ConstFoo);
         }
 
-        void InstallFoo(DiContainer subContainer)
+        private void InstallFoo(DiContainer subContainer)
         {
             subContainer.Bind<Foo>().FromInstance(ConstFoo);
         }
 
-        interface IFoo
+        private interface IFoo
         {
         }
 
-        class IFooFactory : PlaceholderFactory<IFoo>
+        private class IFooFactory : PlaceholderFactory<IFoo>
         {
         }
 
-        class Foo : IFoo
+        private class Foo : IFoo
         {
             public class Factory : PlaceholderFactory<Foo>
             {
@@ -46,5 +46,3 @@ namespace Zenject.Tests.Bindings
         }
     }
 }
-
-

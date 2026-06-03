@@ -5,8 +5,6 @@ namespace Zenject.Tests.Bindings.FromPrefabResource
 {
     public class Bob : MonoBehaviour
     {
-        [NonSerialized]
-        [Inject]
-        public Jim Jim;
+        [NonSerialized] [Inject] public Jim Jim;
     }
 }

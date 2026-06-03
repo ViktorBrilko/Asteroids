@@ -7,18 +7,18 @@ namespace Analytics.Firebase
     {
         private bool _isReady;
 
-        public void Enable() 
+        public void LogEvent(string eventName)
+        {
+            if (!_isReady) return;
+
+            FirebaseAnalytics.LogEvent(eventName);
+            Debug.Log(eventName);
+        }
+
+        public void Enable()
         {
             FirebaseAnalytics.SetAnalyticsCollectionEnabled(true);
             _isReady = true;
-        }
-
-        public void LogEvent(string eventName)
-        {
-            if (!_isReady) return; 
-            
-            FirebaseAnalytics.LogEvent(eventName);
-            Debug.Log(eventName);
         }
     }
 }

@@ -8,14 +8,14 @@ namespace MVVM
     {
         public static Delegate CreateActionDelegate(MethodInfo method, object target)
         {
-            Type[] paramTypes = method!
+            var paramTypes = method!
                 .GetParameters()
                 .Select(it => it.ParameterType)
                 .ToArray();
 
-            int paramsCount = paramTypes.Length;
+            var paramsCount = paramTypes.Length;
 
-            Type delegateType = paramsCount switch
+            var delegateType = paramsCount switch
             {
                 0 => typeof(Action),
                 1 => typeof(Action<>).MakeGenericType(paramTypes[0]),
@@ -26,19 +26,19 @@ namespace MVVM
 
             return Delegate.CreateDelegate(delegateType, target, method);
         }
-        
+
         public static Delegate CreateFunctionDelegate(MethodInfo method, object target)
         {
-            Type returnType = method.ReturnType;
-            
-            Type[] paramTypes = method
+            var returnType = method.ReturnType;
+
+            var paramTypes = method
                 .GetParameters()
                 .Select(it => it.ParameterType)
                 .ToArray();
 
-            int paramsCount = paramTypes.Length;
+            var paramsCount = paramTypes.Length;
 
-            Type delegateType = paramsCount switch
+            var delegateType = paramsCount switch
             {
                 0 => typeof(Func<>).MakeGenericType(returnType),
                 1 => typeof(Func<,>).MakeGenericType(paramTypes[0], returnType),

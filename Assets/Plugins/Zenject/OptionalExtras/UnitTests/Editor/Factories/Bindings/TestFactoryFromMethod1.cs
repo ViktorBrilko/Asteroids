@@ -22,31 +22,23 @@ namespace Zenject.Tests.Bindings
             Assert.IsEqual(Container.Resolve<IFooFactory>().Create("asdf").Value, "asdf");
         }
 
-        interface IFoo
+        private interface IFoo
         {
-            string Value
-            {
-                get;
-            }
-
+            string Value { get; }
         }
 
-        class IFooFactory : PlaceholderFactory<string, IFoo>
+        private class IFooFactory : PlaceholderFactory<string, IFoo>
         {
         }
 
-        class Foo : IFoo
+        private class Foo : IFoo
         {
             public Foo(string value)
             {
                 Value = value;
             }
 
-            public string Value
-            {
-                get;
-                private set;
-            }
+            public string Value { get; }
 
             public class Factory : PlaceholderFactory<string, Foo>
             {
@@ -54,5 +46,3 @@ namespace Zenject.Tests.Bindings
         }
     }
 }
-
-

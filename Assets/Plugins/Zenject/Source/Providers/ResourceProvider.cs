@@ -10,9 +10,9 @@ namespace Zenject
     [NoReflectionBaking]
     public class ResourceProvider : IProvider
     {
-        readonly Type _resourceType;
-        readonly string _resourcePath;
-        readonly bool _matchSingle;
+        private readonly bool _matchSingle;
+        private readonly string _resourcePath;
+        private readonly Type _resourceType;
 
         public ResourceProvider(
             string resourcePath, Type resourceType, bool matchSingle)
@@ -22,15 +22,9 @@ namespace Zenject
             _matchSingle = matchSingle;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -49,7 +43,7 @@ namespace Zenject
                 var obj = Resources.Load(_resourcePath, _resourceType);
 
                 Assert.That(obj != null,
-                "Could not find resource at path '{0}' with type '{1}'", _resourcePath, _resourceType);
+                    "Could not find resource at path '{0}' with type '{1}'", _resourcePath, _resourceType);
 
                 // Are there any resource types which can be injected?
                 injectAction = null;
@@ -60,7 +54,7 @@ namespace Zenject
             var objects = Resources.LoadAll(_resourcePath, _resourceType);
 
             Assert.That(objects.Length > 0,
-            "Could not find resource at path '{0}' with type '{1}'", _resourcePath, _resourceType);
+                "Could not find resource at path '{0}' with type '{1}'", _resourcePath, _resourceType);
 
             // Are there any resource types which can be injected?
             injectAction = null;
@@ -71,5 +65,3 @@ namespace Zenject
 }
 
 #endif
-
-

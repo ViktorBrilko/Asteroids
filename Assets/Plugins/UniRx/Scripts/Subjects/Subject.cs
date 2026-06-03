@@ -1,25 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using UniRx.InternalUtil;
 
 namespace UniRx
 {
     public sealed class Subject<T> : ISubject<T>, IDisposable, IOptimizedObservable<T>
     {
-        object observerLock = new object();
+        private bool isDisposed;
 
-        bool isStopped;
-        bool isDisposed;
-        Exception lastError;
-        IObserver<T> outObserver = EmptyObserver<T>.Instance;
+        private bool isStopped;
+        private Exception lastError;
+        private readonly object observerLock = new();
+        private IObserver<T> outObserver = EmptyObserver<T>.Instance;
 
-        public bool HasObservers
+        public bool HasObservers => !(outObserver is EmptyObserver<T>) && !isStopped && !isDisposed;
+
+        public void Dispose()
         {
-            get
+            lock (observerLock)
             {
-                return !(outObserver is EmptyObserver<T>) && !isStopped && !isDisposed;
+                isDisposed = true;
+                outObserver = DisposedObserver<T>.Instance;
             }
+        }
+
+        public bool IsRequiredSubscribeOnCurrentThread()
+        {
+            return false;
         }
 
         public void OnCompleted()
@@ -82,13 +88,10 @@ namespace UniRx
                     {
                         var current = outObserver;
                         if (current is EmptyObserver<T>)
-                        {
                             outObserver = observer;
-                        }
                         else
-                        {
-                            outObserver = new ListObserver<T>(new ImmutableList<IObserver<T>>(new[] { current, observer }));
-                        }
+                            outObserver =
+                                new ListObserver<T>(new ImmutableList<IObserver<T>>(new[] { current, observer }));
                     }
 
                     return new Subscription(this, observer);
@@ -98,41 +101,23 @@ namespace UniRx
             }
 
             if (ex != null)
-            {
                 observer.OnError(ex);
-            }
             else
-            {
                 observer.OnCompleted();
-            }
 
             return Disposable.Empty;
         }
 
-        public void Dispose()
-        {
-            lock (observerLock)
-            {
-                isDisposed = true;
-                outObserver = DisposedObserver<T>.Instance;
-            }
-        }
-
-        void ThrowIfDisposed()
+        private void ThrowIfDisposed()
         {
             if (isDisposed) throw new ObjectDisposedException("");
         }
 
-        public bool IsRequiredSubscribeOnCurrentThread()
+        private class Subscription : IDisposable
         {
-            return false;
-        }
-
-        class Subscription : IDisposable
-        {
-            readonly object gate = new object();
-            Subject<T> parent;
-            IObserver<T> unsubscribeTarget;
+            private readonly object gate = new();
+            private Subject<T> parent;
+            private IObserver<T> unsubscribeTarget;
 
             public Subscription(Subject<T> parent, IObserver<T> unsubscribeTarget)
             {
@@ -145,23 +130,17 @@ namespace UniRx
                 lock (gate)
                 {
                     if (parent != null)
-                    {
                         lock (parent.observerLock)
                         {
                             var listObserver = parent.outObserver as ListObserver<T>;
                             if (listObserver != null)
-                            {
                                 parent.outObserver = listObserver.Remove(unsubscribeTarget);
-                            }
                             else
-                            {
                                 parent.outObserver = EmptyObserver<T>.Instance;
-                            }
 
                             unsubscribeTarget = null;
                             parent = null;
                         }
-                    }
                 }
             }
         }

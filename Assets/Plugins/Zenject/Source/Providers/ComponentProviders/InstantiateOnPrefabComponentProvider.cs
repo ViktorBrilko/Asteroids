@@ -9,8 +9,8 @@ namespace Zenject
     [NoReflectionBaking]
     public class InstantiateOnPrefabComponentProvider : IProvider
     {
-        readonly IPrefabInstantiator _prefabInstantiator;
-        readonly Type _componentType;
+        private readonly Type _componentType;
+        private readonly IPrefabInstantiator _prefabInstantiator;
 
         // if concreteType is null we use the contract type from inject context
         public InstantiateOnPrefabComponentProvider(
@@ -21,15 +21,9 @@ namespace Zenject
             _componentType = componentType;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -51,4 +45,3 @@ namespace Zenject
 }
 
 #endif
-

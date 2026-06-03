@@ -14,11 +14,11 @@ namespace Core.Configs
         public WeaponConfig WeaponConfig { get; private set; }
         public SettingsConfig SettingsConfig { get; private set; }
         public AdsConfig AdsConfig { get; private set; }
-        
+
         public void LoadAll()
         {
             BetterStreamingAssets.Initialize();
-            
+
             PlayerConfig = LoadFromFile<PlayerConfig>("player_config.json");
             BulletConfig = LoadFromFile<BulletConfig>("bullet_config.json");
             GameFieldConfig = LoadFromFile<GameFieldConfig>("gamefield_config.json");
@@ -30,15 +30,16 @@ namespace Core.Configs
             SettingsConfig = LoadFromFile<SettingsConfig>("settings_config.json");
             AdsConfig = LoadFromFile<AdsConfig>("ads_config.json");
         }
-    
+
         private T LoadFromFile<T>(string fileName)
         {
             if (BetterStreamingAssets.FileExists(fileName))
             {
-                string json = BetterStreamingAssets.ReadAllText(fileName);
+                var json = BetterStreamingAssets.ReadAllText(fileName);
                 return JsonConvert.DeserializeObject<T>(json);
             }
-            return default; 
-        }        
+
+            return default;
+        }
     }
 }

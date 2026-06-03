@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace UniRx.Operators
 {
@@ -9,10 +6,10 @@ namespace UniRx.Operators
 
     internal class DoObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly Action<T> onNext;
-        readonly Action<Exception> onError;
-        readonly Action onCompleted;
+        private readonly Action onCompleted;
+        private readonly Action<Exception> onError;
+        private readonly Action<T> onNext;
+        private readonly IObservable<T> source;
 
         public DoObservable(IObservable<T> source, Action<T> onNext, Action<Exception> onError, Action onCompleted)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -28,9 +25,9 @@ namespace UniRx.Operators
             return new Do(this, observer, cancel).Run();
         }
 
-        class Do : OperatorObserverBase<T, T>
+        private class Do : OperatorObserverBase<T, T>
         {
-            readonly DoObservable<T> parent;
+            private readonly DoObservable<T> parent;
 
             public Do(DoObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
             {
@@ -50,10 +47,20 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); } finally { Dispose(); };
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                     return;
                 }
-                base.observer.OnNext(value);
+
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
@@ -64,10 +71,29 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); } finally { Dispose(); };
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                     return;
                 }
-                try { observer.OnError(error); } finally { Dispose(); };
+
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
 
             public override void OnCompleted()
@@ -78,19 +104,29 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    base.observer.OnError(ex);
+                    observer.OnError(ex);
                     Dispose();
                     return;
                 }
-                try { observer.OnCompleted(); } finally { Dispose(); };
+
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
         }
     }
 
     internal class DoObserverObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly IObserver<T> observer;
+        private readonly IObserver<T> observer;
+        private readonly IObservable<T> source;
 
         public DoObserverObservable(IObservable<T> source, IObserver<T> observer)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -104,11 +140,12 @@ namespace UniRx.Operators
             return new Do(this, observer, cancel).Run();
         }
 
-        class Do : OperatorObserverBase<T, T>
+        private class Do : OperatorObserverBase<T, T>
         {
-            readonly DoObserverObservable<T> parent;
+            private readonly DoObserverObservable<T> parent;
 
-            public Do(DoObserverObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public Do(DoObserverObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer,
+                cancel)
             {
                 this.parent = parent;
             }
@@ -126,11 +163,19 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
-                base.observer.OnNext(value);
+
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
@@ -141,13 +186,26 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
@@ -158,21 +216,34 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
 
     internal class DoOnErrorObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly Action<Exception> onError;
+        private readonly Action<Exception> onError;
+        private readonly IObservable<T> source;
 
         public DoOnErrorObservable(IObservable<T> source, Action<Exception> onError)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -186,11 +257,12 @@ namespace UniRx.Operators
             return new DoOnError(this, observer, cancel).Run();
         }
 
-        class DoOnError : OperatorObserverBase<T, T>
+        private class DoOnError : OperatorObserverBase<T, T>
         {
-            readonly DoOnErrorObservable<T> parent;
+            private readonly DoOnErrorObservable<T> parent;
 
-            public DoOnError(DoOnErrorObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public DoOnError(DoOnErrorObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer,
+                cancel)
             {
                 this.parent = parent;
             }
@@ -202,7 +274,7 @@ namespace UniRx.Operators
 
             public override void OnNext(T value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
@@ -213,28 +285,47 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
 
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
 
     internal class DoOnCompletedObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly Action onCompleted;
+        private readonly Action onCompleted;
+        private readonly IObservable<T> source;
 
         public DoOnCompletedObservable(IObservable<T> source, Action onCompleted)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -248,11 +339,12 @@ namespace UniRx.Operators
             return new DoOnCompleted(this, observer, cancel).Run();
         }
 
-        class DoOnCompleted : OperatorObserverBase<T, T>
+        private class DoOnCompleted : OperatorObserverBase<T, T>
         {
-            readonly DoOnCompletedObservable<T> parent;
+            private readonly DoOnCompletedObservable<T> parent;
 
-            public DoOnCompleted(DoOnCompletedObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public DoOnCompleted(DoOnCompletedObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
             }
@@ -264,13 +356,19 @@ namespace UniRx.Operators
 
             public override void OnNext(T value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
@@ -281,19 +379,29 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    base.observer.OnError(ex);
+                    observer.OnError(ex);
                     Dispose();
                     return;
                 }
-                try { observer.OnCompleted(); } finally { Dispose(); };
+
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
         }
     }
 
     internal class DoOnTerminateObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly Action onTerminate;
+        private readonly Action onTerminate;
+        private readonly IObservable<T> source;
 
         public DoOnTerminateObservable(IObservable<T> source, Action onTerminate)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -307,11 +415,12 @@ namespace UniRx.Operators
             return new DoOnTerminate(this, observer, cancel).Run();
         }
 
-        class DoOnTerminate : OperatorObserverBase<T, T>
+        private class DoOnTerminate : OperatorObserverBase<T, T>
         {
-            readonly DoOnTerminateObservable<T> parent;
+            private readonly DoOnTerminateObservable<T> parent;
 
-            public DoOnTerminate(DoOnTerminateObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public DoOnTerminate(DoOnTerminateObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
             }
@@ -323,7 +432,7 @@ namespace UniRx.Operators
 
             public override void OnNext(T value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
@@ -334,11 +443,28 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
-                try { observer.OnError(error); } finally { Dispose(); };
+
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
 
             public override void OnCompleted()
@@ -349,19 +475,29 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    base.observer.OnError(ex);
+                    observer.OnError(ex);
                     Dispose();
                     return;
                 }
-                try { observer.OnCompleted(); } finally { Dispose(); };
+
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
         }
     }
 
     internal class DoOnSubscribeObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly Action onSubscribe;
+        private readonly Action onSubscribe;
+        private readonly IObservable<T> source;
 
         public DoOnSubscribeObservable(IObservable<T> source, Action onSubscribe)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -375,11 +511,12 @@ namespace UniRx.Operators
             return new DoOnSubscribe(this, observer, cancel).Run();
         }
 
-        class DoOnSubscribe : OperatorObserverBase<T, T>
+        private class DoOnSubscribe : OperatorObserverBase<T, T>
         {
-            readonly DoOnSubscribeObservable<T> parent;
+            private readonly DoOnSubscribeObservable<T> parent;
 
-            public DoOnSubscribe(DoOnSubscribeObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public DoOnSubscribe(DoOnSubscribeObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
             }
@@ -392,8 +529,15 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return Disposable.Empty;
                 }
 
@@ -402,25 +546,39 @@ namespace UniRx.Operators
 
             public override void OnNext(T value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
 
     internal class DoOnCancelObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly Action onCancel;
+        private readonly Action onCancel;
+        private readonly IObservable<T> source;
 
         public DoOnCancelObservable(IObservable<T> source, Action onCancel)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -434,10 +592,10 @@ namespace UniRx.Operators
             return new DoOnCancel(this, observer, cancel).Run();
         }
 
-        class DoOnCancel : OperatorObserverBase<T, T>
+        private class DoOnCancel : OperatorObserverBase<T, T>
         {
-            readonly DoOnCancelObservable<T> parent;
-            bool isCompletedCall = false;
+            private readonly DoOnCancelObservable<T> parent;
+            private bool isCompletedCall;
 
             public DoOnCancel(DoOnCancelObservable<T> parent, IObserver<T> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -449,28 +607,43 @@ namespace UniRx.Operators
             {
                 return StableCompositeDisposable.Create(parent.source.Subscribe(this), Disposable.Create(() =>
                 {
-                    if (!isCompletedCall)
-                    {
-                        parent.onCancel();
-                    }
+                    if (!isCompletedCall) parent.onCancel();
                 }));
             }
 
             public override void OnNext(T value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
                 isCompletedCall = true;
-                try { observer.OnError(error); } finally { Dispose(); };
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
 
             public override void OnCompleted()
             {
                 isCompletedCall = true;
-                try { observer.OnCompleted(); } finally { Dispose(); };
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
         }
     }

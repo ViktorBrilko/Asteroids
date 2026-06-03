@@ -66,7 +66,7 @@ namespace Zenject.Tests.Bindings.Singletons
 
         public class Foo
         {
-            readonly LazyInject<Bar> _bar;
+            private readonly LazyInject<Bar> _bar;
 
             public Foo(LazyInject<Bar> bar)
             {
@@ -81,8 +81,7 @@ namespace Zenject.Tests.Bindings.Singletons
 
         public class Qux
         {
-            [Inject(Optional = true)]
-            public LazyInject<Bar> Bar;
+            [Inject(Optional = true)] public LazyInject<Bar> Bar;
         }
 
         public class Gorp
@@ -91,4 +90,3 @@ namespace Zenject.Tests.Bindings.Singletons
         }
     }
 }
-

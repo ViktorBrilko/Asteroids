@@ -9,25 +9,19 @@ namespace Zenject
     [DebuggerStepThrough]
     public abstract class TaskUpdater<TTask>
     {
-        readonly LinkedList<TaskInfo> _tasks = new LinkedList<TaskInfo>();
-        readonly List<TaskInfo> _queuedTasks = new List<TaskInfo>();
+        private readonly List<TaskInfo> _queuedTasks = new();
+        private readonly LinkedList<TaskInfo> _tasks = new();
 
-        IEnumerable<TaskInfo> AllTasks
-        {
-            get { return ActiveTasks.Concat(_queuedTasks); }
-        }
+        private IEnumerable<TaskInfo> AllTasks => ActiveTasks.Concat(_queuedTasks);
 
-        IEnumerable<TaskInfo> ActiveTasks
-        {
-            get { return _tasks; }
-        }
+        private IEnumerable<TaskInfo> ActiveTasks => _tasks;
 
         public void AddTask(TTask task, int priority)
         {
             AddTaskInternal(task, priority);
         }
 
-        void AddTaskInternal(TTask task, int priority)
+        private void AddTaskInternal(TTask task, int priority)
         {
             Assert.That(!AllTasks.Select(x => x.Task).ContainsItem(task),
                 "Duplicate task added to DependencyRoot with name '" + task.GetType().FullName + "'");
@@ -70,10 +64,8 @@ namespace Zenject
 
                 // Make sure that tasks with priority of int.MaxValue are updated when maxPriority is int.MaxValue
                 if (!taskInfo.IsRemoved && taskInfo.Priority >= minPriority
-                    && (maxPriority == int.MaxValue || taskInfo.Priority < maxPriority))
-                {
+                                        && (maxPriority == int.MaxValue || taskInfo.Priority < maxPriority))
                     UpdateItem(taskInfo.Task);
-                }
 
                 node = next;
             }
@@ -81,7 +73,7 @@ namespace Zenject
             ClearRemovedTasks(_tasks);
         }
 
-        void ClearRemovedTasks(LinkedList<TaskInfo> tasks)
+        private void ClearRemovedTasks(LinkedList<TaskInfo> tasks)
         {
             var node = tasks.First;
 
@@ -91,50 +83,44 @@ namespace Zenject
                 var info = node.Value;
 
                 if (info.IsRemoved)
-                {
                     //ModestTree.Log.Debug("Removed task '" + info.Task.GetType().ToString() + "'");
                     tasks.Remove(node);
-                }
 
                 node = next;
             }
         }
 
-        void AddQueuedTasks()
+        private void AddQueuedTasks()
         {
-            for (int i = 0; i < _queuedTasks.Count; i++)
+            for (var i = 0; i < _queuedTasks.Count; i++)
             {
                 var task = _queuedTasks[i];
 
-                if (!task.IsRemoved)
-                {
-                    InsertTaskSorted(task);
-                }
+                if (!task.IsRemoved) InsertTaskSorted(task);
             }
+
             _queuedTasks.Clear();
         }
 
-        void InsertTaskSorted(TaskInfo task)
+        private void InsertTaskSorted(TaskInfo task)
         {
             for (var current = _tasks.First; current != null; current = current.Next)
-            {
                 if (current.Value.Priority > task.Priority)
                 {
                     _tasks.AddBefore(current, task);
                     return;
                 }
-            }
 
             _tasks.AddLast(task);
         }
 
         protected abstract void UpdateItem(TTask task);
 
-        class TaskInfo
+        private class TaskInfo
         {
-            public TTask Task;
-            public int Priority;
             public bool IsRemoved;
+            public readonly int Priority;
+            public readonly TTask Task;
 
             public TaskInfo(TTask task, int priority)
             {

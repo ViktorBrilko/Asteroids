@@ -5,7 +5,7 @@ namespace Zenject
     [NoReflectionBaking]
     public class CopyNonLazyBinder : NonLazyBinder
     {
-        List<BindInfo> _secondaryBindInfos;
+        private List<BindInfo> _secondaryBindInfos;
 
         public CopyNonLazyBinder(BindInfo bindInfo)
             : base(bindInfo)
@@ -16,10 +16,7 @@ namespace Zenject
         // be inherited together (eg. FromIFactory)
         internal void AddSecondaryCopyBindInfo(BindInfo bindInfo)
         {
-            if (_secondaryBindInfos == null)
-            {
-                _secondaryBindInfos = new List<BindInfo>();
-            }
+            if (_secondaryBindInfos == null) _secondaryBindInfos = new List<BindInfo>();
             _secondaryBindInfos.Add(bindInfo);
         }
 
@@ -50,17 +47,13 @@ namespace Zenject
             return this;
         }
 
-        void SetInheritanceMethod(BindingInheritanceMethods method)
+        private void SetInheritanceMethod(BindingInheritanceMethods method)
         {
             BindInfo.BindingInheritanceMethod = method;
 
             if (_secondaryBindInfos != null)
-            {
                 foreach (var secondaryBindInfo in _secondaryBindInfos)
-                {
                     secondaryBindInfo.BindingInheritanceMethod = method;
-                }
-            }
         }
     }
 }

@@ -7,21 +7,21 @@ namespace Zenject.Tests.BindFeatures
     [TestFixture]
     public class TestMultipleContractTypes : ZenjectUnitTestFixture
     {
-        class Test1
+        private class Test1
         {
         }
 
-        class Test2 : Test1
+        private class Test2 : Test1
         {
         }
 
-        class Test3 : Test1
+        private class Test3 : Test1
         {
         }
 
-        class TestImpl1
+        private class TestImpl1
         {
-            public List<Test1> tests;
+            public readonly List<Test1> tests;
 
             public TestImpl1(List<Test1> tests)
             {
@@ -29,10 +29,9 @@ namespace Zenject.Tests.BindFeatures
             }
         }
 
-        class TestImpl2
+        private class TestImpl2
         {
-            [Inject]
-            public List<Test1> tests = null;
+            [Inject] public List<Test1> tests;
         }
 
         [Test]
@@ -59,4 +58,3 @@ namespace Zenject.Tests.BindFeatures
         }
     }
 }
-

@@ -26,15 +26,15 @@ namespace Zenject.Tests.Bindings
             Assert.IsEqual(Container.Resolve<IFooFactory>().Create(), foo);
         }
 
-        interface IFoo
+        private interface IFoo
         {
         }
 
-        class IFooFactory : PlaceholderFactory<IFoo>
+        private class IFooFactory : PlaceholderFactory<IFoo>
         {
         }
 
-        class Foo : IFoo
+        private class Foo : IFoo
         {
             public class Factory : PlaceholderFactory<Foo>
             {
@@ -42,4 +42,3 @@ namespace Zenject.Tests.Bindings
         }
     }
 }
-

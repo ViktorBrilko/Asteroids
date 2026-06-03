@@ -9,7 +9,10 @@ namespace Core
         private const string MENU_SCENE_NAME = "Menu";
         private const string GAME_SCENE_NAME = "Game";
 
-        public event Action OnLoadScene;
+        public void Dispose()
+        {
+            SceneManager.sceneLoaded -= OnAnySceneLoaded;
+        }
 
         public void Initialize()
         {
@@ -18,10 +21,7 @@ namespace Core
             SceneManager.sceneLoaded += OnAnySceneLoaded;
         }
 
-        public void Dispose()
-        {
-            SceneManager.sceneLoaded -= OnAnySceneLoaded;
-        }
+        public event Action OnLoadScene;
 
         public void LoadMenu()
         {

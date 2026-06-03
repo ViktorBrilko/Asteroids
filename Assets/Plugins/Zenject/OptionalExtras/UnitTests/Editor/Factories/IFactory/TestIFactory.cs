@@ -57,37 +57,22 @@ namespace Zenject.Tests.Bindings
                 Value = value;
             }
 
-            public string Value
-            {
-                get;
-                private set;
-            }
+            public string Value { get; }
         }
 
         public interface IFooFive
         {
-            string P1
-            {
-                get;
-            }
+            string P1 { get; }
         }
 
         public class FooFive : IFooFive
         {
-            string _p1;
             public FooFive(string p1, int p2, char p3, long p4, double p5)
             {
-                _p1 = p1;
+                P1 = p1;
             }
 
-            public string P1
-            {
-                get
-                {
-                    return _p1;
-                }
-            }
+            public string P1 { get; }
         }
     }
 }
-

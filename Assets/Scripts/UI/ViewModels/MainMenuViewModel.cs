@@ -9,10 +9,10 @@ namespace UI.ViewModels
 {
     public class MainMenuViewModel : IInitializable, IDisposable
     {
-        private LoadLevelService _loadLevel;
-        private WindowsState _windowsState;
-        private AudioService _audioService;
-        
+        private readonly AudioService _audioService;
+        private readonly LoadLevelService _loadLevel;
+        private readonly WindowsState _windowsState;
+
         [Data("MainMenuPanelState")] public ReactiveProperty<bool> IsPanelOpen;
 
         public MainMenuViewModel(LoadLevelService loadLevel, AudioService audioService, WindowsState windowsState)
@@ -23,12 +23,11 @@ namespace UI.ViewModels
             IsPanelOpen = _windowsState.IsMainMenuOpen;
         }
 
-        public void Initialize()
+        public void Dispose()
         {
-            
         }
 
-        public void Dispose()
+        public void Initialize()
         {
         }
 

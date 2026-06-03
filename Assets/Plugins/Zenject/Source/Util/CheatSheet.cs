@@ -90,12 +90,12 @@ namespace Zenject
             InstallMore();
         }
 
-        Foo GetFoo(InjectContext ctx)
+        private Foo GetFoo(InjectContext ctx)
         {
             return new Foo();
         }
 
-        IFoo GetRandomFoo(InjectContext ctx)
+        private IFoo GetRandomFoo(InjectContext ctx)
         {
             switch (Random.Range(0, 3))
             {
@@ -112,7 +112,7 @@ namespace Zenject
             return ctx.Container.Instantiate<Foo3>();
         }
 
-        void InstallMore()
+        private void InstallMore()
         {
             ///////////// FromResolveGetter
 
@@ -180,19 +180,6 @@ namespace Zenject
             InstallMore2();
         }
 
-        // Then when we inject these dependencies we have to use the same ID:
-        public class Norf
-        {
-            [Inject(Id = "FooA")]
-            public string Foo;
-        }
-
-        public class Qux
-        {
-            [Inject(Id = "FooB")]
-            public string Foo;
-        }
-
         public void InstallMore2()
         {
             ///////////// AsCached
@@ -206,27 +193,6 @@ namespace Zenject
             Container.Bind<Foo>().WithId("FooA").AsCached();
 
             InstallMore3();
-        }
-
-        // When an ID is unspecified in an [Inject] field, it will use the first
-        // instance
-        // Bindings without IDs can therefore be used as a default and we can
-        // specify IDs for specific versions of the same type
-        public class Norf2
-        {
-            [Inject]
-            public Foo Foo;
-        }
-
-        // Qux2._foo will be the same instance as Norf2._foo
-        // This is because we are using AsCached rather than AsTransient
-        public class Qux2
-        {
-            [Inject]
-            public Foo Foo;
-
-            [Inject(Id = "FooA")]
-            public Foo Foo2;
         }
 
         public void InstallMore3()
@@ -270,8 +236,7 @@ namespace Zenject
             // So if Bar has a constructor parameter of type Qux, and Qux has
             // a constructor parameter of type IFoo, a new Foo will be created
             // for that case
-            Container.Bind<IFoo>().To<Foo>().AsTransient().When(
-                ctx => ctx.AllObjectTypes.Contains(typeof(Bar)));
+            Container.Bind<IFoo>().To<Foo>().AsTransient().When(ctx => ctx.AllObjectTypes.Contains(typeof(Bar)));
 
             ///////////// Complex conditions example
 
@@ -282,8 +247,10 @@ namespace Zenject
             Container.Bind<Bar>().WithId("Bar2").AsCached();
 
             // Here we use the 'ParentContexts' property of inject context to sync multiple corresponding identifiers
-            Container.BindInstance(foo1).When(c => c.ParentContexts.Where(x => x.MemberType == typeof(Bar) && Equals(x.Identifier, "Bar1")).Any());
-            Container.BindInstance(foo2).When(c => c.ParentContexts.Where(x => x.MemberType == typeof(Bar) && Equals(x.Identifier, "Bar2")).Any());
+            Container.BindInstance(foo1).When(c =>
+                c.ParentContexts.Where(x => x.MemberType == typeof(Bar) && Equals(x.Identifier, "Bar1")).Any());
+            Container.BindInstance(foo2).When(c =>
+                c.ParentContexts.Where(x => x.MemberType == typeof(Bar) && Equals(x.Identifier, "Bar2")).Any());
 
             // This results in:
             Assert.That(Container.ResolveId<Bar>("Bar1").Foo == foo1);
@@ -300,34 +267,13 @@ namespace Zenject
             Container.Bind<IFoo>().To<IBar>().FromResolve();
 
             // This will result in the same behaviour as the above
-            Container.Bind(typeof(Foo), typeof(IBar), typeof(IFoo)).To<Foo>().FromComponentInNewPrefab(fooPrefab).AsSingle();
+            Container.Bind(typeof(Foo), typeof(IBar), typeof(IFoo)).To<Foo>().FromComponentInNewPrefab(fooPrefab)
+                .AsSingle();
 
             InstallMore4();
         }
 
-        public class FooInstaller : Installer<FooInstaller>
-        {
-            public FooInstaller(string foo)
-            {
-            }
-
-            public override void InstallBindings()
-            {
-            }
-        }
-
-        public class FooInstallerWithArgs : Installer<string, FooInstallerWithArgs>
-        {
-            public FooInstallerWithArgs(string foo)
-            {
-            }
-
-            public override void InstallBindings()
-            {
-            }
-        }
-
-        void InstallMore4()
+        private void InstallMore4()
         {
             ///////////// Installing Other Installers
 
@@ -370,13 +316,64 @@ namespace Zenject
             GameObject prefab2 = null;
 
             // Instantiate a new prefab and have any injectables filled in on the prefab
-            GameObject go = Container.InstantiatePrefab(prefab1);
+            var go = Container.InstantiatePrefab(prefab1);
 
             // Instantiate a new prefab and return a specific monobehaviour
-            Foo foo2 = Container.InstantiatePrefabForComponent<Foo>(prefab2);
+            var foo2 = Container.InstantiatePrefabForComponent<Foo>(prefab2);
 
             // Add a new component to an existing game object
-            Foo foo3 = Container.InstantiateComponent<Foo>(go);
+            var foo3 = Container.InstantiateComponent<Foo>(go);
+        }
+
+        // Then when we inject these dependencies we have to use the same ID:
+        public class Norf
+        {
+            [Inject(Id = "FooA")] public string Foo;
+        }
+
+        public class Qux
+        {
+            [Inject(Id = "FooB")] public string Foo;
+        }
+
+        // When an ID is unspecified in an [Inject] field, it will use the first
+        // instance
+        // Bindings without IDs can therefore be used as a default and we can
+        // specify IDs for specific versions of the same type
+        public class Norf2
+        {
+            [Inject] public Foo Foo;
+        }
+
+        // Qux2._foo will be the same instance as Norf2._foo
+        // This is because we are using AsCached rather than AsTransient
+        public class Qux2
+        {
+            [Inject] public Foo Foo;
+
+            [Inject(Id = "FooA")] public Foo Foo2;
+        }
+
+        public class FooInstaller : Installer<FooInstaller>
+        {
+            public FooInstaller(string foo)
+            {
+            }
+
+            public override void InstallBindings()
+            {
+            }
+        }
+
+        public class FooInstallerWithArgs : Installer<string, FooInstallerWithArgs>
+        {
+            public FooInstallerWithArgs(string foo)
+            {
+            }
+
+            public override void InstallBindings()
+            {
+            }
         }
 
         public interface IFoo2
@@ -426,13 +423,7 @@ namespace Zenject
 
         public class Bar : IBar
         {
-            public Foo Foo
-            {
-                get
-                {
-                    return null;
-                }
-            }
+            public Foo Foo => null;
         }
     }
 }

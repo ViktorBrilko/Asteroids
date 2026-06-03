@@ -7,7 +7,7 @@ namespace Zenject
 {
     public static class IProviderExtensions
     {
-        static readonly List<TypeValuePair> EmptyArgList = new List<TypeValuePair>();
+        private static readonly List<TypeValuePair> EmptyArgList = new();
 
         public static void GetAllInstancesWithInjectSplit(
             this IProvider creator, InjectContext context, out Action injectAction, List<object> buffer)
@@ -30,10 +30,7 @@ namespace Zenject
             Action injectAction;
             creator.GetAllInstancesWithInjectSplit(context, args, out injectAction, buffer);
 
-            if (injectAction != null)
-            {
-                injectAction.Invoke();
-            }
+            if (injectAction != null) injectAction.Invoke();
         }
 
         public static object TryGetInstance(
@@ -51,10 +48,7 @@ namespace Zenject
             {
                 creator.GetAllInstances(context, args, allInstances);
 
-                if (allInstances.Count == 0)
-                {
-                    return null;
-                }
+                if (allInstances.Count == 0) return null;
 
                 Assert.That(allInstances.Count == 1,
                     "Provider returned multiple instances when one or zero was expected");
@@ -83,10 +77,12 @@ namespace Zenject
                 creator.GetAllInstances(context, args, allInstances);
 
                 Assert.That(allInstances.Count > 0,
-                    "Provider returned zero instances when one was expected when looking up type '{0}'", context.MemberType);
+                    "Provider returned zero instances when one was expected when looking up type '{0}'",
+                    context.MemberType);
 
                 Assert.That(allInstances.Count == 1,
-                    "Provider returned multiple instances when only one was expected when looking up type '{0}'", context.MemberType);
+                    "Provider returned multiple instances when only one was expected when looking up type '{0}'",
+                    context.MemberType);
 
                 return allInstances[0];
             }

@@ -2,52 +2,13 @@
 
 using UnityEditor;
 using UnityEditor.Callbacks;
-using UnityEngine;
 
 namespace UniRx
 {
     [InitializeOnLoad]
     public class ScenePlaybackDetector
     {
-        private static bool _isPlaying = false;
-
-        private static bool AboutToStartScene
-        {
-            get
-            {
-                return EditorPrefs.GetBool("AboutToStartScene");
-            }
-            set
-            {
-                EditorPrefs.SetBool("AboutToStartScene", value);
-            }
-        }
-
-        public static bool IsPlaying
-        {
-            get
-            {
-                return _isPlaying;
-            }
-            set
-            {
-                if (_isPlaying != value)
-                {
-                    _isPlaying = value;
-                }
-            }
-        }
-
-        // This callback is notified after scripts have been reloaded.
-        [DidReloadScripts]
-        public static void OnDidReloadScripts()
-        {
-            // Filter DidReloadScripts callbacks to the moment where playmodeState transitions into isPlaying.
-            if (AboutToStartScene)
-            {
-                IsPlaying = true;
-            }
-        }
+        private static bool _isPlaying;
 
         // InitializeOnLoad ensures that this constructor is called when the Unity Editor is started.
         static ScenePlaybackDetector()
@@ -63,20 +24,36 @@ namespace UniRx
                 // Playing:                     isPlayingOrWillChangePlaymode = false;  isPlaying = true
                 // Pressed stop button:         isPlayingOrWillChangePlaymode = true;   isPlaying = true
                 if (EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying)
-                {
                     AboutToStartScene = true;
-                }
                 else
-                {
                     AboutToStartScene = false;
-                }
 
                 // Detect when playback is stopped.
-                if (!EditorApplication.isPlaying)
-                {
-                    IsPlaying = false;
-                }
+                if (!EditorApplication.isPlaying) IsPlaying = false;
             };
+        }
+
+        private static bool AboutToStartScene
+        {
+            get => EditorPrefs.GetBool("AboutToStartScene");
+            set => EditorPrefs.SetBool("AboutToStartScene", value);
+        }
+
+        public static bool IsPlaying
+        {
+            get => _isPlaying;
+            set
+            {
+                if (_isPlaying != value) _isPlaying = value;
+            }
+        }
+
+        // This callback is notified after scripts have been reloaded.
+        [DidReloadScripts]
+        public static void OnDidReloadScripts()
+        {
+            // Filter DidReloadScripts callbacks to the moment where playmodeState transitions into isPlaying.
+            if (AboutToStartScene) IsPlaying = true;
         }
     }
 }

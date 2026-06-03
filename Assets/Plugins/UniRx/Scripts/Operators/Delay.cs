@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace UniRx.Operators
 {
     internal class DelayObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly TimeSpan dueTime;
-        readonly IScheduler scheduler;
+        private readonly TimeSpan dueTime;
+        private readonly IScheduler scheduler;
+        private readonly IObservable<T> source;
 
-        public DelayObservable(IObservable<T> source, TimeSpan dueTime, IScheduler scheduler) 
+        public DelayObservable(IObservable<T> source, TimeSpan dueTime, IScheduler scheduler)
             : base(scheduler == Scheduler.CurrentThread || source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
@@ -24,21 +22,21 @@ namespace UniRx.Operators
             return new Delay(this, observer, cancel).Run();
         }
 
-        class Delay : OperatorObserverBase<T, T>
+        private class Delay : OperatorObserverBase<T, T>
         {
-            readonly DelayObservable<T> parent;
-            readonly object gate = new object();
-            bool hasFailed;
-            bool running;
-            bool active;
-            Exception exception;
-            Queue<Timestamped<T>> queue;
-            bool onCompleted;
-            DateTimeOffset completeAt;
-            IDisposable sourceSubscription;
-            TimeSpan delay;
-            bool ready;
-            SerialDisposable cancelable;
+            private readonly object gate = new();
+            private readonly DelayObservable<T> parent;
+            private bool active;
+            private SerialDisposable cancelable;
+            private DateTimeOffset completeAt;
+            private TimeSpan delay;
+            private Exception exception;
+            private bool hasFailed;
+            private bool onCompleted;
+            private Queue<Timestamped<T>> queue;
+            private bool ready;
+            private bool running;
+            private IDisposable sourceSubscription;
 
             public Delay(DelayObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
             {
@@ -53,9 +51,9 @@ namespace UniRx.Operators
                 running = false;
                 queue = new Queue<Timestamped<T>>();
                 onCompleted = false;
-                completeAt = default(DateTimeOffset);
+                completeAt = default;
                 hasFailed = false;
-                exception = default(Exception);
+                exception = default;
                 ready = true;
                 delay = Scheduler.Normalize(parent.dueTime);
 
@@ -79,10 +77,7 @@ namespace UniRx.Operators
                     active = true;
                 }
 
-                if (shouldRun)
-                {
-                    cancelable.Disposable = parent.scheduler.Schedule(delay, DrainQueue);
-                }
+                if (shouldRun) cancelable.Disposable = parent.scheduler.Schedule(delay, DrainQueue);
             }
 
             public override void OnError(Exception error)
@@ -102,9 +97,14 @@ namespace UniRx.Operators
                 }
 
                 if (shouldRun)
-                {
-                    try { base.observer.OnError(error); } finally { Dispose(); }
-                }
+                    try
+                    {
+                        observer.OnError(error);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
             }
 
             public override void OnCompleted()
@@ -123,13 +123,10 @@ namespace UniRx.Operators
                     active = true;
                 }
 
-                if (shouldRun)
-                {
-                    cancelable.Disposable = parent.scheduler.Schedule(delay, DrainQueue);
-                }
+                if (shouldRun) cancelable.Disposable = parent.scheduler.Schedule(delay, DrainQueue);
             }
 
-            void DrainQueue(Action<TimeSpan> recurse)
+            private void DrainQueue(Action<TimeSpan> recurse)
             {
                 lock (gate)
                 {
@@ -200,23 +197,30 @@ namespace UniRx.Operators
 
                     if (hasValue)
                     {
-                        base.observer.OnNext(value);
+                        observer.OnNext(value);
                         shouldYield = true;
                     }
                     else
                     {
                         if (hasCompleted)
-                        {
-                            try { base.observer.OnCompleted(); } finally { Dispose(); }
-                        }
+                            try
+                            {
+                                observer.OnCompleted();
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
                         else if (hasFailed)
-                        {
-                            try { base.observer.OnError(error); } finally { Dispose(); }
-                        }
-                        else if (shouldRecurse)
-                        {
-                            recurse(recurseDueTime);
-                        }
+                            try
+                            {
+                                observer.OnError(error);
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
+                        else if (shouldRecurse) recurse(recurseDueTime);
 
                         return;
                     }

@@ -3,27 +3,27 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
+using System.Diagnostics.CodeAnalysis;
 
 namespace UniRx
 {
     /// <summary>
-    /// Represents a disposable resource that only disposes its underlying disposable resource when all <see cref="GetDisposable">dependent disposable objects</see> have been disposed.
+    ///     Represents a disposable resource that only disposes its underlying disposable resource when all
+    ///     <see cref="GetDisposable">dependent disposable objects</see> have been disposed.
     /// </summary>
     public sealed class RefCountDisposable : ICancelable
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
+        private int _count;
         private IDisposable _disposable;
         private bool _isPrimaryDisposed;
-        private int _count;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:System.Reactive.Disposables.RefCountDisposable"/> class with the specified disposable.
+        ///     Initializes a new instance of the <see cref="T:System.Reactive.Disposables.RefCountDisposable" /> class with the
+        ///     specified disposable.
         /// </summary>
         /// <param name="disposable">Underlying disposable.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="disposable"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="disposable" /> is null.</exception>
         public RefCountDisposable(IDisposable disposable)
         {
             if (disposable == null)
@@ -35,36 +35,12 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Gets a value that indicates whether the object is disposed.
+        ///     Gets a value that indicates whether the object is disposed.
         /// </summary>
-        public bool IsDisposed
-        {
-            get { return _disposable == null; }
-        }
+        public bool IsDisposed => _disposable == null;
 
         /// <summary>
-        /// Returns a dependent disposable that when disposed decreases the refcount on the underlying disposable.
-        /// </summary>
-        /// <returns>A dependent disposable contributing to the reference count that manages the underlying disposable's lifetime.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate", Justification = "Backward compat + non-trivial work for a property getter.")]
-        public IDisposable GetDisposable()
-        {
-            lock (_gate)
-            {
-                if (_disposable == null)
-                {
-                    return Disposable.Empty;
-                }
-                else
-                {
-                    _count++;
-                    return new InnerDisposable(this);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Disposes the underlying disposable only when all dependent disposables have been disposed.
+        ///     Disposes the underlying disposable only when all dependent disposables have been disposed.
         /// </summary>
         public void Dispose()
         {
@@ -72,7 +48,6 @@ namespace UniRx
             lock (_gate)
             {
                 if (_disposable != null)
-                {
                     if (!_isPrimaryDisposed)
                     {
                         _isPrimaryDisposed = true;
@@ -83,11 +58,27 @@ namespace UniRx
                             _disposable = null;
                         }
                     }
-                }
             }
 
             if (disposable != null)
                 disposable.Dispose();
+        }
+
+        /// <summary>
+        ///     Returns a dependent disposable that when disposed decreases the refcount on the underlying disposable.
+        /// </summary>
+        /// <returns>A dependent disposable contributing to the reference count that manages the underlying disposable's lifetime.</returns>
+        [SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate",
+            Justification = "Backward compat + non-trivial work for a property getter.")]
+        public IDisposable GetDisposable()
+        {
+            lock (_gate)
+            {
+                if (_disposable == null) return Disposable.Empty;
+
+                _count++;
+                return new InnerDisposable(this);
+            }
         }
 
         private void Release()
@@ -100,13 +91,11 @@ namespace UniRx
                     _count--;
 
                     if (_isPrimaryDisposed)
-                    {
                         if (_count == 0)
                         {
                             disposable = _disposable;
                             _disposable = null;
                         }
-                    }
                 }
             }
 
@@ -114,10 +103,10 @@ namespace UniRx
                 disposable.Dispose();
         }
 
-        sealed class InnerDisposable : IDisposable
+        private sealed class InnerDisposable : IDisposable
         {
             private RefCountDisposable _parent;
-            object parentLock = new object();
+            private readonly object parentLock = new();
 
             public InnerDisposable(RefCountDisposable parent)
             {
@@ -132,6 +121,7 @@ namespace UniRx
                     parent = _parent;
                     _parent = null;
                 }
+
                 if (parent != null)
                     parent.Release();
             }
@@ -140,13 +130,10 @@ namespace UniRx
 
     public partial class Observable
     {
-        static IObservable<T> AddRef<T>(IObservable<T> xs, RefCountDisposable r)
+        private static IObservable<T> AddRef<T>(IObservable<T> xs, RefCountDisposable r)
         {
-            return Observable.Create<T>((IObserver<T> observer) => new CompositeDisposable(new IDisposable[]
-	        {
-		        r.GetDisposable(),
-		        xs.Subscribe(observer)
-	        }));
+            return Create((IObserver<T> observer) =>
+                new CompositeDisposable(r.GetDisposable(), xs.Subscribe(observer)));
         }
     }
 }

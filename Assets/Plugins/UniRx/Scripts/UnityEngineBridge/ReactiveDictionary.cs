@@ -7,8 +7,8 @@ namespace UniRx
 {
     public struct DictionaryAddEvent<TKey, TValue> : IEquatable<DictionaryAddEvent<TKey, TValue>>
     {
-        public TKey Key { get; private set; }
-        public TValue Value { get; private set; }
+        public TKey Key { get; }
+        public TValue Value { get; }
 
         public DictionaryAddEvent(TKey key, TValue value)
             : this()
@@ -24,19 +24,21 @@ namespace UniRx
 
         public override int GetHashCode()
         {
-            return EqualityComparer<TKey>.Default.GetHashCode(Key) ^ EqualityComparer<TValue>.Default.GetHashCode(Value) << 2;
+            return EqualityComparer<TKey>.Default.GetHashCode(Key) ^
+                   (EqualityComparer<TValue>.Default.GetHashCode(Value) << 2);
         }
 
         public bool Equals(DictionaryAddEvent<TKey, TValue> other)
         {
-            return EqualityComparer<TKey>.Default.Equals(Key, other.Key) && EqualityComparer<TValue>.Default.Equals(Value, other.Value);
+            return EqualityComparer<TKey>.Default.Equals(Key, other.Key) &&
+                   EqualityComparer<TValue>.Default.Equals(Value, other.Value);
         }
     }
 
     public struct DictionaryRemoveEvent<TKey, TValue> : IEquatable<DictionaryRemoveEvent<TKey, TValue>>
     {
-        public TKey Key { get; private set; }
-        public TValue Value { get; private set; }
+        public TKey Key { get; }
+        public TValue Value { get; }
 
         public DictionaryRemoveEvent(TKey key, TValue value)
             : this()
@@ -52,20 +54,22 @@ namespace UniRx
 
         public override int GetHashCode()
         {
-            return EqualityComparer<TKey>.Default.GetHashCode(Key) ^ EqualityComparer<TValue>.Default.GetHashCode(Value) << 2;
+            return EqualityComparer<TKey>.Default.GetHashCode(Key) ^
+                   (EqualityComparer<TValue>.Default.GetHashCode(Value) << 2);
         }
 
         public bool Equals(DictionaryRemoveEvent<TKey, TValue> other)
         {
-            return EqualityComparer<TKey>.Default.Equals(Key, other.Key) && EqualityComparer<TValue>.Default.Equals(Value, other.Value);
+            return EqualityComparer<TKey>.Default.Equals(Key, other.Key) &&
+                   EqualityComparer<TValue>.Default.Equals(Value, other.Value);
         }
     }
 
     public struct DictionaryReplaceEvent<TKey, TValue> : IEquatable<DictionaryReplaceEvent<TKey, TValue>>
     {
-        public TKey Key { get; private set; }
-        public TValue OldValue { get; private set; }
-        public TValue NewValue { get; private set; }
+        public TKey Key { get; }
+        public TValue OldValue { get; }
+        public TValue NewValue { get; }
 
         public DictionaryReplaceEvent(TKey key, TValue oldValue, TValue newValue)
             : this()
@@ -82,12 +86,16 @@ namespace UniRx
 
         public override int GetHashCode()
         {
-            return EqualityComparer<TKey>.Default.GetHashCode(Key) ^ EqualityComparer<TValue>.Default.GetHashCode(OldValue) << 2 ^ EqualityComparer<TValue>.Default.GetHashCode(NewValue) >> 2;
+            return EqualityComparer<TKey>.Default.GetHashCode(Key) ^
+                   (EqualityComparer<TValue>.Default.GetHashCode(OldValue) << 2) ^
+                   (EqualityComparer<TValue>.Default.GetHashCode(NewValue) >> 2);
         }
 
         public bool Equals(DictionaryReplaceEvent<TKey, TValue> other)
         {
-            return EqualityComparer<TKey>.Default.Equals(Key, other.Key) && EqualityComparer<TValue>.Default.Equals(OldValue, other.OldValue) && EqualityComparer<TValue>.Default.Equals(NewValue, other.NewValue);
+            return EqualityComparer<TKey>.Default.Equals(Key, other.Key) &&
+                   EqualityComparer<TValue>.Default.Equals(OldValue, other.OldValue) &&
+                   EqualityComparer<TValue>.Default.Equals(NewValue, other.NewValue);
         }
     }
 
@@ -106,23 +114,24 @@ namespace UniRx
         IObservable<Unit> ObserveReset();
     }
 
-    public interface IReactiveDictionary<TKey, TValue> : IReadOnlyReactiveDictionary<TKey, TValue>, IDictionary<TKey, TValue>
+    public interface IReactiveDictionary<TKey, TValue> : IReadOnlyReactiveDictionary<TKey, TValue>,
+        IDictionary<TKey, TValue>
     {
     }
 
     [Serializable]
-    public class ReactiveDictionary<TKey, TValue> : IReactiveDictionary<TKey, TValue>, IDictionary<TKey, TValue>, IEnumerable, ICollection<KeyValuePair<TKey, TValue>>, IEnumerable<KeyValuePair<TKey, TValue>>, IDictionary, IDisposable
+    public class ReactiveDictionary<TKey, TValue> : IReactiveDictionary<TKey, TValue>, IDictionary<TKey, TValue>,
+        IEnumerable, ICollection<KeyValuePair<TKey, TValue>>, IEnumerable<KeyValuePair<TKey, TValue>>, IDictionary,
+        IDisposable
 #if !UNITY_METRO
         , ISerializable, IDeserializationCallback
 #endif
     {
-        [NonSerialized]
-        bool isDisposed = false;
-
 #if !UniRxLibrary
-        [UnityEngine.SerializeField]
 #endif
-        readonly Dictionary<TKey, TValue> inner;
+        private readonly Dictionary<TKey, TValue> inner;
+
+        [NonSerialized] private bool isDisposed = false;
 
         public ReactiveDictionary()
         {
@@ -139,12 +148,13 @@ namespace UniRx
             inner = innerDictionary;
         }
 
+        public Dictionary<TKey, TValue>.KeyCollection Keys => inner.Keys;
+
+        public Dictionary<TKey, TValue>.ValueCollection Values => inner.Values;
+
         public TValue this[TKey key]
         {
-            get
-            {
-                return inner[key];
-            }
+            get => inner[key];
 
             set
             {
@@ -152,7 +162,8 @@ namespace UniRx
                 if (TryGetValue(key, out oldValue))
                 {
                     inner[key] = value;
-                    if (dictionaryReplace != null) dictionaryReplace.OnNext(new DictionaryReplaceEvent<TKey, TValue>(key, oldValue, value));
+                    if (dictionaryReplace != null)
+                        dictionaryReplace.OnNext(new DictionaryReplaceEvent<TKey, TValue>(key, oldValue, value));
                 }
                 else
                 {
@@ -163,29 +174,7 @@ namespace UniRx
             }
         }
 
-        public int Count
-        {
-            get
-            {
-                return inner.Count;
-            }
-        }
-
-        public Dictionary<TKey, TValue>.KeyCollection Keys
-        {
-            get
-            {
-                return inner.Keys;
-            }
-        }
-
-        public Dictionary<TKey, TValue>.ValueCollection Values
-        {
-            get
-            {
-                return inner.Values;
-            }
-        }
+        public int Count => inner.Count;
 
         public void Add(TKey key, TValue value)
         {
@@ -202,9 +191,8 @@ namespace UniRx
 
             if (collectionReset != null) collectionReset.OnNext(Unit.Default);
             if (beforeCount > 0)
-            {
-                if (countChanged != null) countChanged.OnNext(Count);
-            }
+                if (countChanged != null)
+                    countChanged.OnNext(Count);
         }
 
         public bool Remove(TKey key)
@@ -215,15 +203,15 @@ namespace UniRx
                 var isSuccessRemove = inner.Remove(key);
                 if (isSuccessRemove)
                 {
-                    if (dictionaryRemove != null) dictionaryRemove.OnNext(new DictionaryRemoveEvent<TKey, TValue>(key, oldValue));
+                    if (dictionaryRemove != null)
+                        dictionaryRemove.OnNext(new DictionaryRemoveEvent<TKey, TValue>(key, oldValue));
                     if (countChanged != null) countChanged.OnNext(Count);
                 }
+
                 return isSuccessRemove;
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
 
         public bool ContainsKey(TKey key)
@@ -241,10 +229,9 @@ namespace UniRx
             return inner.GetEnumerator();
         }
 
-        void DisposeSubject<TSubject>(ref Subject<TSubject> subject)
+        private void DisposeSubject<TSubject>(ref Subject<TSubject> subject)
         {
             if (subject != null)
-            {
                 try
                 {
                     subject.OnCompleted();
@@ -254,12 +241,11 @@ namespace UniRx
                     subject.Dispose();
                     subject = null;
                 }
-            }
         }
 
         #region IDisposable Support
 
-        private bool disposedValue = false;
+        private bool disposedValue;
 
         protected virtual void Dispose(bool disposing)
         {
@@ -288,49 +274,44 @@ namespace UniRx
 
         #region Observe
 
-        [NonSerialized]
-        Subject<int> countChanged = null;
+        [NonSerialized] private Subject<int> countChanged;
+
         public IObservable<int> ObserveCountChanged(bool notifyCurrentCount = false)
         {
             if (isDisposed) return Observable.Empty<int>();
 
             var subject = countChanged ?? (countChanged = new Subject<int>());
-            if (notifyCurrentCount)
-            {
-                return subject.StartWith(() => this.Count);
-            }
-            else
-            {
-                return subject;
-            }
+            if (notifyCurrentCount) return subject.StartWith(() => Count);
+
+            return subject;
         }
 
-        [NonSerialized]
-        Subject<Unit> collectionReset = null;
+        [NonSerialized] private Subject<Unit> collectionReset;
+
         public IObservable<Unit> ObserveReset()
         {
             if (isDisposed) return Observable.Empty<Unit>();
             return collectionReset ?? (collectionReset = new Subject<Unit>());
         }
 
-        [NonSerialized]
-        Subject<DictionaryAddEvent<TKey, TValue>> dictionaryAdd = null;
+        [NonSerialized] private Subject<DictionaryAddEvent<TKey, TValue>> dictionaryAdd;
+
         public IObservable<DictionaryAddEvent<TKey, TValue>> ObserveAdd()
         {
             if (isDisposed) return Observable.Empty<DictionaryAddEvent<TKey, TValue>>();
             return dictionaryAdd ?? (dictionaryAdd = new Subject<DictionaryAddEvent<TKey, TValue>>());
         }
 
-        [NonSerialized]
-        Subject<DictionaryRemoveEvent<TKey, TValue>> dictionaryRemove = null;
+        [NonSerialized] private Subject<DictionaryRemoveEvent<TKey, TValue>> dictionaryRemove;
+
         public IObservable<DictionaryRemoveEvent<TKey, TValue>> ObserveRemove()
         {
             if (isDisposed) return Observable.Empty<DictionaryRemoveEvent<TKey, TValue>>();
             return dictionaryRemove ?? (dictionaryRemove = new Subject<DictionaryRemoveEvent<TKey, TValue>>());
         }
 
-        [NonSerialized]
-        Subject<DictionaryReplaceEvent<TKey, TValue>> dictionaryReplace = null;
+        [NonSerialized] private Subject<DictionaryReplaceEvent<TKey, TValue>> dictionaryReplace;
+
         public IObservable<DictionaryReplaceEvent<TKey, TValue>> ObserveReplace()
         {
             if (isDisposed) return Observable.Empty<DictionaryReplaceEvent<TKey, TValue>>();
@@ -343,90 +324,31 @@ namespace UniRx
 
         object IDictionary.this[object key]
         {
-            get
-            {
-                return this[(TKey)key];
-            }
+            get => this[(TKey)key];
 
-            set
-            {
-                this[(TKey)key] = (TValue)value;
-            }
+            set => this[(TKey)key] = (TValue)value;
         }
 
 
-        bool IDictionary.IsFixedSize
-        {
-            get
-            {
-                return ((IDictionary)inner).IsFixedSize;
-            }
-        }
+        bool IDictionary.IsFixedSize => ((IDictionary)inner).IsFixedSize;
 
-        bool IDictionary.IsReadOnly
-        {
-            get
-            {
-                return ((IDictionary)inner).IsReadOnly;
-            }
-        }
+        bool IDictionary.IsReadOnly => ((IDictionary)inner).IsReadOnly;
 
-        bool ICollection.IsSynchronized
-        {
-            get
-            {
-                return ((IDictionary)inner).IsSynchronized;
-            }
-        }
+        bool ICollection.IsSynchronized => ((IDictionary)inner).IsSynchronized;
 
-        ICollection IDictionary.Keys
-        {
-            get
-            {
-                return ((IDictionary)inner).Keys;
-            }
-        }
+        ICollection IDictionary.Keys => ((IDictionary)inner).Keys;
 
-        object ICollection.SyncRoot
-        {
-            get
-            {
-                return ((IDictionary)inner).SyncRoot;
-            }
-        }
+        object ICollection.SyncRoot => ((IDictionary)inner).SyncRoot;
 
-        ICollection IDictionary.Values
-        {
-            get
-            {
-                return ((IDictionary)inner).Values;
-            }
-        }
+        ICollection IDictionary.Values => ((IDictionary)inner).Values;
 
 
-        bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly
-        {
-            get
-            {
-                return ((ICollection<KeyValuePair<TKey, TValue>>)inner).IsReadOnly;
-            }
-        }
+        bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly =>
+            ((ICollection<KeyValuePair<TKey, TValue>>)inner).IsReadOnly;
 
-        ICollection<TKey> IDictionary<TKey, TValue>.Keys
-        {
-            get
-            {
-                return inner.Keys;
-            }
-        }
+        ICollection<TKey> IDictionary<TKey, TValue>.Keys => inner.Keys;
 
-        ICollection<TValue> IDictionary<TKey, TValue>.Values
-        {
-            get
-            {
-                return inner.Values;
-            }
-        }
+        ICollection<TValue> IDictionary<TKey, TValue>.Values => inner.Values;
 
         void IDictionary.Add(object key, object value)
         {
@@ -464,7 +386,7 @@ namespace UniRx
 
         void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
         {
-            Add((TKey)item.Key, (TValue)item.Value);
+            Add(item.Key, item.Value);
         }
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
@@ -491,13 +413,11 @@ namespace UniRx
         {
             TValue v;
             if (TryGetValue(item.Key, out v))
-            {
                 if (EqualityComparer<TValue>.Default.Equals(v, item.Value))
                 {
                     Remove(item.Key);
                     return true;
                 }
-            }
 
             return false;
         }
@@ -510,9 +430,10 @@ namespace UniRx
         #endregion
     }
 
-    public static partial class ReactiveDictionaryExtensions
+    public static class ReactiveDictionaryExtensions
     {
-        public static ReactiveDictionary<TKey, TValue> ToReactiveDictionary<TKey, TValue>(this Dictionary<TKey, TValue> dictionary)
+        public static ReactiveDictionary<TKey, TValue> ToReactiveDictionary<TKey, TValue>(
+            this Dictionary<TKey, TValue> dictionary)
         {
             return new ReactiveDictionary<TKey, TValue>(dictionary);
         }

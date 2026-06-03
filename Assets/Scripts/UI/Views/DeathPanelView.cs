@@ -6,12 +6,11 @@ namespace UI.Views
 {
     public class DeathPanelView : MonoBehaviour
     {
-        [Data("OnMenuClick")] 
-        [SerializeField] public Button MenuButton;
+        [Data("OnMenuClick")] [SerializeField] public Button MenuButton;
 
-        [Data("OnTryAgainClick")] 
-        [SerializeField] public Button TryAgainButton;
-       
+        [Data("OnTryAgainClick")] [SerializeField]
+        public Button TryAgainButton;
+
         [SerializeField] public GameObject DeathPanel;
 
         [Setter("Interactable")]

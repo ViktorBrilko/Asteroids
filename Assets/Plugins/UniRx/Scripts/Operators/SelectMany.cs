@@ -5,11 +5,11 @@ namespace UniRx.Operators
 {
     internal class SelectManyObservable<TSource, TResult> : OperatorObservableBase<TResult>
     {
-        readonly IObservable<TSource> source;
-        readonly Func<TSource, IObservable<TResult>> selector;
-        readonly Func<TSource, int, IObservable<TResult>> selectorWithIndex;
-        readonly Func<TSource, IEnumerable<TResult>> selectorEnumerable;
-        readonly Func<TSource, int, IEnumerable<TResult>> selectorEnumerableWithIndex;
+        private readonly Func<TSource, IObservable<TResult>> selector;
+        private readonly Func<TSource, IEnumerable<TResult>> selectorEnumerable;
+        private readonly Func<TSource, int, IEnumerable<TResult>> selectorEnumerableWithIndex;
+        private readonly Func<TSource, int, IObservable<TResult>> selectorWithIndex;
+        private readonly IObservable<TSource> source;
 
         public SelectManyObservable(IObservable<TSource> source, Func<TSource, IObservable<TResult>> selector)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -22,57 +22,48 @@ namespace UniRx.Operators
             : base(source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
-            this.selectorWithIndex = selector;
+            selectorWithIndex = selector;
         }
 
         public SelectManyObservable(IObservable<TSource> source, Func<TSource, IEnumerable<TResult>> selector)
             : base(source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
-            this.selectorEnumerable = selector;
+            selectorEnumerable = selector;
         }
 
         public SelectManyObservable(IObservable<TSource> source, Func<TSource, int, IEnumerable<TResult>> selector)
             : base(source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
-            this.selectorEnumerableWithIndex = selector;
+            selectorEnumerableWithIndex = selector;
         }
 
         protected override IDisposable SubscribeCore(IObserver<TResult> observer, IDisposable cancel)
         {
-            if (this.selector != null)
-            {
-                return new SelectManyOuterObserver(this, observer, cancel).Run();
-            }
-            else if (this.selectorWithIndex != null)
-            {
-                return new SelectManyObserverWithIndex(this, observer, cancel).Run();
-            }
-            else if (this.selectorEnumerable != null)
-            {
-                return new SelectManyEnumerableObserver(this, observer, cancel).Run();
-            }
-            else if (this.selectorEnumerableWithIndex != null)
-            {
+            if (selector != null) return new SelectManyOuterObserver(this, observer, cancel).Run();
+
+            if (selectorWithIndex != null) return new SelectManyObserverWithIndex(this, observer, cancel).Run();
+
+            if (selectorEnumerable != null) return new SelectManyEnumerableObserver(this, observer, cancel).Run();
+
+            if (selectorEnumerableWithIndex != null)
                 return new SelectManyEnumerableObserverWithIndex(this, observer, cancel).Run();
-            }
-            else
-            {
-                throw new InvalidOperationException();
-            }
+
+            throw new InvalidOperationException();
         }
 
-        class SelectManyOuterObserver : OperatorObserverBase<TSource, TResult>
+        private class SelectManyOuterObserver : OperatorObserverBase<TSource, TResult>
         {
-            readonly SelectManyObservable<TSource, TResult> parent;
+            private readonly SelectManyObservable<TSource, TResult> parent;
 
-            CompositeDisposable collectionDisposable;
-            SingleAssignmentDisposable sourceDisposable;
-            object gate = new object();
-            bool isStopped = false;
+            private CompositeDisposable collectionDisposable;
+            private readonly object gate = new();
+            private bool isStopped;
+            private SingleAssignmentDisposable sourceDisposable;
 
-            public SelectManyOuterObserver(SelectManyObservable<TSource, TResult> parent, IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
+            public SelectManyOuterObserver(SelectManyObservable<TSource, TResult> parent, IObserver<TResult> observer,
+                IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
             }
@@ -96,7 +87,16 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); } finally { Dispose(); };
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                     return;
                 }
 
@@ -110,7 +110,16 @@ namespace UniRx.Operators
             {
                 lock (gate)
                 {
-                    try { observer.OnError(error); } finally { Dispose(); };
+                    try
+                    {
+                        observer.OnError(error);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                 }
             }
 
@@ -118,22 +127,27 @@ namespace UniRx.Operators
             {
                 isStopped = true;
                 if (collectionDisposable.Count == 1)
-                {
                     lock (gate)
                     {
-                        try { observer.OnCompleted(); } finally { Dispose(); };
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
+                        ;
                     }
-                }
                 else
-                {
                     sourceDisposable.Dispose();
-                }
             }
 
-            class SelectMany : OperatorObserverBase<TResult, TResult>
+            private class SelectMany : OperatorObserverBase<TResult, TResult>
             {
-                readonly SelectManyOuterObserver parent;
-                readonly IDisposable cancel;
+                private readonly IDisposable cancel;
+                private readonly SelectManyOuterObserver parent;
 
                 public SelectMany(SelectManyOuterObserver parent, IDisposable cancel)
                     : base(parent.observer, cancel)
@@ -146,7 +160,7 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        base.observer.OnNext(value);
+                        observer.OnNext(value);
                     }
                 }
 
@@ -154,7 +168,16 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        try { observer.OnError(error); } finally { Dispose(); };
+                        try
+                        {
+                            observer.OnError(error);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
+                        ;
                     }
                 }
 
@@ -162,27 +185,35 @@ namespace UniRx.Operators
                 {
                     parent.collectionDisposable.Remove(cancel);
                     if (parent.isStopped && parent.collectionDisposable.Count == 1)
-                    {
                         lock (parent.gate)
                         {
-                            try { observer.OnCompleted(); } finally { Dispose(); };
+                            try
+                            {
+                                observer.OnCompleted();
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
+
+                            ;
                         }
-                    }
                 }
             }
         }
 
-        class SelectManyObserverWithIndex : OperatorObserverBase<TSource, TResult>
+        private class SelectManyObserverWithIndex : OperatorObserverBase<TSource, TResult>
         {
-            readonly SelectManyObservable<TSource, TResult> parent;
+            private readonly SelectManyObservable<TSource, TResult> parent;
 
-            CompositeDisposable collectionDisposable;
-            int index = 0;
-            object gate = new object();
-            bool isStopped = false;
-            SingleAssignmentDisposable sourceDisposable;
+            private CompositeDisposable collectionDisposable;
+            private readonly object gate = new();
+            private int index;
+            private bool isStopped;
+            private SingleAssignmentDisposable sourceDisposable;
 
-            public SelectManyObserverWithIndex(SelectManyObservable<TSource, TResult> parent, IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
+            public SelectManyObserverWithIndex(SelectManyObservable<TSource, TResult> parent,
+                IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
             }
@@ -206,7 +237,16 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); } finally { Dispose(); };
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                     return;
                 }
 
@@ -220,7 +260,16 @@ namespace UniRx.Operators
             {
                 lock (gate)
                 {
-                    try { observer.OnError(error); } finally { Dispose(); };
+                    try
+                    {
+                        observer.OnError(error);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                 }
             }
 
@@ -228,22 +277,27 @@ namespace UniRx.Operators
             {
                 isStopped = true;
                 if (collectionDisposable.Count == 1)
-                {
                     lock (gate)
                     {
-                        try { observer.OnCompleted(); } finally { Dispose(); };
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
+                        ;
                     }
-                }
                 else
-                {
                     sourceDisposable.Dispose();
-                }
             }
 
-            class SelectMany : OperatorObserverBase<TResult, TResult>
+            private class SelectMany : OperatorObserverBase<TResult, TResult>
             {
-                readonly SelectManyObserverWithIndex parent;
-                readonly IDisposable cancel;
+                private readonly IDisposable cancel;
+                private readonly SelectManyObserverWithIndex parent;
 
                 public SelectMany(SelectManyObserverWithIndex parent, IDisposable cancel)
                     : base(parent.observer, cancel)
@@ -256,7 +310,7 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        base.observer.OnNext(value);
+                        observer.OnNext(value);
                     }
                 }
 
@@ -264,7 +318,16 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        try { observer.OnError(error); } finally { Dispose(); };
+                        try
+                        {
+                            observer.OnError(error);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
+                        ;
                     }
                 }
 
@@ -272,21 +335,29 @@ namespace UniRx.Operators
                 {
                     parent.collectionDisposable.Remove(cancel);
                     if (parent.isStopped && parent.collectionDisposable.Count == 1)
-                    {
                         lock (parent.gate)
                         {
-                            try { observer.OnCompleted(); } finally { Dispose(); };
+                            try
+                            {
+                                observer.OnCompleted();
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
+
+                            ;
                         }
-                    }
                 }
             }
         }
 
-        class SelectManyEnumerableObserver : OperatorObserverBase<TSource, TResult>
+        private class SelectManyEnumerableObserver : OperatorObserverBase<TSource, TResult>
         {
-            readonly SelectManyObservable<TSource, TResult> parent;
+            private readonly SelectManyObservable<TSource, TResult> parent;
 
-            public SelectManyEnumerableObserver(SelectManyObservable<TSource, TResult> parent, IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
+            public SelectManyEnumerableObserver(SelectManyObservable<TSource, TResult> parent,
+                IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
             }
@@ -305,7 +376,16 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); } finally { Dispose(); };
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                     return;
                 }
 
@@ -321,49 +401,63 @@ namespace UniRx.Operators
                         try
                         {
                             hasNext = e.MoveNext();
-                            if (hasNext)
-                            {
-                                current = e.Current;
-                            }
+                            if (hasNext) current = e.Current;
                         }
                         catch (Exception exception)
                         {
-                            try { observer.OnError(exception); } finally { Dispose(); }
+                            try
+                            {
+                                observer.OnError(exception);
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
+
                             return;
                         }
 
-                        if (hasNext)
-                        {
-                            observer.OnNext(current);
-                        }
+                        if (hasNext) observer.OnNext(current);
                     }
                 }
                 finally
                 {
-                    if (e != null)
-                    {
-                        e.Dispose();
-                    }
+                    if (e != null) e.Dispose();
                 }
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
 
-        class SelectManyEnumerableObserverWithIndex : OperatorObserverBase<TSource, TResult>
+        private class SelectManyEnumerableObserverWithIndex : OperatorObserverBase<TSource, TResult>
         {
-            readonly SelectManyObservable<TSource, TResult> parent;
-            int index = 0;
+            private readonly SelectManyObservable<TSource, TResult> parent;
+            private int index;
 
-            public SelectManyEnumerableObserverWithIndex(SelectManyObservable<TSource, TResult> parent, IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
+            public SelectManyEnumerableObserverWithIndex(SelectManyObservable<TSource, TResult> parent,
+                IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
             }
@@ -398,40 +492,53 @@ namespace UniRx.Operators
                         try
                         {
                             hasNext = e.MoveNext();
-                            if (hasNext)
-                            {
-                                current = e.Current;
-                            }
+                            if (hasNext) current = e.Current;
                         }
                         catch (Exception exception)
                         {
-                            try { observer.OnError(exception); } finally { Dispose(); }
+                            try
+                            {
+                                observer.OnError(exception);
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
+
                             return;
                         }
 
-                        if (hasNext)
-                        {
-                            observer.OnNext(current);
-                        }
+                        if (hasNext) observer.OnNext(current);
                     }
                 }
                 finally
                 {
-                    if (e != null)
-                    {
-                        e.Dispose();
-                    }
+                    if (e != null) e.Dispose();
                 }
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
@@ -439,15 +546,17 @@ namespace UniRx.Operators
     // with resultSelector
     internal class SelectManyObservable<TSource, TCollection, TResult> : OperatorObservableBase<TResult>
     {
-        readonly IObservable<TSource> source;
-        readonly Func<TSource, IObservable<TCollection>> collectionSelector;
-        readonly Func<TSource, int, IObservable<TCollection>> collectionSelectorWithIndex;
-        readonly Func<TSource, IEnumerable<TCollection>> collectionSelectorEnumerable;
-        readonly Func<TSource, int, IEnumerable<TCollection>> collectionSelectorEnumerableWithIndex;
-        readonly Func<TSource, TCollection, TResult> resultSelector;
-        readonly Func<TSource, int, TCollection, int, TResult> resultSelectorWithIndex;
+        private readonly Func<TSource, IObservable<TCollection>> collectionSelector;
+        private readonly Func<TSource, IEnumerable<TCollection>> collectionSelectorEnumerable;
+        private readonly Func<TSource, int, IEnumerable<TCollection>> collectionSelectorEnumerableWithIndex;
+        private readonly Func<TSource, int, IObservable<TCollection>> collectionSelectorWithIndex;
+        private readonly Func<TSource, TCollection, TResult> resultSelector;
+        private readonly Func<TSource, int, TCollection, int, TResult> resultSelectorWithIndex;
+        private readonly IObservable<TSource> source;
 
-        public SelectManyObservable(IObservable<TSource> source, Func<TSource, IObservable<TCollection>> collectionSelector, Func<TSource, TCollection, TResult> resultSelector)
+        public SelectManyObservable(IObservable<TSource> source,
+            Func<TSource, IObservable<TCollection>> collectionSelector,
+            Func<TSource, TCollection, TResult> resultSelector)
             : base(source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
@@ -455,64 +564,63 @@ namespace UniRx.Operators
             this.resultSelector = resultSelector;
         }
 
-        public SelectManyObservable(IObservable<TSource> source, Func<TSource, int, IObservable<TCollection>> collectionSelector, Func<TSource, int, TCollection, int, TResult> resultSelector)
+        public SelectManyObservable(IObservable<TSource> source,
+            Func<TSource, int, IObservable<TCollection>> collectionSelector,
+            Func<TSource, int, TCollection, int, TResult> resultSelector)
             : base(source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
-            this.collectionSelectorWithIndex = collectionSelector;
-            this.resultSelectorWithIndex = resultSelector;
+            collectionSelectorWithIndex = collectionSelector;
+            resultSelectorWithIndex = resultSelector;
         }
 
-        public SelectManyObservable(IObservable<TSource> source, Func<TSource, IEnumerable<TCollection>> collectionSelector, Func<TSource, TCollection, TResult> resultSelector)
+        public SelectManyObservable(IObservable<TSource> source,
+            Func<TSource, IEnumerable<TCollection>> collectionSelector,
+            Func<TSource, TCollection, TResult> resultSelector)
             : base(source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
-            this.collectionSelectorEnumerable = collectionSelector;
+            collectionSelectorEnumerable = collectionSelector;
             this.resultSelector = resultSelector;
         }
 
-        public SelectManyObservable(IObservable<TSource> source, Func<TSource, int, IEnumerable<TCollection>> collectionSelector, Func<TSource, int, TCollection, int, TResult> resultSelector)
+        public SelectManyObservable(IObservable<TSource> source,
+            Func<TSource, int, IEnumerable<TCollection>> collectionSelector,
+            Func<TSource, int, TCollection, int, TResult> resultSelector)
             : base(source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
-            this.collectionSelectorEnumerableWithIndex = collectionSelector;
-            this.resultSelectorWithIndex = resultSelector;
+            collectionSelectorEnumerableWithIndex = collectionSelector;
+            resultSelectorWithIndex = resultSelector;
         }
 
         protected override IDisposable SubscribeCore(IObserver<TResult> observer, IDisposable cancel)
         {
-            if (collectionSelector != null)
-            {
-                return new SelectManyOuterObserver(this, observer, cancel).Run();
-            }
-            else if (collectionSelectorWithIndex != null)
-            {
+            if (collectionSelector != null) return new SelectManyOuterObserver(this, observer, cancel).Run();
+
+            if (collectionSelectorWithIndex != null)
                 return new SelectManyObserverWithIndex(this, observer, cancel).Run();
-            }
-            else if (collectionSelectorEnumerable != null)
-            {
+
+            if (collectionSelectorEnumerable != null)
                 return new SelectManyEnumerableObserver(this, observer, cancel).Run();
-            }
-            else if (collectionSelectorEnumerableWithIndex != null)
-            {
+
+            if (collectionSelectorEnumerableWithIndex != null)
                 return new SelectManyEnumerableObserverWithIndex(this, observer, cancel).Run();
-            }
-            else
-            {
-                throw new InvalidOperationException();
-            }
+
+            throw new InvalidOperationException();
         }
 
-        class SelectManyOuterObserver : OperatorObserverBase<TSource, TResult>
+        private class SelectManyOuterObserver : OperatorObserverBase<TSource, TResult>
         {
-            readonly SelectManyObservable<TSource, TCollection, TResult> parent;
+            private readonly SelectManyObservable<TSource, TCollection, TResult> parent;
 
-            CompositeDisposable collectionDisposable;
-            object gate = new object();
-            bool isStopped = false;
-            SingleAssignmentDisposable sourceDisposable;
+            private CompositeDisposable collectionDisposable;
+            private readonly object gate = new();
+            private bool isStopped;
+            private SingleAssignmentDisposable sourceDisposable;
 
-            public SelectManyOuterObserver(SelectManyObservable<TSource, TCollection, TResult> parent, IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
+            public SelectManyOuterObserver(SelectManyObservable<TSource, TCollection, TResult> parent,
+                IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
             }
@@ -550,7 +658,16 @@ namespace UniRx.Operators
             {
                 lock (gate)
                 {
-                    try { observer.OnError(error); } finally { Dispose(); };
+                    try
+                    {
+                        observer.OnError(error);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                 }
             }
 
@@ -558,29 +675,34 @@ namespace UniRx.Operators
             {
                 isStopped = true;
                 if (collectionDisposable.Count == 1)
-                {
                     lock (gate)
                     {
-                        try { observer.OnCompleted(); } finally { Dispose(); };
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
+                        ;
                     }
-                }
                 else
-                {
                     sourceDisposable.Dispose();
-                }
             }
 
-            class SelectMany : OperatorObserverBase<TCollection, TResult>
+            private class SelectMany : OperatorObserverBase<TCollection, TResult>
             {
-                readonly SelectManyOuterObserver parent;
-                readonly TSource sourceValue;
-                readonly IDisposable cancel;
+                private readonly IDisposable cancel;
+                private readonly SelectManyOuterObserver parent;
+                private readonly TSource sourceValue;
 
                 public SelectMany(SelectManyOuterObserver parent, TSource value, IDisposable cancel)
                     : base(parent.observer, cancel)
                 {
                     this.parent = parent;
-                    this.sourceValue = value;
+                    sourceValue = value;
                     this.cancel = cancel;
                 }
 
@@ -599,7 +721,7 @@ namespace UniRx.Operators
 
                     lock (parent.gate)
                     {
-                        base.observer.OnNext(resultValue);
+                        observer.OnNext(resultValue);
                     }
                 }
 
@@ -607,7 +729,16 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        try { observer.OnError(error); } finally { Dispose(); };
+                        try
+                        {
+                            observer.OnError(error);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
+                        ;
                     }
                 }
 
@@ -615,27 +746,35 @@ namespace UniRx.Operators
                 {
                     parent.collectionDisposable.Remove(cancel);
                     if (parent.isStopped && parent.collectionDisposable.Count == 1)
-                    {
                         lock (parent.gate)
                         {
-                            try { observer.OnCompleted(); } finally { Dispose(); };
+                            try
+                            {
+                                observer.OnCompleted();
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
+
+                            ;
                         }
-                    }
                 }
             }
         }
 
-        class SelectManyObserverWithIndex : OperatorObserverBase<TSource, TResult>
+        private class SelectManyObserverWithIndex : OperatorObserverBase<TSource, TResult>
         {
-            readonly SelectManyObservable<TSource, TCollection, TResult> parent;
+            private readonly SelectManyObservable<TSource, TCollection, TResult> parent;
 
-            CompositeDisposable collectionDisposable;
-            object gate = new object();
-            bool isStopped = false;
-            SingleAssignmentDisposable sourceDisposable;
-            int index = 0;
+            private CompositeDisposable collectionDisposable;
+            private readonly object gate = new();
+            private int index;
+            private bool isStopped;
+            private SingleAssignmentDisposable sourceDisposable;
 
-            public SelectManyObserverWithIndex(SelectManyObservable<TSource, TCollection, TResult> parent, IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
+            public SelectManyObserverWithIndex(SelectManyObservable<TSource, TCollection, TResult> parent,
+                IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
             }
@@ -674,7 +813,16 @@ namespace UniRx.Operators
             {
                 lock (gate)
                 {
-                    try { observer.OnError(error); } finally { Dispose(); };
+                    try
+                    {
+                        observer.OnError(error);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                 }
             }
 
@@ -682,32 +830,38 @@ namespace UniRx.Operators
             {
                 isStopped = true;
                 if (collectionDisposable.Count == 1)
-                {
                     lock (gate)
                     {
-                        try { observer.OnCompleted(); } finally { Dispose(); };
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
+                        ;
                     }
-                }
                 else
-                {
                     sourceDisposable.Dispose();
-                }
             }
 
-            class SelectManyObserver : OperatorObserverBase<TCollection, TResult>
+            private class SelectManyObserver : OperatorObserverBase<TCollection, TResult>
             {
-                readonly SelectManyObserverWithIndex parent;
-                readonly TSource sourceValue;
-                readonly int sourceIndex;
-                readonly IDisposable cancel;
-                int index;
+                private readonly IDisposable cancel;
+                private readonly SelectManyObserverWithIndex parent;
+                private readonly int sourceIndex;
+                private readonly TSource sourceValue;
+                private int index;
 
-                public SelectManyObserver(SelectManyObserverWithIndex parent, TSource value, int index, IDisposable cancel)
+                public SelectManyObserver(SelectManyObserverWithIndex parent, TSource value, int index,
+                    IDisposable cancel)
                     : base(parent.observer, cancel)
                 {
                     this.parent = parent;
-                    this.sourceValue = value;
-                    this.sourceIndex = index;
+                    sourceValue = value;
+                    sourceIndex = index;
                     this.cancel = cancel;
                 }
 
@@ -720,13 +874,22 @@ namespace UniRx.Operators
                     }
                     catch (Exception ex)
                     {
-                        try { observer.OnError(ex); } finally { Dispose(); };
+                        try
+                        {
+                            observer.OnError(ex);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
+                        ;
                         return;
                     }
 
                     lock (parent.gate)
                     {
-                        base.observer.OnNext(resultValue);
+                        observer.OnNext(resultValue);
                     }
                 }
 
@@ -734,7 +897,16 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        try { observer.OnError(error); } finally { Dispose(); };
+                        try
+                        {
+                            observer.OnError(error);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
+                        ;
                     }
                 }
 
@@ -742,21 +914,29 @@ namespace UniRx.Operators
                 {
                     parent.collectionDisposable.Remove(cancel);
                     if (parent.isStopped && parent.collectionDisposable.Count == 1)
-                    {
                         lock (parent.gate)
                         {
-                            try { observer.OnCompleted(); } finally { Dispose(); };
+                            try
+                            {
+                                observer.OnCompleted();
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
+
+                            ;
                         }
-                    }
                 }
             }
         }
 
-        class SelectManyEnumerableObserver : OperatorObserverBase<TSource, TResult>
+        private class SelectManyEnumerableObserver : OperatorObserverBase<TSource, TResult>
         {
-            readonly SelectManyObservable<TSource, TCollection, TResult> parent;
+            private readonly SelectManyObservable<TSource, TCollection, TResult> parent;
 
-            public SelectManyEnumerableObserver(SelectManyObservable<TSource, TCollection, TResult> parent, IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
+            public SelectManyEnumerableObserver(SelectManyObservable<TSource, TCollection, TResult> parent,
+                IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
             }
@@ -775,7 +955,16 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); } finally { Dispose(); };
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                     return;
                 }
 
@@ -791,49 +980,63 @@ namespace UniRx.Operators
                         try
                         {
                             hasNext = e.MoveNext();
-                            if (hasNext)
-                            {
-                                current = parent.resultSelector(value, e.Current);
-                            }
+                            if (hasNext) current = parent.resultSelector(value, e.Current);
                         }
                         catch (Exception exception)
                         {
-                            try { observer.OnError(exception); } finally { Dispose(); }
+                            try
+                            {
+                                observer.OnError(exception);
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
+
                             return;
                         }
 
-                        if (hasNext)
-                        {
-                            observer.OnNext(current);
-                        }
+                        if (hasNext) observer.OnNext(current);
                     }
                 }
                 finally
                 {
-                    if (e != null)
-                    {
-                        e.Dispose();
-                    }
+                    if (e != null) e.Dispose();
                 }
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
 
-        class SelectManyEnumerableObserverWithIndex : OperatorObserverBase<TSource, TResult>
+        private class SelectManyEnumerableObserverWithIndex : OperatorObserverBase<TSource, TResult>
         {
-            readonly SelectManyObservable<TSource, TCollection, TResult> parent;
-            int index = 0;
+            private readonly SelectManyObservable<TSource, TCollection, TResult> parent;
+            private int index;
 
-            public SelectManyEnumerableObserverWithIndex(SelectManyObservable<TSource, TCollection, TResult> parent, IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
+            public SelectManyEnumerableObserverWithIndex(SelectManyObservable<TSource, TCollection, TResult> parent,
+                IObserver<TResult> observer, IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
             }
@@ -853,7 +1056,16 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); } finally { Dispose(); };
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                    ;
                     return;
                 }
 
@@ -870,40 +1082,53 @@ namespace UniRx.Operators
                         try
                         {
                             hasNext = e.MoveNext();
-                            if (hasNext)
-                            {
-                                current = parent.resultSelectorWithIndex(value, i, e.Current, sequenceI++);
-                            }
+                            if (hasNext) current = parent.resultSelectorWithIndex(value, i, e.Current, sequenceI++);
                         }
                         catch (Exception exception)
                         {
-                            try { observer.OnError(exception); } finally { Dispose(); }
+                            try
+                            {
+                                observer.OnError(exception);
+                            }
+                            finally
+                            {
+                                Dispose();
+                            }
+
                             return;
                         }
 
-                        if (hasNext)
-                        {
-                            observer.OnNext(current);
-                        }
+                        if (hasNext) observer.OnNext(current);
                     }
                 }
                 finally
                 {
-                    if (e != null)
-                    {
-                        e.Dispose();
-                    }
+                    if (e != null) e.Dispose();
                 }
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

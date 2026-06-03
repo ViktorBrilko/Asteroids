@@ -3,16 +3,15 @@ using Core;
 using Core.Audios;
 using MVVM;
 using UniRx;
-using UnityEngine;
 using Zenject;
 
 namespace UI.ViewModels
 {
     public class SettingsViewModel : IInitializable, IDisposable
     {
-        private Settings _settings;
-        private WindowsState _windowsState;
-        private AudioService _audioService;
+        private readonly AudioService _audioService;
+        private readonly Settings _settings;
+        private readonly WindowsState _windowsState;
 
         [Data("SettingsPanelState")] public ReactiveProperty<bool> IsPanelOpen;
         [Data("MusicVolume")] public ReactiveProperty<float> MusicVolume = new();
@@ -26,17 +25,17 @@ namespace UI.ViewModels
             _audioService = audioService;
         }
 
+        public void Dispose()
+        {
+        }
+
         public void Initialize()
         {
             MusicVolume.Value = _settings.MusicVolume;
             SfxVolume.Value = _settings.SfxVolume;
-            
+
             _settings.SetMusicVolume(MusicVolume.Value);
             _settings.SetSfxVolume(SfxVolume.Value);
-        }
-
-        public void Dispose()
-        {
         }
 
         [Method("OnCloseClick")]

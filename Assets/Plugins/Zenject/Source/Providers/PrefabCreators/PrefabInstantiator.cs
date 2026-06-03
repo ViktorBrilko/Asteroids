@@ -3,22 +3,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Zenject.Internal;
 using ModestTree;
 using UnityEngine;
+using Zenject.Internal;
+using Object = UnityEngine.Object;
 
 namespace Zenject
 {
     [NoReflectionBaking]
     public class PrefabInstantiator : IPrefabInstantiator
     {
-        readonly IPrefabProvider _prefabProvider;
-        readonly DiContainer _container;
-        readonly List<TypeValuePair> _extraArguments;
-        readonly GameObjectCreationParameters _gameObjectBindInfo;
-        readonly Type _argumentTarget;
-        readonly List<Type> _instantiateCallbackTypes;
-        readonly Action<InjectContext, object> _instantiateCallback;
+        private readonly DiContainer _container;
+        private readonly Action<InjectContext, object> _instantiateCallback;
+        private readonly List<Type> _instantiateCallbackTypes;
+        private readonly IPrefabProvider _prefabProvider;
 
         public PrefabInstantiator(
             DiContainer container,
@@ -30,70 +28,59 @@ namespace Zenject
             Action<InjectContext, object> instantiateCallback)
         {
             _prefabProvider = prefabProvider;
-            _extraArguments = extraArguments.ToList();
+            ExtraArguments = extraArguments.ToList();
             _container = container;
-            _gameObjectBindInfo = gameObjectBindInfo;
-            _argumentTarget = argumentTarget;
+            GameObjectCreationParameters = gameObjectBindInfo;
+            ArgumentTarget = argumentTarget;
             _instantiateCallbackTypes = instantiateCallbackTypes.ToList();
             _instantiateCallback = instantiateCallback;
         }
 
-        public GameObjectCreationParameters GameObjectCreationParameters
-        {
-            get { return _gameObjectBindInfo; }
-        }
+        public GameObjectCreationParameters GameObjectCreationParameters { get; }
 
-        public Type ArgumentTarget
-        {
-            get { return _argumentTarget; }
-        }
+        public Type ArgumentTarget { get; }
 
-        public List<TypeValuePair> ExtraArguments
-        {
-            get { return _extraArguments; }
-        }
+        public List<TypeValuePair> ExtraArguments { get; }
 
-        public UnityEngine.Object GetPrefab(InjectContext context)
+        public Object GetPrefab(InjectContext context)
         {
             return _prefabProvider.GetPrefab(context);
         }
 
         public GameObject Instantiate(InjectContext context, List<TypeValuePair> args, out Action injectAction)
         {
-            Assert.That(_argumentTarget == null || _argumentTarget.DerivesFromOrEqual(context.MemberType));
+            Assert.That(ArgumentTarget == null || ArgumentTarget.DerivesFromOrEqual(context.MemberType));
 
             bool shouldMakeActive;
             var gameObject = _container.CreateAndParentPrefab(
-                GetPrefab(context), _gameObjectBindInfo, context, out shouldMakeActive);
+                GetPrefab(context), GameObjectCreationParameters, context, out shouldMakeActive);
             Assert.IsNotNull(gameObject);
 
             injectAction = () =>
             {
                 var allArgs = ZenPools.SpawnList<TypeValuePair>();
 
-                allArgs.AllocFreeAddRange(_extraArguments);
+                allArgs.AllocFreeAddRange(ExtraArguments);
                 allArgs.AllocFreeAddRange(args);
 
-                if (_argumentTarget == null)
-                {
+                if (ArgumentTarget == null)
                     Assert.That(
                         allArgs.IsEmpty(),
                         "Unexpected arguments provided to prefab instantiator.  Arguments are not allowed if binding multiple components in the same binding");
-                }
 
-                if (_argumentTarget == null || allArgs.IsEmpty())
+                if (ArgumentTarget == null || allArgs.IsEmpty())
                 {
                     _container.InjectGameObject(gameObject);
                 }
                 else
                 {
                     _container.InjectGameObjectForComponentExplicit(
-                        gameObject, _argumentTarget, allArgs, context, null);
+                        gameObject, ArgumentTarget, allArgs, context, null);
 
                     Assert.That(allArgs.Count == 0);
                 }
 
-                ZenPools.DespawnList<TypeValuePair>(allArgs);
+                ZenPools.DespawnList(allArgs);
 
                 if (shouldMakeActive && !_container.IsValidating)
                 {
@@ -113,16 +100,10 @@ namespace Zenject
                     {
                         var obj = gameObject.GetComponentInChildren(type);
 
-                        if (obj != null)
-                        {
-                            callbackObjects.Add(obj);
-                        }
+                        if (obj != null) callbackObjects.Add(obj);
                     }
 
-                    foreach (var obj in callbackObjects)
-                    {
-                        _instantiateCallback(context, obj);
-                    }
+                    foreach (var obj in callbackObjects) _instantiateCallback(context, obj);
 
                     ZenPools.DespawnHashSet(callbackObjects);
                 }

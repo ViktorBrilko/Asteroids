@@ -326,19 +326,16 @@ namespace Zenject.Tests.Bindings
             Assert.IsEqual(pool.NumInactive, 4);
         }
 
-        class Bar
+        private class Bar
         {
             public class Pool : MemoryPool<Bar>
             {
             }
         }
 
-        class Foo
+        private class Foo
         {
-            public int ResetCount
-            {
-                get; private set;
-            }
+            public int ResetCount { get; private set; }
 
             public class Pool : MemoryPool<Foo>
             {
@@ -359,12 +356,12 @@ namespace Zenject.Tests.Bindings
             var qux = pool.Spawn();
         }
 
-        void InstallQux(DiContainer subContainer)
+        private void InstallQux(DiContainer subContainer)
         {
             subContainer.Bind<Qux>().AsSingle();
         }
 
-        class Qux
+        private class Qux
         {
             public class Pool : MemoryPool<Qux>
             {
@@ -381,4 +378,3 @@ namespace Zenject.Tests.Bindings
         }
     }
 }
-

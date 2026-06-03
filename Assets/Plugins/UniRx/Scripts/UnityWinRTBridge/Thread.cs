@@ -1,5 +1,4 @@
 ﻿#if UNITY_METRO
-
 using System;
 using System.Collections;
 using System.Collections.Generic;

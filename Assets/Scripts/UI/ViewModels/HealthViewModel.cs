@@ -8,13 +8,18 @@ namespace UI.ViewModels
 {
     public class HealthViewModel : IInitializable, IDisposable
     {
+        [Data("Health")] public readonly ReactiveProperty<int> Health = new();
+
         public readonly HealthService HealthService;
-        [Data("Health")]
-        public readonly ReactiveProperty<int> Health = new();
 
         public HealthViewModel(HealthService playerHealth)
         {
             HealthService = playerHealth;
+        }
+
+        public void Dispose()
+        {
+            HealthService.OnHealthChanged -= OnHealthChanged;
         }
 
         public void Initialize()
@@ -23,11 +28,6 @@ namespace UI.ViewModels
             HealthService.OnHealthChanged += OnHealthChanged;
         }
 
-        public void Dispose()
-        {
-            HealthService.OnHealthChanged -= OnHealthChanged;
-        }
-        
         private void OnHealthChanged(int currentHealth)
         {
             Health.Value = currentHealth;

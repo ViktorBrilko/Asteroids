@@ -1,5 +1,4 @@
-﻿
-using System.Collections;
+﻿using System.Collections;
 using ModestTree;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -8,15 +7,9 @@ namespace Zenject.Tests.Bindings.FromPrefabInstaller
 {
     public class TestFromPrefabInstaller : ZenjectIntegrationTestFixture
     {
-        GameObject FooPrefab
-        {
-            get { return FixtureUtil.GetPrefab(FooPrefabResourcePath); }
-        }
+        private GameObject FooPrefab => FixtureUtil.GetPrefab(FooPrefabResourcePath);
 
-        string FooPrefabResourcePath
-        {
-            get { return "TestFromPrefabInstaller/Foo"; }
-        }
+        private string FooPrefabResourcePath => "TestFromPrefabInstaller/Foo";
 
         [UnityTest]
         public IEnumerator TestInstaller()
@@ -66,7 +59,7 @@ namespace Zenject.Tests.Bindings.FromPrefabInstaller
             PreInstall();
 
             Container.Bind<Qux>().FromSubContainerResolve()
-                .ByNewPrefabMethod((context) => FooPrefab, InstallFoo).AsCached();
+                .ByNewPrefabMethod(context => FooPrefab, InstallFoo).AsCached();
 
             PostInstall();
 
@@ -102,18 +95,16 @@ namespace Zenject.Tests.Bindings.FromPrefabInstaller
             yield break;
         }
 
-        void InstallFoo(DiContainer subContainer)
+        private void InstallFoo(DiContainer subContainer)
         {
             subContainer.Bind<Qux>().AsSingle().WithArguments("asdf");
         }
 
         public class Qux
         {
-            [Inject]
-            public string Data;
+            [Inject] public string Data;
 
-            [Inject]
-            public Foo Foo;
+            [Inject] public Foo Foo;
         }
 
         public class FooInstaller : Installer<FooInstaller>
@@ -125,4 +116,3 @@ namespace Zenject.Tests.Bindings.FromPrefabInstaller
         }
     }
 }
-

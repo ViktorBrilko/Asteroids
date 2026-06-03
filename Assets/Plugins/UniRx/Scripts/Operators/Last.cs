@@ -4,9 +4,9 @@ namespace UniRx.Operators
 {
     internal class LastObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly bool useDefault;
-        readonly Func<T, bool> predicate;
+        private readonly Func<T, bool> predicate;
+        private readonly IObservable<T> source;
+        private readonly bool useDefault;
 
         public LastObservable(IObservable<T> source, bool useDefault)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -25,26 +25,21 @@ namespace UniRx.Operators
 
         protected override IDisposable SubscribeCore(IObserver<T> observer, IDisposable cancel)
         {
-            if (predicate == null)
-            {
-                return source.Subscribe(new Last(this, observer, cancel));
-            }
-            else
-            {
-                return source.Subscribe(new Last_(this, observer, cancel));
-            }
+            if (predicate == null) return source.Subscribe(new Last(this, observer, cancel));
+
+            return source.Subscribe(new Last_(this, observer, cancel));
         }
 
-        class Last : OperatorObserverBase<T, T>
+        private class Last : OperatorObserverBase<T, T>
         {
-            readonly LastObservable<T> parent;
-            bool notPublished;
-            T lastValue;
+            private readonly LastObservable<T> parent;
+            private T lastValue;
+            private bool notPublished;
 
             public Last(LastObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
-                this.notPublished = true;
+                notPublished = true;
             }
 
             public override void OnNext(T value)
@@ -55,8 +50,14 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
@@ -64,43 +65,57 @@ namespace UniRx.Operators
                 if (parent.useDefault)
                 {
                     if (notPublished)
-                    {
-                        observer.OnNext(default(T));
-                    }
+                        observer.OnNext(default);
                     else
-                    {
                         observer.OnNext(lastValue);
+                    try
+                    {
+                        observer.OnCompleted();
                     }
-                    try { observer.OnCompleted(); }
-                    finally { Dispose(); }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
                 else
                 {
                     if (notPublished)
                     {
-                        try { observer.OnError(new InvalidOperationException("sequence is empty")); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnError(new InvalidOperationException("sequence is empty"));
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                     }
                     else
                     {
                         observer.OnNext(lastValue);
-                        try { observer.OnCompleted(); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                     }
                 }
             }
         }
 
-        class Last_ : OperatorObserverBase<T, T>
+        private class Last_ : OperatorObserverBase<T, T>
         {
-            readonly LastObservable<T> parent;
-            bool notPublished;
-            T lastValue;
+            private readonly LastObservable<T> parent;
+            private T lastValue;
+            private bool notPublished;
 
             public Last_(LastObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
-                this.notPublished = true;
+                notPublished = true;
             }
 
             public override void OnNext(T value)
@@ -112,8 +127,15 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
@@ -126,8 +148,14 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
@@ -135,28 +163,42 @@ namespace UniRx.Operators
                 if (parent.useDefault)
                 {
                     if (notPublished)
-                    {
-                        observer.OnNext(default(T));
-                    }
+                        observer.OnNext(default);
                     else
-                    {
                         observer.OnNext(lastValue);
+                    try
+                    {
+                        observer.OnCompleted();
                     }
-                    try { observer.OnCompleted(); }
-                    finally { Dispose(); }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
                 else
                 {
                     if (notPublished)
                     {
-                        try { observer.OnError(new InvalidOperationException("sequence is empty")); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnError(new InvalidOperationException("sequence is empty"));
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                     }
                     else
                     {
                         observer.OnNext(lastValue);
-                        try { observer.OnCompleted(); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                     }
                 }
             }

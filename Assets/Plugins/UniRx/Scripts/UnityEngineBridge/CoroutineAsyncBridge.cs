@@ -2,23 +2,25 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace UniRx
 {
     public class CoroutineAsyncBridge : INotifyCompletion
     {
-        Action continuation;
-        public bool IsCompleted { get; private set; }
+        private Action continuation;
 
-        CoroutineAsyncBridge()
+        private CoroutineAsyncBridge()
         {
             IsCompleted = false;
+        }
+
+        public bool IsCompleted { get; private set; }
+
+        public void OnCompleted(Action continuation)
+        {
+            this.continuation = continuation;
         }
 
         public static CoroutineAsyncBridge Start<T>(T awaitTarget)
@@ -28,16 +30,11 @@ namespace UniRx
             return bridge;
         }
 
-        IEnumerator Run<T>(T target)
+        private IEnumerator Run<T>(T target)
         {
             yield return target;
             IsCompleted = true;
             continuation();
-        }
-
-        public void OnCompleted(Action continuation)
-        {
-            this.continuation = continuation;
         }
 
         public void GetResult()
@@ -48,14 +45,20 @@ namespace UniRx
 
     public class CoroutineAsyncBridge<T> : INotifyCompletion
     {
-        readonly T result;
-        Action continuation;
-        public bool IsCompleted { get; private set; }
+        private readonly T result;
+        private Action continuation;
 
-        CoroutineAsyncBridge(T result)
+        private CoroutineAsyncBridge(T result)
         {
             IsCompleted = false;
             this.result = result;
+        }
+
+        public bool IsCompleted { get; private set; }
+
+        public void OnCompleted(Action continuation)
+        {
+            this.continuation = continuation;
         }
 
         public static CoroutineAsyncBridge<T> Start(T awaitTarget)
@@ -65,16 +68,11 @@ namespace UniRx
             return bridge;
         }
 
-        IEnumerator Run(T target)
+        private IEnumerator Run(T target)
         {
             yield return target;
             IsCompleted = true;
             continuation();
-        }
-
-        public void OnCompleted(Action continuation)
-        {
-            this.continuation = continuation;
         }
 
         public T GetResult()
@@ -92,7 +90,6 @@ namespace UniRx
         }
 
 #if !(CSHARP_7_OR_LATER || (UNITY_2018_3_OR_NEWER && (NET_STANDARD_2_0 || NET_4_6)))
-
         // should use UniRx.Async in C# 7.0
 
 #if UNITY_2018_3_OR_NEWER

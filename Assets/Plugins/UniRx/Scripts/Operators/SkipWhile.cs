@@ -4,9 +4,9 @@ namespace UniRx.Operators
 {
     internal class SkipWhileObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly Func<T, bool> predicate;
-        readonly Func<T, int, bool> predicateWithIndex;
+        private readonly Func<T, bool> predicate;
+        private readonly Func<T, int, bool> predicateWithIndex;
+        private readonly IObservable<T> source;
 
         public SkipWhileObservable(IObservable<T> source, Func<T, bool> predicate)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -24,22 +24,18 @@ namespace UniRx.Operators
 
         protected override IDisposable SubscribeCore(IObserver<T> observer, IDisposable cancel)
         {
-            if (predicate != null)
-            {
-                return new SkipWhile(this, observer, cancel).Run();
-            }
-            else
-            {
-                return new SkipWhile_(this, observer, cancel).Run();
-            }
+            if (predicate != null) return new SkipWhile(this, observer, cancel).Run();
+
+            return new SkipWhile_(this, observer, cancel).Run();
         }
 
-        class SkipWhile : OperatorObserverBase<T, T>
+        private class SkipWhile : OperatorObserverBase<T, T>
         {
-            readonly SkipWhileObservable<T> parent;
-            bool endSkip = false;
+            private readonly SkipWhileObservable<T> parent;
+            private bool endSkip;
 
-            public SkipWhile(SkipWhileObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public SkipWhile(SkipWhileObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer,
+                cancel)
             {
                 this.parent = parent;
             }
@@ -59,7 +55,15 @@ namespace UniRx.Operators
                     }
                     catch (Exception ex)
                     {
-                        try { observer.OnError(ex); } finally { Dispose(); }
+                        try
+                        {
+                            observer.OnError(ex);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
                         return;
                     }
 
@@ -71,22 +75,37 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
 
-        class SkipWhile_ : OperatorObserverBase<T, T>
+        private class SkipWhile_ : OperatorObserverBase<T, T>
         {
-            readonly SkipWhileObservable<T> parent;
-            bool endSkip = false;
-            int index = 0;
+            private readonly SkipWhileObservable<T> parent;
+            private bool endSkip;
+            private int index;
 
-            public SkipWhile_(SkipWhileObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public SkipWhile_(SkipWhileObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer,
+                cancel)
             {
                 this.parent = parent;
             }
@@ -106,7 +125,15 @@ namespace UniRx.Operators
                     }
                     catch (Exception ex)
                     {
-                        try { observer.OnError(ex); } finally { Dispose(); }
+                        try
+                        {
+                            observer.OnError(ex);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
                         return;
                     }
 
@@ -118,12 +145,26 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

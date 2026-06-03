@@ -2,44 +2,29 @@
 
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Threading;
 using UniRx.InternalUtil;
-using UniRx;
-using System;
-using System.Diagnostics;
-using System.Collections.Generic;
 
 namespace UniRx
 {
-
     public static partial class Scheduler
     {
         public static readonly IScheduler CurrentThread = new CurrentThreadScheduler();
 
-        public static bool IsCurrentThreadSchedulerScheduleRequired { get { return CurrentThreadScheduler.IsScheduleRequired; } }
+        public static bool IsCurrentThreadSchedulerScheduleRequired => CurrentThreadScheduler.IsScheduleRequired;
 
         /// <summary>
-        /// Represents an object that schedules units of work on the current thread.
+        ///     Represents an object that schedules units of work on the current thread.
         /// </summary>
         /// <seealso cref="Scheduler.CurrentThread">Singleton instance of this type exposed through this static property.</seealso>
-        class CurrentThreadScheduler : IScheduler
+        private class CurrentThreadScheduler : IScheduler
         {
-            [ThreadStatic]
-            static SchedulerQueue s_threadLocalQueue;
+            [ThreadStatic] private static SchedulerQueue s_threadLocalQueue;
 
-            [ThreadStatic]
-            static Stopwatch s_clock;
-
-            private static SchedulerQueue GetQueue()
-            {
-                return s_threadLocalQueue;
-            }
-
-            private static void SetQueue(SchedulerQueue newQueue)
-            {
-                s_threadLocalQueue = newQueue;
-            }
+            [ThreadStatic] private static Stopwatch s_clock;
 
             private static TimeSpan Time
             {
@@ -53,16 +38,10 @@ namespace UniRx
             }
 
             /// <summary>
-            /// Gets a value that indicates whether the caller must call a Schedule method.
+            ///     Gets a value that indicates whether the caller must call a Schedule method.
             /// </summary>
             [EditorBrowsable(EditorBrowsableState.Advanced)]
-            public static bool IsScheduleRequired
-            {
-                get
-                {
-                    return GetQueue() == null;
-                }
-            }
+            public static bool IsScheduleRequired => GetQueue() == null;
 
             public IDisposable Schedule(Action action)
             {
@@ -74,7 +53,7 @@ namespace UniRx
                 if (action == null)
                     throw new ArgumentNullException("action");
 
-                var dt = Time + Scheduler.Normalize(dueTime);
+                var dt = Time + Normalize(dueTime);
 
                 var si = new ScheduledItem(action, dt);
 
@@ -85,14 +64,14 @@ namespace UniRx
                     queue = new SchedulerQueue(4);
                     queue.Enqueue(si);
 
-                    CurrentThreadScheduler.SetQueue(queue);
+                    SetQueue(queue);
                     try
                     {
                         Trampoline.Run(queue);
                     }
                     finally
                     {
-                        CurrentThreadScheduler.SetQueue(null);
+                        SetQueue(null);
                     }
                 }
                 else
@@ -103,7 +82,19 @@ namespace UniRx
                 return si.Cancellation;
             }
 
-            static class Trampoline
+            public DateTimeOffset Now => Scheduler.Now;
+
+            private static SchedulerQueue GetQueue()
+            {
+                return s_threadLocalQueue;
+            }
+
+            private static void SetQueue(SchedulerQueue newQueue)
+            {
+                s_threadLocalQueue = newQueue;
+            }
+
+            private static class Trampoline
             {
                 public static void Run(SchedulerQueue queue)
                 {
@@ -112,11 +103,8 @@ namespace UniRx
                         var item = queue.Dequeue();
                         if (!item.IsCanceled)
                         {
-                            var wait = item.DueTime - CurrentThreadScheduler.Time;
-                            if (wait.Ticks > 0)
-                            {
-                                Thread.Sleep(wait);
-                            }
+                            var wait = item.DueTime - Time;
+                            if (wait.Ticks > 0) Thread.Sleep(wait);
 
                             if (!item.IsCanceled)
                                 item.Invoke();
@@ -124,12 +112,6 @@ namespace UniRx
                     }
                 }
             }
-
-            public DateTimeOffset Now
-            {
-                get { return Scheduler.Now; }
-            }
         }
     }
 }
-

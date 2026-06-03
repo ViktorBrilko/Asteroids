@@ -66,15 +66,15 @@ namespace Zenject.Tests.Bindings
             Assert.That(Container.Resolve<IFooFactory>().Create() is Foo);
         }
 
-        interface IFoo
+        private interface IFoo
         {
         }
 
-        class IFooFactory : PlaceholderFactory<IFoo>
+        private class IFooFactory : PlaceholderFactory<IFoo>
         {
         }
 
-        class Foo : IFoo
+        private class Foo : IFoo
         {
             public class Factory : PlaceholderFactory<Foo>
             {

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using UniRx.InternalUtil;
 #if !UniRxLibrary
@@ -33,16 +34,26 @@ namespace UniRx
 
     internal sealed class ObserverNode<T> : IObserver<T>, IDisposable
     {
-        readonly IObserver<T> observer;
-        IObserverLinkedList<T> list;
-
-        public ObserverNode<T> Previous { get; internal set; }
-        public ObserverNode<T> Next { get; internal set; }
+        private readonly IObserver<T> observer;
+        private IObserverLinkedList<T> list;
 
         public ObserverNode(IObserverLinkedList<T> list, IObserver<T> observer)
         {
             this.list = list;
             this.observer = observer;
+        }
+
+        public ObserverNode<T> Previous { get; internal set; }
+        public ObserverNode<T> Next { get; internal set; }
+
+        public void Dispose()
+        {
+            var sourceList = Interlocked.Exchange(ref list, null);
+            if (sourceList != null)
+            {
+                sourceList.UnsubscribeNode(this);
+                sourceList = null;
+            }
         }
 
         public void OnNext(T value)
@@ -59,26 +70,17 @@ namespace UniRx
         {
             observer.OnCompleted();
         }
-
-        public void Dispose()
-        {
-            var sourceList = Interlocked.Exchange(ref list, null);
-            if (sourceList != null)
-            {
-                sourceList.UnsubscribeNode(this);
-                sourceList = null;
-            }
-        }
     }
 
     /// <summary>
-    /// Lightweight property broker.
+    ///     Lightweight property broker.
     /// </summary>
     [Serializable]
-    public class ReactiveProperty<T> : IReactiveProperty<T>, IDisposable, IOptimizedObservable<T>, IObserverLinkedList<T>
+    public class ReactiveProperty<T> : IReactiveProperty<T>, IDisposable, IOptimizedObservable<T>,
+        IObserverLinkedList<T>
     {
 #if !UniRxLibrary
-        static readonly IEqualityComparer<T> defaultEqualityComparer = UnityEqualityComparer.GetDefault<T>();
+        private static readonly IEqualityComparer<T> defaultEqualityComparer = UnityEqualityComparer.GetDefault<T>();
 #else
         static readonly IEqualityComparer<T> defaultEqualityComparer = EqualityComparer<T>.Default;
 #endif
@@ -86,31 +88,19 @@ namespace UniRx
 #if !UniRxLibrary
         [SerializeField]
 #endif
-        T value = default(T);
+        private T value;
 
-        [NonSerialized]
-        ObserverNode<T> root;
+        [NonSerialized] private ObserverNode<T> root;
 
-        [NonSerialized]
-        ObserverNode<T> last;
+        [NonSerialized] private ObserverNode<T> last;
 
-        [NonSerialized]
-        bool isDisposed = false;
+        [NonSerialized] private bool isDisposed;
 
-        protected virtual IEqualityComparer<T> EqualityComparer
-        {
-            get
-            {
-                return defaultEqualityComparer;
-            }
-        }
+        protected virtual IEqualityComparer<T> EqualityComparer => defaultEqualityComparer;
 
         public T Value
         {
-            get
-            {
-                return value;
-            }
+            get => value;
             set
             {
                 if (!EqualityComparer.Equals(this.value, value))
@@ -126,16 +116,10 @@ namespace UniRx
 
         // always true, allows empty constructor 'can' publish value on subscribe.
         // because sometimes value is deserialized from UnityEngine.
-        public bool HasValue
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool HasValue => true;
 
         public ReactiveProperty()
-            : this(default(T))
+            : this(default)
         {
         }
 
@@ -144,7 +128,7 @@ namespace UniRx
             SetValue(initialValue);
         }
 
-        void RaiseOnNext(ref T value)
+        private void RaiseOnNext(ref T value)
         {
             var node = root;
             while (node != null)
@@ -191,28 +175,17 @@ namespace UniRx
                 next.Previous = last;
                 last = next;
             }
+
             return next;
         }
 
         void IObserverLinkedList<T>.UnsubscribeNode(ObserverNode<T> node)
         {
-            if (node == root)
-            {
-                root = node.Next;
-            }
-            if (node == last)
-            {
-                last = node.Previous;
-            }
+            if (node == root) root = node.Next;
+            if (node == last) last = node.Previous;
 
-            if (node.Previous != null)
-            {
-                node.Previous.Next = node.Next;
-            }
-            if (node.Next != null)
-            {
-                node.Next.Previous = node.Previous;
-            }
+            if (node.Previous != null) node.Previous.Next = node.Next;
+            if (node.Next != null) node.Next.Previous = node.Previous;
         }
 
         public void Dispose()
@@ -238,7 +211,7 @@ namespace UniRx
 
         public override string ToString()
         {
-            return (value == null) ? "(null)" : value.ToString();
+            return value == null ? "(null)" : value.ToString();
         }
 
         public bool IsRequiredSubscribeOnCurrentThread()
@@ -248,76 +221,58 @@ namespace UniRx
     }
 
     /// <summary>
-    /// Lightweight property broker.
+    ///     Lightweight property broker.
     /// </summary>
-    public class ReadOnlyReactiveProperty<T> : IReadOnlyReactiveProperty<T>, IDisposable, IOptimizedObservable<T>, IObserverLinkedList<T>, IObserver<T>
+    public class ReadOnlyReactiveProperty<T> : IReadOnlyReactiveProperty<T>, IDisposable, IOptimizedObservable<T>,
+        IObserverLinkedList<T>, IObserver<T>
     {
 #if !UniRxLibrary
-        static readonly IEqualityComparer<T> defaultEqualityComparer = UnityEqualityComparer.GetDefault<T>();
+        private static readonly IEqualityComparer<T> defaultEqualityComparer = UnityEqualityComparer.GetDefault<T>();
 #else
         static readonly IEqualityComparer<T> defaultEqualityComparer = EqualityComparer<T>.Default;
 #endif
 
-        readonly bool distinctUntilChanged = true;
-        bool canPublishValueOnSubscribe = false;
-        bool isDisposed = false;
-        bool isSourceCompleted = false;
+        private readonly bool distinctUntilChanged = true;
+        private bool isDisposed;
+        private bool isSourceCompleted;
 
-        T latestValue = default(T);
-        Exception lastException = null;
-        IDisposable sourceConnection = null;
+        private T latestValue;
+        private Exception lastException;
+        private readonly IDisposable sourceConnection;
 
-        ObserverNode<T> root;
-        ObserverNode<T> last;
+        private ObserverNode<T> root;
+        private ObserverNode<T> last;
 
-        public T Value
-        {
-            get
-            {
-                return latestValue;
-            }
-        }
+        public T Value => latestValue;
 
-        public bool HasValue
-        {
-            get
-            {
-                return canPublishValueOnSubscribe;
-            }
-        }
+        public bool HasValue { get; private set; }
 
-        protected virtual IEqualityComparer<T> EqualityComparer
-        {
-            get
-            {
-                return defaultEqualityComparer;
-            }
-        }
+        protected virtual IEqualityComparer<T> EqualityComparer => defaultEqualityComparer;
 
         public ReadOnlyReactiveProperty(IObservable<T> source)
         {
-            this.sourceConnection = source.Subscribe(this);
+            sourceConnection = source.Subscribe(this);
         }
 
         public ReadOnlyReactiveProperty(IObservable<T> source, bool distinctUntilChanged)
         {
             this.distinctUntilChanged = distinctUntilChanged;
-            this.sourceConnection = source.Subscribe(this);
+            sourceConnection = source.Subscribe(this);
         }
 
         public ReadOnlyReactiveProperty(IObservable<T> source, T initialValue)
         {
-            this.latestValue = initialValue;
-            this.canPublishValueOnSubscribe = true;
-            this.sourceConnection = source.Subscribe(this);
+            latestValue = initialValue;
+            HasValue = true;
+            sourceConnection = source.Subscribe(this);
         }
 
         public ReadOnlyReactiveProperty(IObservable<T> source, T initialValue, bool distinctUntilChanged)
         {
             this.distinctUntilChanged = distinctUntilChanged;
-            this.latestValue = initialValue;
-            this.canPublishValueOnSubscribe = true;
-            this.sourceConnection = source.Subscribe(this);
+            latestValue = initialValue;
+            HasValue = true;
+            sourceConnection = source.Subscribe(this);
         }
 
         public IDisposable Subscribe(IObserver<T> observer)
@@ -330,17 +285,15 @@ namespace UniRx
 
             if (isSourceCompleted)
             {
-                if (canPublishValueOnSubscribe)
+                if (HasValue)
                 {
                     observer.OnNext(latestValue);
                     observer.OnCompleted();
                     return Disposable.Empty;
                 }
-                else
-                {
-                    observer.OnCompleted();
-                    return Disposable.Empty;
-                }
+
+                observer.OnCompleted();
+                return Disposable.Empty;
             }
 
             if (isDisposed)
@@ -349,10 +302,7 @@ namespace UniRx
                 return Disposable.Empty;
             }
 
-            if (canPublishValueOnSubscribe)
-            {
-                observer.OnNext(latestValue);
-            }
+            if (HasValue) observer.OnNext(latestValue);
 
             // subscribe node, node as subscription.
             var next = new ObserverNode<T>(this, observer);
@@ -394,41 +344,25 @@ namespace UniRx
 
         void IObserverLinkedList<T>.UnsubscribeNode(ObserverNode<T> node)
         {
-            if (node == root)
-            {
-                root = node.Next;
-            }
-            if (node == last)
-            {
-                last = node.Previous;
-            }
+            if (node == root) root = node.Next;
+            if (node == last) last = node.Previous;
 
-            if (node.Previous != null)
-            {
-                node.Previous.Next = node.Next;
-            }
-            if (node.Next != null)
-            {
-                node.Next.Previous = node.Previous;
-            }
+            if (node.Previous != null) node.Previous.Next = node.Next;
+            if (node.Next != null) node.Next.Previous = node.Previous;
         }
 
         void IObserver<T>.OnNext(T value)
         {
             if (isDisposed) return;
 
-            if (canPublishValueOnSubscribe)
-            {
-                if (distinctUntilChanged && EqualityComparer.Equals(this.latestValue, value))
-                {
+            if (HasValue)
+                if (distinctUntilChanged && EqualityComparer.Equals(latestValue, value))
                     return;
-                }
-            }
 
-            canPublishValueOnSubscribe = true;
+            HasValue = true;
 
             // SetValue
-            this.latestValue = value;
+            latestValue = value;
 
             // call source.OnNext
             var node = root;
@@ -462,7 +396,7 @@ namespace UniRx
 
         public override string ToString()
         {
-            return (latestValue == null) ? "(null)" : latestValue.ToString();
+            return latestValue == null ? "(null)" : latestValue.ToString();
         }
 
         public bool IsRequiredSubscribeOnCurrentThread()
@@ -472,7 +406,7 @@ namespace UniRx
     }
 
     /// <summary>
-    /// Extension methods of ReactiveProperty&lt;T&gt;
+    ///     Extension methods of ReactiveProperty&lt;T&gt;
     /// </summary>
     public static class ReactivePropertyExtensions
     {
@@ -491,18 +425,78 @@ namespace UniRx
             return new ReadOnlyReactiveProperty<T>(source);
         }
 
+        /// <summary>
+        ///     Create ReadOnlyReactiveProperty with distinctUntilChanged: false.
+        /// </summary>
+        public static ReadOnlyReactiveProperty<T> ToSequentialReadOnlyReactiveProperty<T>(this IObservable<T> source)
+        {
+            return new ReadOnlyReactiveProperty<T>(source, false);
+        }
+
+        public static ReadOnlyReactiveProperty<T> ToReadOnlyReactiveProperty<T>(this IObservable<T> source,
+            T initialValue)
+        {
+            return new ReadOnlyReactiveProperty<T>(source, initialValue);
+        }
+
+        /// <summary>
+        ///     Create ReadOnlyReactiveProperty with distinctUntilChanged: false.
+        /// </summary>
+        public static ReadOnlyReactiveProperty<T> ToSequentialReadOnlyReactiveProperty<T>(this IObservable<T> source,
+            T initialValue)
+        {
+            return new ReadOnlyReactiveProperty<T>(source, initialValue, false);
+        }
+
+        public static IObservable<T> SkipLatestValueOnSubscribe<T>(this IReadOnlyReactiveProperty<T> source)
+        {
+            return source.HasValue ? source.Skip(1) : source;
+        }
+
+        // for multiple toggle or etc..
+
+        /// <summary>
+        ///     Lastest values of each sequence are all true.
+        /// </summary>
+        public static IObservable<bool> CombineLatestValuesAreAllTrue(this IEnumerable<IObservable<bool>> sources)
+        {
+            return sources.CombineLatest().Select(xs =>
+            {
+                foreach (var item in xs)
+                    if (item == false)
+                        return false;
+                return true;
+            });
+        }
+
+
+        /// <summary>
+        ///     Lastest values of each sequence are all false.
+        /// </summary>
+        public static IObservable<bool> CombineLatestValuesAreAllFalse(this IEnumerable<IObservable<bool>> sources)
+        {
+            return sources.CombineLatest().Select(xs =>
+            {
+                foreach (var item in xs)
+                    if (item)
+                        return false;
+                return true;
+            });
+        }
+
 #if CSHARP_7_OR_LATER || (UNITY_2018_3_OR_NEWER && (NET_STANDARD_2_0 || NET_4_6))
 
-        static readonly Action<object> Callback = CancelCallback;
+        private static readonly Action<object> Callback = CancelCallback;
 
-        static void CancelCallback(object state)
+        private static void CancelCallback(object state)
         {
             var tuple = (Tuple<ICancellableTaskCompletionSource, IDisposable>)state;
             tuple.Item2.Dispose();
             tuple.Item1.TrySetCanceled();
         }
 
-        public static Task<T> WaitUntilValueChangedAsync<T>(this IReadOnlyReactiveProperty<T> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<T> WaitUntilValueChangedAsync<T>(this IReadOnlyReactiveProperty<T> source,
+            CancellationToken cancellationToken = default)
         {
             var tcs = new CancellableTaskCompletionSource<T>();
 
@@ -516,7 +510,6 @@ namespace UniRx
                     if (isFirstValue)
                     {
                         isFirstValue = false;
-                        return;
                     }
                     else
                     {
@@ -539,72 +532,11 @@ namespace UniRx
             return tcs.Task;
         }
 
-        public static System.Runtime.CompilerServices.TaskAwaiter<T> GetAwaiter<T>(this IReadOnlyReactiveProperty<T> source)
+        public static TaskAwaiter<T> GetAwaiter<T>(this IReadOnlyReactiveProperty<T> source)
         {
             return source.WaitUntilValueChangedAsync(CancellationToken.None).GetAwaiter();
         }
 
 #endif
-
-        /// <summary>
-        /// Create ReadOnlyReactiveProperty with distinctUntilChanged: false.
-        /// </summary>
-        public static ReadOnlyReactiveProperty<T> ToSequentialReadOnlyReactiveProperty<T>(this IObservable<T> source)
-        {
-            return new ReadOnlyReactiveProperty<T>(source, distinctUntilChanged: false);
-        }
-
-        public static ReadOnlyReactiveProperty<T> ToReadOnlyReactiveProperty<T>(this IObservable<T> source, T initialValue)
-        {
-            return new ReadOnlyReactiveProperty<T>(source, initialValue);
-        }
-
-        /// <summary>
-        /// Create ReadOnlyReactiveProperty with distinctUntilChanged: false.
-        /// </summary>
-        public static ReadOnlyReactiveProperty<T> ToSequentialReadOnlyReactiveProperty<T>(this IObservable<T> source, T initialValue)
-        {
-            return new ReadOnlyReactiveProperty<T>(source, initialValue, distinctUntilChanged: false);
-        }
-
-        public static IObservable<T> SkipLatestValueOnSubscribe<T>(this IReadOnlyReactiveProperty<T> source)
-        {
-            return source.HasValue ? source.Skip(1) : source;
-        }
-
-        // for multiple toggle or etc..
-
-        /// <summary>
-        /// Lastest values of each sequence are all true.
-        /// </summary>
-        public static IObservable<bool> CombineLatestValuesAreAllTrue(this IEnumerable<IObservable<bool>> sources)
-        {
-            return sources.CombineLatest().Select(xs =>
-            {
-                foreach (var item in xs)
-                {
-                    if (item == false)
-                        return false;
-                }
-                return true;
-            });
-        }
-
-
-        /// <summary>
-        /// Lastest values of each sequence are all false.
-        /// </summary>
-        public static IObservable<bool> CombineLatestValuesAreAllFalse(this IEnumerable<IObservable<bool>> sources)
-        {
-            return sources.CombineLatest().Select(xs =>
-            {
-                foreach (var item in xs)
-                {
-                    if (item == true)
-                        return false;
-                }
-                return true;
-            });
-        }
     }
 }

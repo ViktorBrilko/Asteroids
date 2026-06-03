@@ -5,8 +5,8 @@ namespace UniRx.Operators
 {
     internal class ObserveOnObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly IScheduler scheduler;
+        private readonly IScheduler scheduler;
+        private readonly IObservable<T> source;
 
         public ObserveOnObservable(IObservable<T> source, IScheduler scheduler)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -18,44 +18,20 @@ namespace UniRx.Operators
         protected override IDisposable SubscribeCore(IObserver<T> observer, IDisposable cancel)
         {
             var queueing = scheduler as ISchedulerQueueing;
-            if (queueing == null)
-            {
-                return new ObserveOn(this, observer, cancel).Run();
-            }
-            else
-            {
-                return new ObserveOn_(this, queueing, observer, cancel).Run();
-            }
+            if (queueing == null) return new ObserveOn(this, observer, cancel).Run();
+
+            return new ObserveOn_(this, queueing, observer, cancel).Run();
         }
 
-        class ObserveOn : OperatorObserverBase<T, T>
+        private class ObserveOn : OperatorObserverBase<T, T>
         {
-            class SchedulableAction : IDisposable
-            {
-                public Notification<T> data;
-                public LinkedListNode<SchedulableAction> node;
-                public IDisposable schedule;
+            private readonly LinkedList<SchedulableAction> actions = new();
 
-                public void Dispose()
-                {
-                    if (schedule != null)
-                        schedule.Dispose();
-                    schedule = null;
+            private readonly ObserveOnObservable<T> parent;
+            private bool isDisposed;
 
-                    if (node.List != null)
-                    {
-                        node.List.Remove(node);
-                    }
-                }
-
-                public bool IsScheduled { get { return schedule != null; } }
-            }
-
-            readonly ObserveOnObservable<T> parent;
-            readonly LinkedList<SchedulableAction> actions = new LinkedList<SchedulableAction>();
-            bool isDisposed;
-
-            public ObserveOn(ObserveOnObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public ObserveOn(ObserveOnObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer,
+                cancel)
             {
                 this.parent = parent;
             }
@@ -73,11 +49,9 @@ namespace UniRx.Operators
                         isDisposed = true;
 
                         while (actions.Count > 0)
-						{
-							// Dispose will both cancel the action (if not already running)
-							// and remove it from 'actions'
+                            // Dispose will both cancel the action (if not already running)
+                            // and remove it from 'actions'
                             actions.First.Value.Dispose();
-						}
                     }
                 }));
             }
@@ -153,21 +127,40 @@ namespace UniRx.Operators
                     });
                 }
             }
+
+            private class SchedulableAction : IDisposable
+            {
+                public Notification<T> data;
+                public LinkedListNode<SchedulableAction> node;
+                public IDisposable schedule;
+
+                public bool IsScheduled => schedule != null;
+
+                public void Dispose()
+                {
+                    if (schedule != null)
+                        schedule.Dispose();
+                    schedule = null;
+
+                    if (node.List != null) node.List.Remove(node);
+                }
+            }
         }
 
-        class ObserveOn_ : OperatorObserverBase<T, T>
+        private class ObserveOn_ : OperatorObserverBase<T, T>
         {
-            readonly ObserveOnObservable<T> parent;
-            readonly ISchedulerQueueing scheduler;
-            readonly BooleanDisposable isDisposed;
-            readonly Action<T> onNext;
+            private readonly BooleanDisposable isDisposed;
+            private readonly Action<T> onNext;
+            private readonly ObserveOnObservable<T> parent;
+            private readonly ISchedulerQueueing scheduler;
 
-            public ObserveOn_(ObserveOnObservable<T> parent, ISchedulerQueueing scheduler, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public ObserveOn_(ObserveOnObservable<T> parent, ISchedulerQueueing scheduler, IObserver<T> observer,
+                IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
                 this.scheduler = scheduler;
-                this.isDisposed = new BooleanDisposable();
-                this.onNext = new Action<T>(OnNext_); // cache delegate
+                isDisposed = new BooleanDisposable();
+                onNext = OnNext_; // cache delegate
             }
 
             public IDisposable Run()
@@ -176,19 +169,37 @@ namespace UniRx.Operators
                 return StableCompositeDisposable.Create(sourceDisposable, isDisposed);
             }
 
-            void OnNext_(T value)
+            private void OnNext_(T value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
-            void OnError_(Exception error)
+            private void OnError_(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); };
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
 
-            void OnCompleted_(Unit _)
+            private void OnCompleted_(Unit _)
             {
-                try { observer.OnCompleted(); } finally { Dispose(); };
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
 
             public override void OnNext(T value)

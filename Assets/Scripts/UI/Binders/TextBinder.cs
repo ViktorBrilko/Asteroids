@@ -7,9 +7,9 @@ namespace UI.Binders
 {
     public class TextBinder : IBinder, IObserver<string>
     {
-        private TMP_Text _view;
-        private ReactiveProperty<string> _property;
         private IDisposable _handle;
+        private readonly ReactiveProperty<string> _property;
+        private readonly TMP_Text _view;
 
         public TextBinder(TMP_Text view, ReactiveProperty<string> property)
         {
@@ -20,7 +20,7 @@ namespace UI.Binders
         public void Bind()
         {
             OnNext(_property.Value);
-            _handle = _property.Subscribe(this); 
+            _handle = _property.Subscribe(this);
         }
 
         public void Unbind()
@@ -31,7 +31,7 @@ namespace UI.Binders
 
         public void OnNext(string value)
         {
-           _view.text = value; 
+            _view.text = value;
         }
 
         public void OnCompleted()

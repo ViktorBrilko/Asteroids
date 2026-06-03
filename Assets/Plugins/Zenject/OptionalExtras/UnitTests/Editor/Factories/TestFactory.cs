@@ -26,5 +26,3 @@ namespace Zenject.Tests.AbstractFactory
         }
     }
 }
-
-

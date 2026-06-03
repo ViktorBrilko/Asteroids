@@ -9,11 +9,11 @@ namespace Zenject
         {
             get
             {
-                return new string[]
+                return new[]
                 {
                     "_scriptableObjectInstallers",
                     "_monoInstallers",
-                    "_installerPrefabs",
+                    "_installerPrefabs"
                 };
             }
         }
@@ -22,11 +22,11 @@ namespace Zenject
         {
             get
             {
-                return new string[]
+                return new[]
                 {
                     "Scriptable Object Installers",
                     "Mono Installers",
-                    "Prefab Installers",
+                    "Prefab Installers"
                 };
             }
         }
@@ -35,11 +35,11 @@ namespace Zenject
         {
             get
             {
-                return new string[]
+                return new[]
                 {
                     "Drag any assets in your Project that implement ScriptableObjectInstaller here",
                     "Drag any MonoInstallers that you have added to your Scene Hierarchy here.",
-                    "Drag any prefabs that contain a MonoInstaller on them here",
+                    "Drag any prefabs that contain a MonoInstaller on them here"
                 };
             }
         }

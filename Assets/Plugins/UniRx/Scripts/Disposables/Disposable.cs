@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 
 namespace UniRx
 {
@@ -17,13 +16,12 @@ namespace UniRx
             return new AnonymousDisposable<TState>(state, disposeAction);
         }
 
-        class EmptyDisposable : IDisposable
+        private class EmptyDisposable : IDisposable
         {
-            public static EmptyDisposable Singleton = new EmptyDisposable();
+            public static readonly EmptyDisposable Singleton = new();
 
             private EmptyDisposable()
             {
-
             }
 
             public void Dispose()
@@ -31,10 +29,10 @@ namespace UniRx
             }
         }
 
-        class AnonymousDisposable : IDisposable
+        private class AnonymousDisposable : IDisposable
         {
-            bool isDisposed = false;
-            readonly Action dispose;
+            private readonly Action dispose;
+            private bool isDisposed;
 
             public AnonymousDisposable(Action dispose)
             {
@@ -51,11 +49,11 @@ namespace UniRx
             }
         }
 
-        class AnonymousDisposable<T> : IDisposable
+        private class AnonymousDisposable<T> : IDisposable
         {
-            bool isDisposed = false;
-            readonly T state;
-            readonly Action<T> dispose;
+            private readonly Action<T> dispose;
+            private readonly T state;
+            private bool isDisposed;
 
             public AnonymousDisposable(T state, Action<T> dispose)
             {

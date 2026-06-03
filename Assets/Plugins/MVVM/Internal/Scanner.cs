@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEngine;
 
 namespace MVVM
 {
@@ -9,10 +7,10 @@ namespace MVVM
     {
         public static IReadOnlyDictionary<object, MemberInfo> ScanMembers(object target)
         {
-            Dictionary<object, MemberInfo> members = new Dictionary<object, MemberInfo>();
+            var members = new Dictionary<object, MemberInfo>();
 
-            Type type = target.GetType();
-            FieldInfo[] fields = type.GetFields(
+            var type = target.GetType();
+            var fields = type.GetFields(
                 BindingFlags.Instance |
                 BindingFlags.Public |
                 BindingFlags.FlattenHierarchy
@@ -20,44 +18,35 @@ namespace MVVM
 
             foreach (var field in fields)
             {
-                MemberAttribute attribute = field.GetCustomAttribute<MemberAttribute>();
-                if (attribute != null)
-                {
-                    members[attribute.id] = field;
-                }
+                var attribute = field.GetCustomAttribute<MemberAttribute>();
+                if (attribute != null) members[attribute.id] = field;
             }
 
-            MethodInfo[] methods = type.GetMethods(
+            var methods = type.GetMethods(
                 BindingFlags.Instance |
                 BindingFlags.Public |
                 BindingFlags.FlattenHierarchy
             );
 
-            foreach (MethodInfo method in methods)
+            foreach (var method in methods)
             {
-                MemberAttribute attribute = method.GetCustomAttribute<MemberAttribute>();
-                if (attribute != null)
-                {
-                    members[attribute.id] = method;
-                }
+                var attribute = method.GetCustomAttribute<MemberAttribute>();
+                if (attribute != null) members[attribute.id] = method;
             }
 
-            PropertyInfo[] properties = type.GetProperties(
+            var properties = type.GetProperties(
                 BindingFlags.Instance |
                 BindingFlags.Public |
                 BindingFlags.FlattenHierarchy
             );
 
-            foreach (PropertyInfo property in properties)
+            foreach (var property in properties)
             {
-                MemberAttribute attribute = property.GetCustomAttribute<MemberAttribute>();
-                if (attribute != null)
-                {
-                    members[attribute.id] = property;
-                }
+                var attribute = property.GetCustomAttribute<MemberAttribute>();
+                if (attribute != null) members[attribute.id] = property;
             }
 
-            EventInfo[] events = type.GetEvents(
+            var events = type.GetEvents(
                 BindingFlags.Instance |
                 BindingFlags.Public |
                 BindingFlags.FlattenHierarchy
@@ -65,11 +54,8 @@ namespace MVVM
 
             foreach (var eventInfo in events)
             {
-                MemberAttribute attribute = eventInfo.GetCustomAttribute<MemberAttribute>();
-                if (attribute != null)
-                {
-                    members[attribute.id] = eventInfo;
-                }
+                var attribute = eventInfo.GetCustomAttribute<MemberAttribute>();
+                if (attribute != null) members[attribute.id] = eventInfo;
             }
 
             return members;

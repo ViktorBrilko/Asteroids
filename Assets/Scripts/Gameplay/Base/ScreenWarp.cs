@@ -16,8 +16,8 @@ namespace Gameplay.Base
 
         public void Warp()
         {
-            Vector3 position = transform.position;
-            Bounds bounds = _field.GetComponent<Collider2D>().bounds;
+            var position = transform.position;
+            var bounds = _field.GetComponent<Collider2D>().bounds;
 
             if (position.x > bounds.max.x)
                 transform.position = new Vector3(-transform.position.x + 1, transform.position.y);

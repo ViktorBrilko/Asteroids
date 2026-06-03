@@ -7,8 +7,8 @@ namespace UI.Binders
 {
     public class SliderBinder : IBinder
     {
-        private readonly Slider _view;
         private readonly UnityAction<float> _modelAction;
+        private readonly Slider _view;
 
         public SliderBinder(Slider view, Action<float> model)
         {

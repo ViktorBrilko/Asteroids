@@ -1,11 +1,12 @@
 ﻿using System;
+using UniRx.InternalUtil;
 
 namespace UniRx.Operators
 {
     internal class SkipUntilObservable<T, TOther> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly IObservable<TOther> other;
+        private readonly IObservable<TOther> other;
+        private readonly IObservable<T> source;
 
         public SkipUntilObservable(IObservable<T> source, IObservable<TOther> other)
             : base(source.IsRequiredSubscribeOnCurrentThread() || other.IsRequiredSubscribeOnCurrentThread())
@@ -19,11 +20,12 @@ namespace UniRx.Operators
             return new SkipUntilOuterObserver(this, observer, cancel).Run();
         }
 
-        class SkipUntilOuterObserver : OperatorObserverBase<T, T>
+        private class SkipUntilOuterObserver : OperatorObserverBase<T, T>
         {
-            readonly SkipUntilObservable<T, TOther> parent;
+            private readonly SkipUntilObservable<T, TOther> parent;
 
-            public SkipUntilOuterObserver(SkipUntilObservable<T, TOther> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public SkipUntilOuterObserver(SkipUntilObservable<T, TOther> parent, IObserver<T> observer,
+                IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
             }
@@ -32,7 +34,7 @@ namespace UniRx.Operators
             {
                 var sourceSubscription = new SingleAssignmentDisposable();
                 var sourceObserver = new SkipUntil(this, sourceSubscription);
-                
+
                 var otherSubscription = new SingleAssignmentDisposable();
                 var otherObserver = new SkipUntilOther(this, sourceObserver, otherSubscription);
 
@@ -54,16 +56,16 @@ namespace UniRx.Operators
             {
             }
 
-            class SkipUntil : IObserver<T>
+            private class SkipUntil : IObserver<T>
             {
+                private readonly SkipUntilOuterObserver parent;
+                private readonly IDisposable subscription;
                 public volatile IObserver<T> observer;
-                readonly SkipUntilOuterObserver parent;
-                readonly IDisposable subscription;
 
                 public SkipUntil(SkipUntilOuterObserver parent, IDisposable subscription)
                 {
                     this.parent = parent;
-                    observer = UniRx.InternalUtil.EmptyObserver<T>.Instance;
+                    observer = EmptyObserver<T>.Instance;
                     this.subscription = subscription;
                 }
 
@@ -74,22 +76,34 @@ namespace UniRx.Operators
 
                 public void OnError(Exception error)
                 {
-                    try { observer.OnError(error); }
-                    finally { parent.Dispose(); }
+                    try
+                    {
+                        observer.OnError(error);
+                    }
+                    finally
+                    {
+                        parent.Dispose();
+                    }
                 }
 
                 public void OnCompleted()
                 {
-                    try { observer.OnCompleted(); }
-                    finally { subscription.Dispose(); }
+                    try
+                    {
+                        observer.OnCompleted();
+                    }
+                    finally
+                    {
+                        subscription.Dispose();
+                    }
                 }
             }
 
-            class SkipUntilOther : IObserver<TOther>
+            private class SkipUntilOther : IObserver<TOther>
             {
-                readonly SkipUntilOuterObserver parent;
-                readonly SkipUntil sourceObserver;
-                readonly IDisposable subscription;
+                private readonly SkipUntilOuterObserver parent;
+                private readonly SkipUntil sourceObserver;
+                private readonly IDisposable subscription;
 
                 public SkipUntilOther(SkipUntilOuterObserver parent, SkipUntil sourceObserver, IDisposable subscription)
                 {
@@ -106,7 +120,14 @@ namespace UniRx.Operators
 
                 public void OnError(Exception error)
                 {
-                    try { parent.observer.OnError(error); } finally { parent.Dispose(); }
+                    try
+                    {
+                        parent.observer.OnError(error);
+                    }
+                    finally
+                    {
+                        parent.Dispose();
+                    }
                 }
 
                 public void OnCompleted()

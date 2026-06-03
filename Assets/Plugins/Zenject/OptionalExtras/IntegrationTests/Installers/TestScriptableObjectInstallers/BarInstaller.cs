@@ -3,7 +3,7 @@ namespace Zenject.Tests.Installers.ScriptableObjectInstallers
     //[CreateAssetMenu(fileName = "BarInstaller", menuName = "Installers/BarInstaller")]
     public class BarInstaller : ScriptableObjectInstaller<string, BarInstaller>
     {
-        string _value;
+        private string _value;
 
         [Inject]
         public void Construct(string value)

@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using UniRx.InternalUtil;
-
 #if (NET_4_6 || NET_STANDARD_2_0)
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -14,35 +13,44 @@ namespace UniRx
         , INotifyCompletion
 #endif
     {
-        object observerLock = new object();
+        private bool hasValue;
+        private bool isDisposed;
+        private Exception lastError;
 
-        T lastValue;
-        bool hasValue;
-        bool isStopped;
-        bool isDisposed;
-        Exception lastError;
-        IObserver<T> outObserver = EmptyObserver<T>.Instance;
+        private T lastValue;
+        private readonly object observerLock = new();
+        private IObserver<T> outObserver = EmptyObserver<T>.Instance;
 
         public T Value
         {
             get
             {
                 ThrowIfDisposed();
-                if (!isStopped) throw new InvalidOperationException("AsyncSubject is not completed yet");
+                if (!IsCompleted) throw new InvalidOperationException("AsyncSubject is not completed yet");
                 if (lastError != null) lastError.Throw();
                 return lastValue;
             }
         }
 
-        public bool HasObservers
+        public bool HasObservers => !(outObserver is EmptyObserver<T>) && !IsCompleted && !isDisposed;
+
+        public bool IsCompleted { get; private set; }
+
+        public void Dispose()
         {
-            get
+            lock (observerLock)
             {
-                return !(outObserver is EmptyObserver<T>) && !isStopped && !isDisposed;
+                isDisposed = true;
+                outObserver = DisposedObserver<T>.Instance;
+                lastError = null;
+                lastValue = default;
             }
         }
 
-        public bool IsCompleted { get { return isStopped; } }
+        public bool IsRequiredSubscribeOnCurrentThread()
+        {
+            return false;
+        }
 
         public void OnCompleted()
         {
@@ -52,11 +60,11 @@ namespace UniRx
             lock (observerLock)
             {
                 ThrowIfDisposed();
-                if (isStopped) return;
+                if (IsCompleted) return;
 
                 old = outObserver;
                 outObserver = EmptyObserver<T>.Instance;
-                isStopped = true;
+                IsCompleted = true;
                 v = lastValue;
                 hv = hasValue;
             }
@@ -80,11 +88,11 @@ namespace UniRx
             lock (observerLock)
             {
                 ThrowIfDisposed();
-                if (isStopped) return;
+                if (IsCompleted) return;
 
                 old = outObserver;
                 outObserver = EmptyObserver<T>.Instance;
-                isStopped = true;
+                IsCompleted = true;
                 lastError = error;
             }
 
@@ -96,10 +104,10 @@ namespace UniRx
             lock (observerLock)
             {
                 ThrowIfDisposed();
-                if (isStopped) return;
+                if (IsCompleted) return;
 
-                this.hasValue = true;
-                this.lastValue = value;
+                hasValue = true;
+                lastValue = value;
             }
         }
 
@@ -114,7 +122,7 @@ namespace UniRx
             lock (observerLock)
             {
                 ThrowIfDisposed();
-                if (!isStopped)
+                if (!IsCompleted)
                 {
                     var listObserver = outObserver as ListObserver<T>;
                     if (listObserver != null)
@@ -125,13 +133,10 @@ namespace UniRx
                     {
                         var current = outObserver;
                         if (current is EmptyObserver<T>)
-                        {
                             outObserver = observer;
-                        }
                         else
-                        {
-                            outObserver = new ListObserver<T>(new ImmutableList<IObserver<T>>(new[] { current, observer }));
-                        }
+                            outObserver =
+                                new ListObserver<T>(new ImmutableList<IObserver<T>>(new[] { current, observer }));
                     }
 
                     return new Subscription(this, observer);
@@ -159,32 +164,16 @@ namespace UniRx
             return Disposable.Empty;
         }
 
-        public void Dispose()
-        {
-            lock (observerLock)
-            {
-                isDisposed = true;
-                outObserver = DisposedObserver<T>.Instance;
-                lastError = null;
-                lastValue = default(T);
-            }
-        }
-
-        void ThrowIfDisposed()
+        private void ThrowIfDisposed()
         {
             if (isDisposed) throw new ObjectDisposedException("");
         }
 
-        public bool IsRequiredSubscribeOnCurrentThread()
+        private class Subscription : IDisposable
         {
-            return false;
-        }
-
-        class Subscription : IDisposable
-        {
-            readonly object gate = new object();
-            AsyncSubject<T> parent;
-            IObserver<T> unsubscribeTarget;
+            private readonly object gate = new();
+            private AsyncSubject<T> parent;
+            private IObserver<T> unsubscribeTarget;
 
             public Subscription(AsyncSubject<T> parent, IObserver<T> unsubscribeTarget)
             {
@@ -197,23 +186,17 @@ namespace UniRx
                 lock (gate)
                 {
                     if (parent != null)
-                    {
                         lock (parent.observerLock)
                         {
                             var listObserver = parent.outObserver as ListObserver<T>;
                             if (listObserver != null)
-                            {
                                 parent.outObserver = listObserver.Remove(unsubscribeTarget);
-                            }
                             else
-                            {
                                 parent.outObserver = EmptyObserver<T>.Instance;
-                            }
 
                             unsubscribeTarget = null;
                             parent = null;
                         }
-                    }
                 }
             }
         }
@@ -222,7 +205,7 @@ namespace UniRx
 #if (NET_4_6 || NET_STANDARD_2_0)
 
         /// <summary>
-        /// Gets an awaitable object for the current AsyncSubject.
+        ///     Gets an awaitable object for the current AsyncSubject.
         /// </summary>
         /// <returns>Object that can be awaited.</returns>
         public AsyncSubject<T> GetAwaiter()
@@ -231,10 +214,10 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Specifies a callback action that will be invoked when the subject completes.
+        ///     Specifies a callback action that will be invoked when the subject completes.
         /// </summary>
         /// <param name="continuation">Callback action that will be invoked when the subject completes.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="continuation"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="continuation" /> is null.</exception>
         public void OnCompleted(Action continuation)
         {
             if (continuation == null)
@@ -243,18 +226,18 @@ namespace UniRx
             OnCompleted(continuation, true);
         }
 
-         void OnCompleted(Action continuation, bool originalContext)
+        private void OnCompleted(Action continuation, bool originalContext)
         {
             //
             // [OK] Use of unsafe Subscribe: this type's Subscribe implementation is safe.
             //
-            this.Subscribe/*Unsafe*/(new AwaitObserver(continuation, originalContext));
+            Subscribe /*Unsafe*/(new AwaitObserver(continuation, originalContext));
         }
 
-        class AwaitObserver : IObserver<T>
+        private class AwaitObserver : IObserver<T>
         {
-            private readonly SynchronizationContext _context;
             private readonly Action _callback;
+            private readonly SynchronizationContext _context;
 
             public AwaitObserver(Action callback, bool originalContext)
             {
@@ -281,7 +264,6 @@ namespace UniRx
             private void InvokeOnOriginalContext()
             {
                 if (_context != null)
-                {
                     //
                     // No need for OperationStarted and OperationCompleted calls here;
                     // this code is invoked through await support and will have a way
@@ -290,33 +272,29 @@ namespace UniRx
                     // SynchronizationContext object.
                     //
                     _context.Post(c => ((Action)c)(), _callback);
-                }
                 else
-                {
                     _callback();
-                }
             }
         }
 
         /// <summary>
-        /// Gets the last element of the subject, potentially blocking until the subject completes successfully or exceptionally.
+        ///     Gets the last element of the subject, potentially blocking until the subject completes successfully or
+        ///     exceptionally.
         /// </summary>
         /// <returns>The last element of the subject. Throws an InvalidOperationException if no element was received.</returns>
         /// <exception cref="InvalidOperationException">The source sequence is empty.</exception>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate", Justification = "Await pattern for C# and VB compilers.")]
+        [SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate",
+            Justification = "Await pattern for C# and VB compilers.")]
         public T GetResult()
         {
-            if (!isStopped)
+            if (!IsCompleted)
             {
                 var e = new ManualResetEvent(false);
                 OnCompleted(() => e.Set(), false);
                 e.WaitOne();
             }
 
-            if (lastError != null)
-            {
-                lastError.Throw();
-            }
+            if (lastError != null) lastError.Throw();
 
             if (!hasValue)
                 throw new InvalidOperationException("NO_ELEMENTS");

@@ -9,20 +9,13 @@ namespace Gameplay.Gamefields
     {
         private GameFieldConfig _config;
         private Vector3 _startPosition;
-        private BoxCollider2D _collider;
 
-        public BoxCollider2D Collider => _collider;
-
-        [Inject]
-        public void Construct(GameFieldConfig config)
-        {
-            _config = config;
-        }
+        public BoxCollider2D Collider { get; private set; }
 
         private void Awake()
         {
-            _collider = GetComponent<BoxCollider2D>();
-            _collider.size = new Vector3(_config.XSize, _config.YSize, 0);
+            Collider = GetComponent<BoxCollider2D>();
+            Collider.size = new Vector3(_config.XSize, _config.YSize, 0);
         }
 
 #if UNITY_EDITOR
@@ -35,10 +28,13 @@ namespace Gameplay.Gamefields
 
         private void OnTriggerExit2D(Collider2D other)
         {
-            if (other.TryGetComponent(out ScreenWarp screenWarp))
-            {
-                screenWarp.Warp();
-            }
+            if (other.TryGetComponent(out ScreenWarp screenWarp)) screenWarp.Warp();
+        }
+
+        [Inject]
+        public void Construct(GameFieldConfig config)
+        {
+            _config = config;
         }
     }
 }

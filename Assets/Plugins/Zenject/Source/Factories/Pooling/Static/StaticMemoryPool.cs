@@ -9,10 +9,10 @@ namespace Zenject
         where TValue : class
     {
         // I also tried using ConcurrentBag instead of Stack + lock here but that performed much much worse
-        readonly Stack<TValue> _stack = new Stack<TValue>();
+        private readonly Stack<TValue> _stack = new();
 
-        Action<TValue> _onDespawnedMethod;
-        int _activeCount;
+        private Action<TValue> _onDespawnedMethod;
+        private int _activeCount;
 
 #if ZEN_MULTITHREADING
         protected readonly object _locker = new object();
@@ -29,13 +29,10 @@ namespace Zenject
 
         public Action<TValue> OnDespawnedMethod
         {
-            set { _onDespawnedMethod = value; }
+            set => _onDespawnedMethod = value;
         }
 
-        public int NumTotal
-        {
-            get { return NumInactive + NumActive; }
-        }
+        public int NumTotal => NumInactive + NumActive;
 
         public int NumActive
         {
@@ -63,10 +60,7 @@ namespace Zenject
             }
         }
 
-        public Type ItemType
-        {
-            get { return typeof(TValue); }
-        }
+        public Type ItemType => typeof(TValue);
 
         public void Resize(int desiredPoolSize)
         {
@@ -79,19 +73,13 @@ namespace Zenject
         }
 
         // We assume here that we're in a lock
-        void ResizeInternal(int desiredPoolSize)
+        private void ResizeInternal(int desiredPoolSize)
         {
             Assert.That(desiredPoolSize >= 0, "Attempted to resize the pool to a negative amount");
 
-            while (_stack.Count > desiredPoolSize)
-            {
-                _stack.Pop();
-            }
+            while (_stack.Count > desiredPoolSize) _stack.Pop();
 
-            while (desiredPoolSize > _stack.Count)
-            {
-                _stack.Push(Alloc());
-            }
+            while (desiredPoolSize > _stack.Count) _stack.Push(Alloc());
 
             Assert.IsEqual(_stack.Count, desiredPoolSize);
         }
@@ -144,13 +132,9 @@ namespace Zenject
             TValue element;
 
             if (_stack.Count == 0)
-            {
                 element = Alloc();
-            }
             else
-            {
                 element = _stack.Pop();
-            }
 
             _activeCount++;
             return element;
@@ -163,10 +147,7 @@ namespace Zenject
 
         public void Despawn(TValue element)
         {
-            if (_onDespawnedMethod != null)
-            {
-                _onDespawnedMethod(element);
-            }
+            if (_onDespawnedMethod != null) _onDespawnedMethod(element);
 
 #if ZEN_MULTITHREADING
             lock (_locker)
@@ -203,7 +184,7 @@ namespace Zenject
     public class StaticMemoryPool<TValue> : StaticMemoryPoolBase<TValue>, IMemoryPool<TValue>
         where TValue : class, new()
     {
-        Action<TValue> _onSpawnMethod;
+        private Action<TValue> _onSpawnMethod;
 
         public StaticMemoryPool(
             Action<TValue> onSpawnMethod = null, Action<TValue> onDespawnedMethod = null)
@@ -214,7 +195,7 @@ namespace Zenject
 
         public Action<TValue> OnSpawnMethod
         {
-            set { _onSpawnMethod = value; }
+            set => _onSpawnMethod = value;
         }
 
         public TValue Spawn()
@@ -225,10 +206,7 @@ namespace Zenject
             {
                 var item = SpawnInternal();
 
-                if (_onSpawnMethod != null)
-                {
-                    _onSpawnMethod(item);
-                }
+                if (_onSpawnMethod != null) _onSpawnMethod(item);
 
                 return item;
             }
@@ -241,7 +219,7 @@ namespace Zenject
     public class StaticMemoryPool<TParam1, TValue> : StaticMemoryPoolBase<TValue>, IMemoryPool<TParam1, TValue>
         where TValue : class, new()
     {
-        Action<TParam1, TValue> _onSpawnMethod;
+        private Action<TParam1, TValue> _onSpawnMethod;
 
         public StaticMemoryPool(
             Action<TParam1, TValue> onSpawnMethod, Action<TValue> onDespawnedMethod = null)
@@ -254,7 +232,7 @@ namespace Zenject
 
         public Action<TParam1, TValue> OnSpawnMethod
         {
-            set { _onSpawnMethod = value; }
+            set => _onSpawnMethod = value;
         }
 
         public TValue Spawn(TParam1 param)
@@ -265,10 +243,7 @@ namespace Zenject
             {
                 var item = SpawnInternal();
 
-                if (_onSpawnMethod != null)
-                {
-                    _onSpawnMethod(param, item);
-                }
+                if (_onSpawnMethod != null) _onSpawnMethod(param, item);
 
                 return item;
             }
@@ -278,10 +253,11 @@ namespace Zenject
     // Two parameter
 
     [NoReflectionBaking]
-    public class StaticMemoryPool<TParam1, TParam2, TValue> : StaticMemoryPoolBase<TValue>, IMemoryPool<TParam1, TParam2, TValue>
+    public class StaticMemoryPool<TParam1, TParam2, TValue> : StaticMemoryPoolBase<TValue>,
+        IMemoryPool<TParam1, TParam2, TValue>
         where TValue : class, new()
     {
-        Action<TParam1, TParam2, TValue> _onSpawnMethod;
+        private Action<TParam1, TParam2, TValue> _onSpawnMethod;
 
         public StaticMemoryPool(
             Action<TParam1, TParam2, TValue> onSpawnMethod, Action<TValue> onDespawnedMethod = null)
@@ -294,7 +270,7 @@ namespace Zenject
 
         public Action<TParam1, TParam2, TValue> OnSpawnMethod
         {
-            set { _onSpawnMethod = value; }
+            set => _onSpawnMethod = value;
         }
 
         public TValue Spawn(TParam1 p1, TParam2 p2)
@@ -305,10 +281,7 @@ namespace Zenject
             {
                 var item = SpawnInternal();
 
-                if (_onSpawnMethod != null)
-                {
-                    _onSpawnMethod(p1, p2, item);
-                }
+                if (_onSpawnMethod != null) _onSpawnMethod(p1, p2, item);
 
                 return item;
             }
@@ -318,10 +291,11 @@ namespace Zenject
     // Three parameters
 
     [NoReflectionBaking]
-    public class StaticMemoryPool<TParam1, TParam2, TParam3, TValue> : StaticMemoryPoolBase<TValue>, IMemoryPool<TParam1, TParam2, TParam3, TValue>
+    public class StaticMemoryPool<TParam1, TParam2, TParam3, TValue> : StaticMemoryPoolBase<TValue>,
+        IMemoryPool<TParam1, TParam2, TParam3, TValue>
         where TValue : class, new()
     {
-        Action<TParam1, TParam2, TParam3, TValue> _onSpawnMethod;
+        private Action<TParam1, TParam2, TParam3, TValue> _onSpawnMethod;
 
         public StaticMemoryPool(
             Action<TParam1, TParam2, TParam3, TValue> onSpawnMethod, Action<TValue> onDespawnedMethod = null)
@@ -334,7 +308,7 @@ namespace Zenject
 
         public Action<TParam1, TParam2, TParam3, TValue> OnSpawnMethod
         {
-            set { _onSpawnMethod = value; }
+            set => _onSpawnMethod = value;
         }
 
         public TValue Spawn(TParam1 p1, TParam2 p2, TParam3 p3)
@@ -345,10 +319,7 @@ namespace Zenject
             {
                 var item = SpawnInternal();
 
-                if (_onSpawnMethod != null)
-                {
-                    _onSpawnMethod(p1, p2, p3, item);
-                }
+                if (_onSpawnMethod != null) _onSpawnMethod(p1, p2, p3, item);
 
                 return item;
             }
@@ -358,11 +329,12 @@ namespace Zenject
     // Four parameters
 
     [NoReflectionBaking]
-    public class StaticMemoryPool<TParam1, TParam2, TParam3, TParam4, TValue> : StaticMemoryPoolBase<TValue>, IMemoryPool<TParam1, TParam2, TParam3, TParam4, TValue>
+    public class StaticMemoryPool<TParam1, TParam2, TParam3, TParam4, TValue> : StaticMemoryPoolBase<TValue>,
+        IMemoryPool<TParam1, TParam2, TParam3, TParam4, TValue>
         where TValue : class, new()
     {
 #if !NET_4_6
-        ModestTree.Util.
+        private ModestTree.Util.
 #endif
             Action<TParam1, TParam2, TParam3, TParam4, TValue> _onSpawnMethod;
 
@@ -370,7 +342,8 @@ namespace Zenject
 #if !NET_4_6
             ModestTree.Util.
 #endif
-            Action<TParam1, TParam2, TParam3, TParam4, TValue> onSpawnMethod, Action<TValue> onDespawnedMethod = null)
+                Action<TParam1, TParam2, TParam3, TParam4, TValue> onSpawnMethod,
+            Action<TValue> onDespawnedMethod = null)
             : base(onDespawnedMethod)
         {
             // What's the point of having a param otherwise?
@@ -395,10 +368,7 @@ namespace Zenject
             {
                 var item = SpawnInternal();
 
-                if (_onSpawnMethod != null)
-                {
-                    _onSpawnMethod(p1, p2, p3, p4, item);
-                }
+                if (_onSpawnMethod != null) _onSpawnMethod(p1, p2, p3, p4, item);
 
                 return item;
             }
@@ -408,11 +378,12 @@ namespace Zenject
     // Five parameters
 
     [NoReflectionBaking]
-    public class StaticMemoryPool<TParam1, TParam2, TParam3, TParam4, TParam5, TValue> : StaticMemoryPoolBase<TValue>, IMemoryPool<TParam1, TParam2, TParam3, TParam4, TParam5, TValue>
+    public class StaticMemoryPool<TParam1, TParam2, TParam3, TParam4, TParam5, TValue> : StaticMemoryPoolBase<TValue>,
+        IMemoryPool<TParam1, TParam2, TParam3, TParam4, TParam5, TValue>
         where TValue : class, new()
     {
 #if !NET_4_6
-        ModestTree.Util.
+        private ModestTree.Util.
 #endif
             Action<TParam1, TParam2, TParam3, TParam4, TParam5, TValue> _onSpawnMethod;
 
@@ -420,7 +391,8 @@ namespace Zenject
 #if !NET_4_6
             ModestTree.Util.
 #endif
-            Action<TParam1, TParam2, TParam3, TParam4, TParam5, TValue> onSpawnMethod, Action<TValue> onDespawnedMethod = null)
+                Action<TParam1, TParam2, TParam3, TParam4, TParam5, TValue> onSpawnMethod,
+            Action<TValue> onDespawnedMethod = null)
             : base(onDespawnedMethod)
         {
             // What's the point of having a param otherwise?
@@ -445,10 +417,7 @@ namespace Zenject
             {
                 var item = SpawnInternal();
 
-                if (_onSpawnMethod != null)
-                {
-                    _onSpawnMethod(p1, p2, p3, p4, p5, item);
-                }
+                if (_onSpawnMethod != null) _onSpawnMethod(p1, p2, p3, p4, p5, item);
 
                 return item;
             }
@@ -458,11 +427,12 @@ namespace Zenject
     // Six parameters
 
     [NoReflectionBaking]
-    public class StaticMemoryPool<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TValue> : StaticMemoryPoolBase<TValue>, IMemoryPool<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TValue>
+    public class StaticMemoryPool<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TValue> :
+        StaticMemoryPoolBase<TValue>, IMemoryPool<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TValue>
         where TValue : class, new()
     {
 #if !NET_4_6
-        ModestTree.Util.
+        private ModestTree.Util.
 #endif
             Action<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TValue> _onSpawnMethod;
 
@@ -470,7 +440,8 @@ namespace Zenject
 #if !NET_4_6
             ModestTree.Util.
 #endif
-            Action<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TValue> onSpawnMethod, Action<TValue> onDespawnedMethod = null)
+                Action<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TValue> onSpawnMethod,
+            Action<TValue> onDespawnedMethod = null)
             : base(onDespawnedMethod)
         {
             // What's the point of having a param otherwise?
@@ -495,10 +466,7 @@ namespace Zenject
             {
                 var item = SpawnInternal();
 
-                if (_onSpawnMethod != null)
-                {
-                    _onSpawnMethod(p1, p2, p3, p4, p5, p6, item);
-                }
+                if (_onSpawnMethod != null) _onSpawnMethod(p1, p2, p3, p4, p5, p6, item);
 
                 return item;
             }
@@ -508,11 +476,12 @@ namespace Zenject
     // Seven parameters
 
     [NoReflectionBaking]
-    public class StaticMemoryPool<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TValue> : StaticMemoryPoolBase<TValue>, IMemoryPool<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TValue>
+    public class StaticMemoryPool<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TValue> :
+        StaticMemoryPoolBase<TValue>, IMemoryPool<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TValue>
         where TValue : class, new()
     {
 #if !NET_4_6
-        ModestTree.Util.
+        private ModestTree.Util.
 #endif
             Action<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TValue> _onSpawnMethod;
 
@@ -520,7 +489,8 @@ namespace Zenject
 #if !NET_4_6
             ModestTree.Util.
 #endif
-            Action<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TValue> onSpawnMethod, Action<TValue> onDespawnedMethod = null)
+                Action<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TValue> onSpawnMethod,
+            Action<TValue> onDespawnedMethod = null)
             : base(onDespawnedMethod)
         {
             // What's the point of having a param otherwise?
@@ -545,10 +515,7 @@ namespace Zenject
             {
                 var item = SpawnInternal();
 
-                if (_onSpawnMethod != null)
-                {
-                    _onSpawnMethod(p1, p2, p3, p4, p5, p6, p7, item);
-                }
+                if (_onSpawnMethod != null) _onSpawnMethod(p1, p2, p3, p4, p5, p6, p7, item);
 
                 return item;
             }

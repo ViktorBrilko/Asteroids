@@ -3,21 +3,21 @@
 using System;
 using System.Collections.Generic;
 using ModestTree;
-using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Zenject
 {
     [NoReflectionBaking]
     public class PrefabBindingFinalizer : ProviderBindingFinalizer
     {
-        readonly GameObjectCreationParameters _gameObjectBindInfo;
-        readonly UnityEngine.Object _prefab;
-        readonly Func<Type, IPrefabInstantiator, IProvider> _providerFactory;
+        private readonly GameObjectCreationParameters _gameObjectBindInfo;
+        private readonly Object _prefab;
+        private readonly Func<Type, IPrefabInstantiator, IProvider> _providerFactory;
 
         public PrefabBindingFinalizer(
             BindInfo bindInfo,
             GameObjectCreationParameters gameObjectBindInfo,
-            UnityEngine.Object prefab, Func<Type, IPrefabInstantiator, IProvider> providerFactory)
+            Object prefab, Func<Type, IPrefabInstantiator, IProvider> providerFactory)
             : base(bindInfo)
         {
             _gameObjectBindInfo = gameObjectBindInfo;
@@ -38,7 +38,7 @@ namespace Zenject
             }
         }
 
-        void FinalizeBindingConcrete(DiContainer container, List<Type> concreteTypes)
+        private void FinalizeBindingConcrete(DiContainer container, List<Type> concreteTypes)
         {
             var scope = GetScope();
 
@@ -67,10 +67,8 @@ namespace Zenject
                     var argumentTarget = concreteTypes.OnlyOrDefault();
 
                     if (argumentTarget == null)
-                    {
                         Assert.That(BindInfo.Arguments.IsEmpty(),
                             "Cannot provide arguments to prefab instantiator when using more than one concrete type");
-                    }
 
                     var prefabCreator = new PrefabInstantiatorCached(
                         new PrefabInstantiator(
@@ -96,7 +94,7 @@ namespace Zenject
             }
         }
 
-        void FinalizeBindingSelf(DiContainer container)
+        private void FinalizeBindingSelf(DiContainer container)
         {
             var scope = GetScope();
 
@@ -124,10 +122,8 @@ namespace Zenject
                     var argumentTarget = BindInfo.ContractTypes.OnlyOrDefault();
 
                     if (argumentTarget == null)
-                    {
                         Assert.That(BindInfo.Arguments.IsEmpty(),
                             "Cannot provide arguments to prefab instantiator when using more than one concrete type");
-                    }
 
                     var prefabCreator = new PrefabInstantiatorCached(
                         new PrefabInstantiator(

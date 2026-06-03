@@ -6,25 +6,22 @@ namespace Zenject.Tests
     [TestFixture]
     public class TestValidationSettings
     {
-        DiContainer Container
-        {
-            get; set;
-        }
-
         [SetUp]
         public void Setup()
         {
             Container = new DiContainer(true);
         }
 
+        private DiContainer Container { get; set; }
+
         // Doesn't work because the logged error is flagged as a test error
         //[Test]
         //public void TestValidationErrorLogOnly()
         //{
-            //Container.Settings = new ZenjectSettings(ValidationErrorResponses.Log);
-            //Container.Bind<Bar>().AsSingle().NonLazy();
+        //Container.Settings = new ZenjectSettings(ValidationErrorResponses.Log);
+        //Container.Bind<Bar>().AsSingle().NonLazy();
 
-            //Container.ResolveRoots();
+        //Container.ResolveRoots();
         //}
 
         [Test]
@@ -70,5 +67,3 @@ namespace Zenject.Tests
         }
     }
 }
-
-

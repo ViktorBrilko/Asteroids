@@ -1,15 +1,16 @@
-﻿using System; // require keep for Windows Universal App
+﻿using System;
 using UnityEngine;
+// require keep for Windows Universal App
 
 namespace UniRx.Triggers
 {
     [DisallowMultipleComponent]
     public class ObservableUpdateTrigger : ObservableTriggerBase
     {
-        Subject<Unit> update;
+        private Subject<Unit> update;
 
         /// <summary>Update is called every frame, if the MonoBehaviour is enabled.</summary>
-        void Update()
+        private void Update()
         {
             if (update != null) update.OnNext(Unit.Default);
         }
@@ -22,10 +23,7 @@ namespace UniRx.Triggers
 
         protected override void RaiseOnCompletedOnDestroy()
         {
-            if (update != null)
-            {
-                update.OnCompleted();
-            }
+            if (update != null) update.OnCompleted();
         }
     }
 }

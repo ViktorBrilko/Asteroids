@@ -2,10 +2,10 @@
 
 namespace UniRx.Operators
 {
-    internal class TimeIntervalObservable<T> : OperatorObservableBase<UniRx.TimeInterval<T>>
+    internal class TimeIntervalObservable<T> : OperatorObservableBase<TimeInterval<T>>
     {
-        readonly IObservable<T> source;
-        readonly IScheduler scheduler;
+        private readonly IScheduler scheduler;
+        private readonly IObservable<T> source;
 
         public TimeIntervalObservable(IObservable<T> source, IScheduler scheduler)
             : base(scheduler == Scheduler.CurrentThread || source.IsRequiredSubscribeOnCurrentThread())
@@ -14,21 +14,22 @@ namespace UniRx.Operators
             this.scheduler = scheduler;
         }
 
-        protected override IDisposable SubscribeCore(IObserver<UniRx.TimeInterval<T>> observer, IDisposable cancel)
+        protected override IDisposable SubscribeCore(IObserver<TimeInterval<T>> observer, IDisposable cancel)
         {
             return source.Subscribe(new TimeInterval(this, observer, cancel));
         }
 
-        class TimeInterval : OperatorObserverBase<T, UniRx.TimeInterval<T>>
+        private class TimeInterval : OperatorObserverBase<T, TimeInterval<T>>
         {
-            readonly TimeIntervalObservable<T> parent;
-            DateTimeOffset lastTime;
+            private readonly TimeIntervalObservable<T> parent;
+            private DateTimeOffset lastTime;
 
-            public TimeInterval(TimeIntervalObservable<T> parent, IObserver<UniRx.TimeInterval<T>> observer, IDisposable cancel)
+            public TimeInterval(TimeIntervalObservable<T> parent, IObserver<TimeInterval<T>> observer,
+                IDisposable cancel)
                 : base(observer, cancel)
             {
                 this.parent = parent;
-                this.lastTime = parent.scheduler.Now;
+                lastTime = parent.scheduler.Now;
             }
 
             public override void OnNext(T value)
@@ -37,19 +38,31 @@ namespace UniRx.Operators
                 var span = now.Subtract(lastTime);
                 lastTime = now;
 
-                base.observer.OnNext(new UniRx.TimeInterval<T>(value, span));
+                observer.OnNext(new TimeInterval<T>(value, span));
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

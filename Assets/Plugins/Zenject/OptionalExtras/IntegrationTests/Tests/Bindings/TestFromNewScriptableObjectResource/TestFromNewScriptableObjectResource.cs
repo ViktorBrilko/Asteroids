@@ -1,4 +1,3 @@
-
 using System.Collections;
 using ModestTree;
 using UnityEngine.TestTools;
@@ -8,7 +7,7 @@ namespace Zenject.Tests.Bindings
 {
     public class TestFromNewScriptableObjectResource : ZenjectIntegrationTestFixture
     {
-        const string PathPrefix = "TestFromNewScriptableObjectResource/";
+        private const string PathPrefix = "TestFromNewScriptableObjectResource/";
 
         [UnityTest]
         public IEnumerator TestTransientError()
@@ -47,7 +46,8 @@ namespace Zenject.Tests.Bindings
             PreInstall();
             Foo.InstanceCount = 0;
 
-            Container.Bind(typeof(IFoo), typeof(Foo)).To<Foo>().FromNewScriptableObjectResource(PathPrefix + "Foo").AsSingle();
+            Container.Bind(typeof(IFoo), typeof(Foo)).To<Foo>().FromNewScriptableObjectResource(PathPrefix + "Foo")
+                .AsSingle();
 
             PostInstall();
 
@@ -98,4 +98,3 @@ namespace Zenject.Tests.Bindings
         }
     }
 }
-

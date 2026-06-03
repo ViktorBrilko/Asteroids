@@ -6,26 +6,23 @@ namespace Zenject.Tests.Injection
     [TestFixture]
     public class TestTestOptional : ZenjectUnitTestFixture
     {
-        class Test1
+        private class Test1
         {
         }
 
-        class Test2
+        private class Test2
         {
-            [Inject]
-            public Test1 val1 = null;
+            [Inject] public Test1 val1;
         }
 
-        class Test3
+        private class Test3
         {
-            [InjectOptional]
-            public Test1 val1 = null;
+            [InjectOptional] public Test1 val1;
         }
 
-        class Test0
+        private class Test0
         {
-            [InjectOptional]
-            public int Val1 = 5;
+            [InjectOptional] public int Val1 = 5;
         }
 
         [Test]
@@ -70,20 +67,19 @@ namespace Zenject.Tests.Injection
             Assert.IsEqual(Container.Resolve<Test0>().Val1, 3);
         }
 
-        class Test4
+        private class Test4
         {
             public Test4(Test1 val1)
             {
             }
         }
 
-        class Test5
+        private class Test5
         {
-            public Test1 Val1;
+            public readonly Test1 Val1;
 
             public Test5(
-                [InjectOptional]
-                Test1 val1)
+                [InjectOptional] Test1 val1)
             {
                 Val1 = val1;
             }
@@ -107,7 +103,7 @@ namespace Zenject.Tests.Injection
             Assert.That(test.Val1 == null);
         }
 
-        class Test6
+        private class Test6
         {
             public Test6(Test2 test2)
             {
@@ -124,13 +120,12 @@ namespace Zenject.Tests.Injection
                 delegate { Container.Resolve<Test6>(); });
         }
 
-        class Test7
+        private class Test7
         {
-            public int Val1;
+            public readonly int Val1;
 
             public Test7(
-                [InjectOptional]
-                int val1)
+                [InjectOptional] int val1)
             {
                 Val1 = val1;
             }
@@ -144,13 +139,12 @@ namespace Zenject.Tests.Injection
             Assert.IsEqual(Container.Resolve<Test7>().Val1, 0);
         }
 
-        class Test8
+        private class Test8
         {
-            public int Val1;
+            public readonly int Val1;
 
             public Test8(
-                [InjectOptional]
-                int val1 = 5)
+                [InjectOptional] int val1 = 5)
             {
                 Val1 = val1;
             }
@@ -164,9 +158,9 @@ namespace Zenject.Tests.Injection
             Assert.IsEqual(Container.Resolve<Test8>().Val1, 5);
         }
 
-        class Test8_2
+        private class Test8_2
         {
-            public int Val1;
+            public readonly int Val1;
 
             public Test8_2(int val1 = 5)
             {
@@ -191,13 +185,12 @@ namespace Zenject.Tests.Injection
             Assert.IsEqual(Container.Resolve<Test8_2>().Val1, 2);
         }
 
-        class Test9
+        private class Test9
         {
-            public int? Val1;
+            public readonly int? Val1;
 
             public Test9(
-                [InjectOptional]
-                int? val1)
+                [InjectOptional] int? val1)
             {
                 Val1 = val1;
             }
@@ -212,6 +205,3 @@ namespace Zenject.Tests.Injection
         }
     }
 }
-
-
-

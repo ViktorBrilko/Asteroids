@@ -8,7 +8,7 @@ namespace Zenject
     public class MonoMemoryPool<TValue> : MemoryPool<TValue>
         where TValue : Component
     {
-        Transform _originalParent;
+        private Transform _originalParent;
 
         [Inject]
         public MonoMemoryPool()
@@ -36,10 +36,7 @@ namespace Zenject
         {
             item.gameObject.SetActive(false);
 
-            if (item.transform.parent != _originalParent)
-            {
-                item.transform.SetParent(_originalParent, false);
-            }
+            if (item.transform.parent != _originalParent) item.transform.SetParent(_originalParent, false);
         }
     }
 
@@ -49,7 +46,7 @@ namespace Zenject
     public class MonoMemoryPool<TParam1, TValue> : MemoryPool<TParam1, TValue>
         where TValue : Component
     {
-        Transform _originalParent;
+        private Transform _originalParent;
 
         [Inject]
         public MonoMemoryPool()
@@ -77,10 +74,7 @@ namespace Zenject
         {
             item.gameObject.SetActive(false);
 
-            if (item.transform.parent != _originalParent)
-            {
-                item.transform.SetParent(_originalParent, false);
-            }
+            if (item.transform.parent != _originalParent) item.transform.SetParent(_originalParent, false);
         }
     }
 
@@ -91,7 +85,7 @@ namespace Zenject
         : MemoryPool<TParam1, TParam2, TValue>
         where TValue : Component
     {
-        Transform _originalParent;
+        private Transform _originalParent;
 
         [Inject]
         public MonoMemoryPool()
@@ -119,10 +113,7 @@ namespace Zenject
         {
             item.gameObject.SetActive(false);
 
-            if (item.transform.parent != _originalParent)
-            {
-                item.transform.SetParent(_originalParent, false);
-            }
+            if (item.transform.parent != _originalParent) item.transform.SetParent(_originalParent, false);
         }
     }
 
@@ -133,7 +124,7 @@ namespace Zenject
         : MemoryPool<TParam1, TParam2, TParam3, TValue>
         where TValue : Component
     {
-        Transform _originalParent;
+        private Transform _originalParent;
 
         [Inject]
         public MonoMemoryPool()
@@ -161,10 +152,7 @@ namespace Zenject
         {
             item.gameObject.SetActive(false);
 
-            if (item.transform.parent != _originalParent)
-            {
-                item.transform.SetParent(_originalParent, false);
-            }
+            if (item.transform.parent != _originalParent) item.transform.SetParent(_originalParent, false);
         }
     }
 
@@ -175,7 +163,7 @@ namespace Zenject
         : MemoryPool<TParam1, TParam2, TParam3, TParam4, TValue>
         where TValue : Component
     {
-        Transform _originalParent;
+        private Transform _originalParent;
 
         [Inject]
         public MonoMemoryPool()
@@ -203,10 +191,7 @@ namespace Zenject
         {
             item.gameObject.SetActive(false);
 
-            if (item.transform.parent != _originalParent)
-            {
-                item.transform.SetParent(_originalParent, false);
-            }
+            if (item.transform.parent != _originalParent) item.transform.SetParent(_originalParent, false);
         }
     }
 
@@ -217,7 +202,7 @@ namespace Zenject
         : MemoryPool<TParam1, TParam2, TParam3, TParam4, TParam5, TValue>
         where TValue : Component
     {
-        Transform _originalParent;
+        private Transform _originalParent;
 
         [Inject]
         public MonoMemoryPool()
@@ -245,10 +230,7 @@ namespace Zenject
         {
             item.gameObject.SetActive(false);
 
-            if (item.transform.parent != _originalParent)
-            {
-                item.transform.SetParent(_originalParent, false);
-            }
+            if (item.transform.parent != _originalParent) item.transform.SetParent(_originalParent, false);
         }
     }
 }

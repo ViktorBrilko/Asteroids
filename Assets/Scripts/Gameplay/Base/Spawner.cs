@@ -8,11 +8,11 @@ namespace Gameplay.Base
     public class Spawner<T> : IInitializable, IDisposable
         where T : Component, IResetable
     {
-        private ObjectPool<T> _pool;
-        private SignalBus _signalBus;
+        private readonly ObjectPool<T> _pool;
+        private readonly SignalBus _signalBus;
 
-        public Spawner(ObjectPool<T> pool, SignalBus signalBus) {
-           
+        public Spawner(ObjectPool<T> pool, SignalBus signalBus)
+        {
             _pool = pool;
             _signalBus = signalBus;
         }
@@ -24,24 +24,20 @@ namespace Gameplay.Base
 
         public void Initialize()
         {
-             _signalBus.Subscribe<ResetSignal<T>>(OnItemDestroy);
+            _signalBus.Subscribe<ResetSignal<T>>(OnItemDestroy);
         }
 
         public T SpawnItem(Vector3 spawnPoint, Quaternion rotation)
         {
             T newItem;
-    
-            if (_pool.TryGetObject(out T item))
-            {
+
+            if (_pool.TryGetObject(out var item))
                 newItem = item;
-            }
             else
-            {
                 newItem = _pool.AddNewItem();
-            }
-    
+
             SetItem(newItem, spawnPoint, rotation);
-            
+
             return newItem;
         }
 
@@ -54,7 +50,7 @@ namespace Gameplay.Base
 
         private void OnItemDestroy(ResetSignal<T> signal)
         {
-            T item = signal.Resetable;
+            var item = signal.Resetable;
             item.gameObject.SetActive(false);
             item.transform.SetParent(_pool.Container.transform);
         }

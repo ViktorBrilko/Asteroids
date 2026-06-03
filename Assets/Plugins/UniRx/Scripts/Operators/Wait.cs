@@ -1,46 +1,26 @@
 ﻿using System;
+using System.Threading;
 using UniRx.InternalUtil;
 
 namespace UniRx.Operators
 {
     internal class Wait<T> : IObserver<T>
     {
-        static readonly TimeSpan InfiniteTimeSpan = new TimeSpan(0, 0, 0, 0, -1); // from .NET 4.5
+        private static readonly TimeSpan InfiniteTimeSpan = new(0, 0, 0, 0, -1); // from .NET 4.5
 
-        readonly IObservable<T> source;
-        readonly TimeSpan timeout;
+        private readonly IObservable<T> source;
+        private readonly TimeSpan timeout;
+        private Exception ex;
 
-        System.Threading.ManualResetEvent semaphore;
+        private bool seenValue;
 
-        bool seenValue = false;
-        T value = default(T);
-        Exception ex = default(Exception);
+        private ManualResetEvent semaphore;
+        private T value;
 
         public Wait(IObservable<T> source, TimeSpan timeout)
         {
             this.source = source;
             this.timeout = timeout;
-        }
-
-        public T Run()
-        {
-            semaphore = new System.Threading.ManualResetEvent(false);
-            using (source.Subscribe(this))
-            {
-                var waitComplete = (timeout == InfiniteTimeSpan)
-                    ? semaphore.WaitOne()
-                    : semaphore.WaitOne(timeout);
-
-                if (!waitComplete)
-                {
-                    throw new TimeoutException("OnCompleted not fired.");
-                }
-            }
-
-            if (ex != null) ex.Throw();
-            if (!seenValue) throw new InvalidOperationException("No Elements.");
-
-            return value;
         }
 
         public void OnNext(T value)
@@ -51,13 +31,31 @@ namespace UniRx.Operators
 
         public void OnError(Exception error)
         {
-            this.ex = error;
+            ex = error;
             semaphore.Set();
         }
 
         public void OnCompleted()
         {
             semaphore.Set();
+        }
+
+        public T Run()
+        {
+            semaphore = new ManualResetEvent(false);
+            using (source.Subscribe(this))
+            {
+                var waitComplete = timeout == InfiniteTimeSpan
+                    ? semaphore.WaitOne()
+                    : semaphore.WaitOne(timeout);
+
+                if (!waitComplete) throw new TimeoutException("OnCompleted not fired.");
+            }
+
+            if (ex != null) ex.Throw();
+            if (!seenValue) throw new InvalidOperationException("No Elements.");
+
+            return value;
         }
     }
 }

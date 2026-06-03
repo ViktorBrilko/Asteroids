@@ -11,9 +11,7 @@ namespace Zenject
             // TODO: Is it possible to do this on WSA?
 
             if (concreteType.IsOpenGenericType())
-            {
                 return concreteType.MakeGenericType(contractType.GetGenericArguments());
-            }
 #endif
 
             Assert.DerivesFromOrEqual(concreteType, contractType);
@@ -21,4 +19,3 @@ namespace Zenject
         }
     }
 }
-

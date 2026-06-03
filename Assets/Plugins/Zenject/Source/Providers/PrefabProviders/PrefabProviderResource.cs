@@ -8,14 +8,14 @@ namespace Zenject
     [NoReflectionBaking]
     public class PrefabProviderResource : IPrefabProvider
     {
-        readonly string _resourcePath;
+        private readonly string _resourcePath;
 
         public PrefabProviderResource(string resourcePath)
         {
             _resourcePath = resourcePath;
         }
 
-        public UnityEngine.Object GetPrefab(InjectContext context)
+        public Object GetPrefab(InjectContext context)
         {
             var prefab = (GameObject)Resources.Load(_resourcePath);
 
@@ -28,4 +28,3 @@ namespace Zenject
 }
 
 #endif
-

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -9,7 +8,7 @@ namespace MVVM
     public static class BinderFactory
     {
         private static readonly List<Type> _concreteBinders = new();
-        
+
         public static void RegisterBinder(Type type)
         {
             _concreteBinders.Add(type);
@@ -22,28 +21,19 @@ namespace MVVM
 
         public static BinderComposite CreateComposite(object view, object model)
         {
-            List<IBinder> children = new List<IBinder>();
+            var children = new List<IBinder>();
 
             //Bind self:
-            if (TryCreateConcrete(view, model, out IBinder binder))
-            {
-                children.Add(binder);
-            }
-            
-            //Bind children:
-            IReadOnlyDictionary<object, MemberInfo> viewMembers = Scanner.ScanMembers(view);
-            IReadOnlyDictionary<object, MemberInfo> modelMembers = Scanner.ScanMembers(model);
+            if (TryCreateConcrete(view, model, out var binder)) children.Add(binder);
 
-            foreach ((object id, MemberInfo viewMember) in viewMembers)
-            {
-                if (modelMembers.TryGetValue(id, out MemberInfo modelMember))
-                {
-                    if (TryResolve(viewMember, modelMember, view, model, out IBinder childBinder))
-                    {
+            //Bind children:
+            var viewMembers = Scanner.ScanMembers(view);
+            var modelMembers = Scanner.ScanMembers(model);
+
+            foreach (var (id, viewMember) in viewMembers)
+                if (modelMembers.TryGetValue(id, out var modelMember))
+                    if (TryResolve(viewMember, modelMember, view, model, out var childBinder))
                         children.Add(childBinder);
-                    }
-                }
-            }
 
             return new BinderComposite(children);
         }
@@ -56,7 +46,7 @@ namespace MVVM
             out IBinder binder
         )
         {
-            bool matchesChildren = Resolver.TryResolve(
+            var matchesChildren = Resolver.TryResolve(
                 viewMember,
                 modelMember,
                 view, model,
@@ -70,10 +60,7 @@ namespace MVVM
                 return false;
             }
 
-            if (TryCreateConcrete(childView, childModel, out binder))
-            {
-                return true;
-            }
+            if (TryCreateConcrete(childView, childModel, out binder)) return true;
 
             Debug.LogWarning("Can't create binder for " +
                              $"View: {childView.GetType().Name} and ViewModel: {childModel.GetType().Name}");
@@ -82,19 +69,16 @@ namespace MVVM
 
         public static bool TryCreateConcrete(object view, object model, out IBinder binder)
         {
-            foreach (Type binderType in _concreteBinders)
+            foreach (var binderType in _concreteBinders)
             {
-                ConstructorInfo constructor = binderType.GetConstructors(
+                var constructor = binderType.GetConstructors(
                     BindingFlags.Public |
                     BindingFlags.Instance |
                     BindingFlags.DeclaredOnly
                 )[0];
 
-                ParameterInfo[] parameters = constructor.GetParameters();
-                if (parameters.Length != 2)
-                {
-                    continue;
-                }
+                var parameters = constructor.GetParameters();
+                if (parameters.Length != 2) continue;
 
                 if (parameters[0].ParameterType.IsInstanceOfType(view) &&
                     parameters[1].ParameterType.IsInstanceOfType(model))

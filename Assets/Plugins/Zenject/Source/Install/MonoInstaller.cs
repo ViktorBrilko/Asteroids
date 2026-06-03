@@ -89,7 +89,8 @@ namespace Zenject
             return InstallFromResource(MonoInstallerUtil.GetDefaultResourcePath<TDerived>(), container, p1, p2, p3);
         }
 
-        public static TDerived InstallFromResource(string resourcePath, DiContainer container, TParam1 p1, TParam2 p2, TParam3 p3)
+        public static TDerived InstallFromResource(string resourcePath, DiContainer container, TParam1 p1, TParam2 p2,
+            TParam3 p3)
         {
             var installer = MonoInstallerUtil.CreateInstaller<TDerived>(resourcePath, container);
             container.InjectExplicit(installer, InjectUtil.CreateArgListExplicit(p1, p2, p3));
@@ -101,12 +102,14 @@ namespace Zenject
     public class MonoInstaller<TParam1, TParam2, TParam3, TParam4, TDerived> : MonoInstallerBase
         where TDerived : MonoInstaller<TParam1, TParam2, TParam3, TParam4, TDerived>
     {
-        public static TDerived InstallFromResource(DiContainer container, TParam1 p1, TParam2 p2, TParam3 p3, TParam4 p4)
+        public static TDerived InstallFromResource(DiContainer container, TParam1 p1, TParam2 p2, TParam3 p3,
+            TParam4 p4)
         {
             return InstallFromResource(MonoInstallerUtil.GetDefaultResourcePath<TDerived>(), container, p1, p2, p3, p4);
         }
 
-        public static TDerived InstallFromResource(string resourcePath, DiContainer container, TParam1 p1, TParam2 p2, TParam3 p3, TParam4 p4)
+        public static TDerived InstallFromResource(string resourcePath, DiContainer container, TParam1 p1, TParam2 p2,
+            TParam3 p3, TParam4 p4)
         {
             var installer = MonoInstallerUtil.CreateInstaller<TDerived>(resourcePath, container);
             container.InjectExplicit(installer, InjectUtil.CreateArgListExplicit(p1, p2, p3, p4));
@@ -118,12 +121,15 @@ namespace Zenject
     public class MonoInstaller<TParam1, TParam2, TParam3, TParam4, TParam5, TDerived> : MonoInstallerBase
         where TDerived : MonoInstaller<TParam1, TParam2, TParam3, TParam4, TParam5, TDerived>
     {
-        public static TDerived InstallFromResource(DiContainer container, TParam1 p1, TParam2 p2, TParam3 p3, TParam4 p4, TParam5 p5)
+        public static TDerived InstallFromResource(DiContainer container, TParam1 p1, TParam2 p2, TParam3 p3,
+            TParam4 p4, TParam5 p5)
         {
-            return InstallFromResource(MonoInstallerUtil.GetDefaultResourcePath<TDerived>(), container, p1, p2, p3, p4, p5);
+            return InstallFromResource(MonoInstallerUtil.GetDefaultResourcePath<TDerived>(), container, p1, p2, p3, p4,
+                p5);
         }
 
-        public static TDerived InstallFromResource(string resourcePath, DiContainer container, TParam1 p1, TParam2 p2, TParam3 p3, TParam4 p4, TParam5 p5)
+        public static TDerived InstallFromResource(string resourcePath, DiContainer container, TParam1 p1, TParam2 p2,
+            TParam3 p3, TParam4 p4, TParam5 p5)
         {
             var installer = MonoInstallerUtil.CreateInstaller<TDerived>(resourcePath, container);
             container.InjectExplicit(installer, InjectUtil.CreateArgListExplicit(p1, p2, p3, p4, p5));
@@ -161,7 +167,8 @@ namespace Zenject
             var installers = gameObj.GetComponentsInChildren<TInstaller>();
 
             Assert.That(installers.Length == 1,
-                "Could not find unique MonoInstaller with type '{0}' on prefab '{1}'", typeof(TInstaller), gameObj.name);
+                "Could not find unique MonoInstaller with type '{0}' on prefab '{1}'", typeof(TInstaller),
+                gameObj.name);
 
             return installers[0];
         }

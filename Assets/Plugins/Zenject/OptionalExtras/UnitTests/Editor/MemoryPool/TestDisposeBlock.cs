@@ -7,35 +7,31 @@ namespace Zenject.Tests
     [TestFixture]
     public class TestDisposeBlock : ZenjectUnitTestFixture
     {
-        class Foo : IDisposable
+        private class Foo : IDisposable
         {
-            public static readonly StaticMemoryPool<string, Foo> Pool =
-                new StaticMemoryPool<string, Foo>(OnSpawned, OnDespawned);
+            public static readonly StaticMemoryPool<string, Foo> Pool = new(OnSpawned, OnDespawned);
+
+            public string Value { get; private set; }
 
             public void Dispose()
             {
                 Pool.Despawn(this);
             }
 
-            static void OnDespawned(Foo that)
+            private static void OnDespawned(Foo that)
             {
                 that.Value = null;
             }
 
-            static void OnSpawned(string value, Foo that)
+            private static void OnSpawned(string value, Foo that)
             {
                 that.Value = value;
-            }
-
-            public string Value
-            {
-                get; private set;
             }
         }
 
         public class Bar : IDisposable
         {
-            readonly Pool _pool;
+            private readonly Pool _pool;
 
             public Bar(Pool pool)
             {
@@ -54,10 +50,7 @@ namespace Zenject.Tests
 
         public class Qux : IDisposable
         {
-            public bool WasDisposed
-            {
-                get; private set;
-            }
+            public bool WasDisposed { get; private set; }
 
             public void Dispose()
             {

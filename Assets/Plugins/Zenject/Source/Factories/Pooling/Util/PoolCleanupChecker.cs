@@ -10,14 +10,13 @@ namespace Zenject
     // Container.BindInterfacesTo<PoolCleanupChecker>().AsSingle()
     public class PoolCleanupChecker : ILateDisposable
     {
-        readonly List<IMemoryPool> _poolFactories;
-        readonly List<Type> _ignoredPools;
+        private readonly List<Type> _ignoredPools;
+        private readonly List<IMemoryPool> _poolFactories;
 
         public PoolCleanupChecker(
             [Inject(Optional = true, Source = InjectSources.Local)]
             List<IMemoryPool> poolFactories,
-            [Inject(Source = InjectSources.Local)]
-            List<Type> ignoredPools)
+            [Inject(Source = InjectSources.Local)] List<Type> ignoredPools)
         {
             _poolFactories = poolFactories;
             _ignoredPools = ignoredPools;
@@ -28,13 +27,10 @@ namespace Zenject
         public void LateDispose()
         {
             foreach (var pool in _poolFactories)
-            {
                 if (!_ignoredPools.Contains(pool.GetType()))
-                {
                     Assert.IsEqual(pool.NumActive, 0,
-                        "Found active objects in pool '{0}' during dispose.  Did you forget to despawn an object of type '{1}'?".Fmt(pool.GetType(), pool.ItemType));
-                }
-            }
+                        "Found active objects in pool '{0}' during dispose.  Did you forget to despawn an object of type '{1}'?"
+                            .Fmt(pool.GetType(), pool.ItemType));
         }
     }
 }

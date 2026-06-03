@@ -9,10 +9,7 @@ namespace Zenject
             SignalBindInfo = signalBindInfo;
         }
 
-        protected SignalDeclarationBindInfo SignalBindInfo
-        {
-            get; private set;
-        }
+        protected SignalDeclarationBindInfo SignalBindInfo { get; }
 
         public SignalCopyBinder WithTickPriority(int priority)
         {
@@ -22,4 +19,3 @@ namespace Zenject
         }
     }
 }
-

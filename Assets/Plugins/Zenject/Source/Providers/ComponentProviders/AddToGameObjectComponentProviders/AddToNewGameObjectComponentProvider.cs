@@ -9,7 +9,7 @@ namespace Zenject
     [NoReflectionBaking]
     public class AddToNewGameObjectComponentProvider : AddToGameObjectComponentProviderBase
     {
-        readonly GameObjectCreationParameters _gameObjectBindInfo;
+        private readonly GameObjectCreationParameters _gameObjectBindInfo;
 
         public AddToNewGameObjectComponentProvider(
             DiContainer container, Type componentType,
@@ -21,17 +21,11 @@ namespace Zenject
             _gameObjectBindInfo = gameObjectBindInfo;
         }
 
-        protected override bool ShouldToggleActive
-        {
-            get { return true; }
-        }
+        protected override bool ShouldToggleActive => true;
 
         protected override GameObject GetGameObject(InjectContext context)
         {
-            if (_gameObjectBindInfo.Name == null)
-            {
-                _gameObjectBindInfo.Name = ComponentType.Name;
-            }
+            if (_gameObjectBindInfo.Name == null) _gameObjectBindInfo.Name = ComponentType.Name;
 
             return Container.CreateEmptyGameObject(_gameObjectBindInfo, context);
         }

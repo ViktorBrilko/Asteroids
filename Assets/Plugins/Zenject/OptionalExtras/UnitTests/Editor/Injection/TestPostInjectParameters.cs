@@ -6,32 +6,30 @@ namespace Zenject.Tests.Injection
     [TestFixture]
     public class TestPostInjectParameters : ZenjectUnitTestFixture
     {
-        class Test0
+        private class Test0
         {
         }
 
-        class Test1
+        private class Test1
         {
         }
 
-        class Test2
+        private class Test2
         {
         }
 
-        class Test3
+        private class Test3
         {
             public bool HasInitialized;
 
             public Test0 test0;
 
-            [Inject]
-            public Test1 test1 = null;
+            [Inject] public Test1 test1;
 
             [Inject]
             public void Init(
                 Test0 test0,
-                [InjectOptional]
-                Test2 test2)
+                [InjectOptional] Test2 test2)
             {
                 Assert.That(!HasInitialized);
                 Assert.IsNotNull(test1);

@@ -30,22 +30,19 @@ namespace Gameplay.Base
 
         [SerializeField] private Transform _playerSpawnPoint;
         [SerializeField] private Canvas _canvas;
+        private bool _isMobile;
 
         private ConfigProvider _provider;
-        private bool _isMobile;
+
+        public void Initialize()
+        {
+            if (_isMobile) Container.InstantiatePrefab(_mobileButtonsPrefab, _canvas.transform);
+        }
 
         [Inject]
         public void Construct(ConfigProvider provider)
         {
             _provider = provider;
-        }
-
-        public void Initialize()
-        {
-            if (_isMobile)
-            {
-                Container.InstantiatePrefab(_mobileButtonsPrefab, _canvas.transform);
-            }
         }
 
         public override void InstallBindings()
@@ -73,13 +70,9 @@ namespace Gameplay.Base
         private void InstallControls()
         {
             if (_isMobile)
-            {
                 Container.Bind<MobileController>().AsSingle();
-            }
             else
-            {
                 Container.BindInterfacesAndSelfTo<DesktopController>().AsSingle();
-            }
         }
 
         private void InstallScore()

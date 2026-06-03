@@ -1,9 +1,10 @@
+using System;
 using JetBrains.Annotations;
 
 namespace MVVM
 {
     [MeansImplicitUse]
-    public abstract class MemberAttribute : System.Attribute
+    public abstract class MemberAttribute : Attribute
     {
         internal readonly object id;
 

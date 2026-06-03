@@ -78,10 +78,10 @@ namespace Zenject.Internal
         {
         }
 #else
-        static readonly StaticMemoryPool<InjectContext> _contextPool = new StaticMemoryPool<InjectContext>();
-        static readonly StaticMemoryPool<LookupId> _lookupIdPool = new StaticMemoryPool<LookupId>();
-        static readonly StaticMemoryPool<BindInfo> _bindInfoPool = new StaticMemoryPool<BindInfo>();
-        static readonly StaticMemoryPool<BindStatement> _bindStatementPool = new StaticMemoryPool<BindStatement>();
+        private static readonly StaticMemoryPool<InjectContext> _contextPool = new();
+        private static readonly StaticMemoryPool<LookupId> _lookupIdPool = new();
+        private static readonly StaticMemoryPool<BindInfo> _bindInfoPool = new();
+        private static readonly StaticMemoryPool<BindStatement> _bindStatementPool = new();
 
         public static HashSet<T> SpawnHashSet<T>()
         {

@@ -6,7 +6,6 @@ namespace UI.Views
 {
     public class LaserChargeView : MonoBehaviour
     {
-        [Data("LaserCharge")]
-        [SerializeField] public Image LaserChargeImage;
+        [Data("LaserCharge")] [SerializeField] public Image LaserChargeImage;
     }
 }

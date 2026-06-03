@@ -1,6 +1,5 @@
 ﻿using System;
 using Gameplay.Base;
-using Gameplay.Players;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,34 +7,29 @@ namespace Gameplay.Base
 {
     public class HealthService : MonoBehaviour
     {
-        private int _currentHealth;
-
-        public int CurrentHealth => _currentHealth;
+        public int CurrentHealth { get; private set; }
 
         public event Action OnDied;
         public event Action<int> OnHealthChanged;
 
         public void Init(int maxHealth)
         {
-            _currentHealth = maxHealth;
+            CurrentHealth = maxHealth;
         }
 
 #if UNITY_EDITOR
         public void Heal()
         {
-            _currentHealth += 100;
+            CurrentHealth += 100;
         }
 #endif
 
         public void TakeDamage(int damage)
         {
-            _currentHealth -= damage;
-            OnHealthChanged?.Invoke(_currentHealth);
+            CurrentHealth -= damage;
+            OnHealthChanged?.Invoke(CurrentHealth);
 
-            if (_currentHealth <= 0)
-            {
-                OnDied?.Invoke();
-            }
+            if (CurrentHealth <= 0) OnDied?.Invoke();
         }
     }
 }
@@ -49,12 +43,9 @@ public class PlayerHealthEditor : Editor
     {
         DrawDefaultInspector();
 
-        HealthService player = (HealthService)target;
+        var player = (HealthService)target;
 
-        if (GUILayout.Button("+100 HP игроку"))
-        {
-            player.Heal();
-        }
+        if (GUILayout.Button("+100 HP игроку")) player.Heal();
     }
 }
 #endif

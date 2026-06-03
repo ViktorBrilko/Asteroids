@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 
 namespace UniRx
 {
@@ -10,18 +9,13 @@ namespace UniRx
 
     public sealed class SingleAssignmentDisposable : IDisposable, ICancelable
     {
-        readonly object gate = new object();
-        IDisposable current;
-        bool disposed;
-
-        public bool IsDisposed { get { lock (gate) { return disposed; } } }
+        private readonly object gate = new();
+        private IDisposable current;
+        private bool disposed;
 
         public IDisposable Disposable
         {
-            get
-            {
-                return current;
-            }
+            get => current;
             set
             {
                 var old = default(IDisposable);
@@ -44,6 +38,17 @@ namespace UniRx
                 }
 
                 if (old != null) throw new InvalidOperationException("Disposable is already set");
+            }
+        }
+
+        public bool IsDisposed
+        {
+            get
+            {
+                lock (gate)
+                {
+                    return disposed;
+                }
             }
         }
 

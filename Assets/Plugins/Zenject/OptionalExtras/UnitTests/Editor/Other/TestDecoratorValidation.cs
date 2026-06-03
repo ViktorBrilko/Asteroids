@@ -7,6 +7,13 @@ namespace Zenject.Tests.Other
     [TestFixture]
     public class TestDecoratorValidation
     {
+        [SetUp]
+        public void Setup()
+        {
+            Container = new DiContainer(true);
+            Container.Settings = new ZenjectSettings(ValidationErrorResponses.Throw);
+        }
+
         public interface ISaveHandler
         {
             void Save();
@@ -21,7 +28,7 @@ namespace Zenject.Tests.Other
 
         public class SaveDecorator1 : ISaveHandler
         {
-            readonly ISaveHandler _handler;
+            private readonly ISaveHandler _handler;
 
             public SaveDecorator1(ISaveHandler handler)
             {
@@ -34,17 +41,7 @@ namespace Zenject.Tests.Other
             }
         }
 
-        DiContainer Container
-        {
-            get; set;
-        }
-
-        [SetUp]
-        public void Setup()
-        {
-            Container = new DiContainer(true);
-            Container.Settings = new ZenjectSettings(ValidationErrorResponses.Throw);
-        }
+        private DiContainer Container { get; set; }
 
         public class Foo
         {
@@ -84,4 +81,3 @@ namespace Zenject.Tests.Other
         }
     }
 }
-

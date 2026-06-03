@@ -6,9 +6,9 @@ namespace UniRx.Operators
 
     internal class WhereSelectObservable<T, TR> : OperatorObservableBase<TR>
     {
-        readonly IObservable<T> source;
-        readonly Func<T, bool> predicate;
-        readonly Func<T, TR> selector;
+        private readonly Func<T, bool> predicate;
+        private readonly Func<T, TR> selector;
+        private readonly IObservable<T> source;
 
         public WhereSelectObservable(IObservable<T> source, Func<T, bool> predicate, Func<T, TR> selector)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -23,9 +23,9 @@ namespace UniRx.Operators
             return source.Subscribe(new WhereSelect(this, observer, cancel));
         }
 
-        class WhereSelect : OperatorObserverBase<T, TR>
+        private class WhereSelect : OperatorObserverBase<T, TR>
         {
-            readonly WhereSelectObservable<T, TR> parent;
+            private readonly WhereSelectObservable<T, TR> parent;
 
             public WhereSelect(WhereSelectObservable<T, TR> parent, IObserver<TR> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -42,7 +42,15 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
@@ -55,7 +63,15 @@ namespace UniRx.Operators
                     }
                     catch (Exception ex)
                     {
-                        try { observer.OnError(ex); } finally { Dispose(); }
+                        try
+                        {
+                            observer.OnError(ex);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
                         return;
                     }
 
@@ -65,12 +81,26 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

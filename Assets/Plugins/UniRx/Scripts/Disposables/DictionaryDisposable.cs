@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace UniRx
 {
     public sealed class DictionaryDisposable<TKey, TValue> : IDisposable, IDictionary<TKey, TValue>
         where TValue : IDisposable
     {
-        bool isDisposed = false;
-        readonly Dictionary<TKey, TValue> inner;
+        private readonly Dictionary<TKey, TValue> inner;
+        private bool isDisposed;
 
         public DictionaryDisposable()
         {
@@ -18,6 +20,12 @@ namespace UniRx
         {
             inner = new Dictionary<TKey, TValue>(comparer);
         }
+
+        public Dictionary<TKey, TValue>.KeyCollection Keys =>
+            throw new NotSupportedException("please use .Select(x => x.Key).ToArray()");
+
+        public Dictionary<TKey, TValue>.ValueCollection Values =>
+            throw new NotSupportedException("please use .Select(x => x.Value).ToArray()");
 
         public TValue this[TKey key]
         {
@@ -60,22 +68,6 @@ namespace UniRx
             }
         }
 
-        public Dictionary<TKey, TValue>.KeyCollection Keys
-        {
-            get
-            {
-                throw new NotSupportedException("please use .Select(x => x.Key).ToArray()");
-            }
-        }
-
-        public Dictionary<TKey, TValue>.ValueCollection Values
-        {
-            get
-            {
-                throw new NotSupportedException("please use .Select(x => x.Value).ToArray()");
-            }
-        }
-
         public void Add(TKey key, TValue value)
         {
             lock (inner)
@@ -94,10 +86,7 @@ namespace UniRx
         {
             lock (inner)
             {
-                foreach (var item in inner)
-                {
-                    item.Value.Dispose();
-                }
+                foreach (var item in inner) item.Value.Dispose();
                 inner.Clear();
             }
         }
@@ -110,16 +99,11 @@ namespace UniRx
                 if (inner.TryGetValue(key, out oldValue))
                 {
                     var isSuccessRemove = inner.Remove(key);
-                    if (isSuccessRemove)
-                    {
-                        oldValue.Dispose();
-                    }
+                    if (isSuccessRemove) oldValue.Dispose();
                     return isSuccessRemove;
                 }
-                else
-                {
-                    return false;
-                }
+
+                return false;
             }
         }
 
@@ -139,21 +123,8 @@ namespace UniRx
             }
         }
 
-        public Dictionary<TKey, TValue>.Enumerator GetEnumerator()
-        {
-            lock (inner)
-            {
-                return new Dictionary<TKey, TValue>(inner).GetEnumerator();
-            }
-        }
-
-        bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly
-        {
-            get
-            {
-                return ((ICollection<KeyValuePair<TKey, TValue>>)inner).IsReadOnly;
-            }
-        }
+        bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly =>
+            ((ICollection<KeyValuePair<TKey, TValue>>)inner).IsReadOnly;
 
         ICollection<TKey> IDictionary<TKey, TValue>.Keys
         {
@@ -177,30 +148,9 @@ namespace UniRx
             }
         }
 
-
-#if !UNITY_METRO
-
-        public void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
-        {
-            lock (inner)
-            {
-                ((System.Runtime.Serialization.ISerializable)inner).GetObjectData(info, context);
-            }
-        }
-
-        public void OnDeserialization(object sender)
-        {
-            lock (inner)
-            {
-                ((System.Runtime.Serialization.IDeserializationCallback)inner).OnDeserialization(sender);
-            }
-        }
-
-#endif
-
         void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
         {
-            Add((TKey)item.Key, (TValue)item.Value);
+            Add(item.Key, item.Value);
         }
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
@@ -223,11 +173,11 @@ namespace UniRx
         {
             lock (inner)
             {
-                return new List<KeyValuePair<TKey, TValue>>((ICollection<KeyValuePair<TKey, TValue>>)inner).GetEnumerator();
+                return new List<KeyValuePair<TKey, TValue>>(inner).GetEnumerator();
             }
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
@@ -244,12 +194,38 @@ namespace UniRx
                 if (isDisposed) return;
                 isDisposed = true;
 
-                foreach (var item in inner)
-                {
-                    item.Value.Dispose();
-                }
+                foreach (var item in inner) item.Value.Dispose();
                 inner.Clear();
             }
         }
+
+        public Dictionary<TKey, TValue>.Enumerator GetEnumerator()
+        {
+            lock (inner)
+            {
+                return new Dictionary<TKey, TValue>(inner).GetEnumerator();
+            }
+        }
+
+
+#if !UNITY_METRO
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            lock (inner)
+            {
+                ((ISerializable)inner).GetObjectData(info, context);
+            }
+        }
+
+        public void OnDeserialization(object sender)
+        {
+            lock (inner)
+            {
+                ((IDeserializationCallback)inner).OnDeserialization(sender);
+            }
+        }
+
+#endif
     }
 }

@@ -6,7 +6,6 @@ namespace UI.Views
 {
     public class SpeedView : MonoBehaviour
     {
-        [Data("Speed")]
-        [SerializeField] public  TMP_Text _speedText;
+        [Data("Speed")] [SerializeField] public TMP_Text _speedText;
     }
 }

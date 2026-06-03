@@ -7,7 +7,7 @@ namespace Zenject.Tests.Other
     [TestFixture]
     public class TestFacadeSubContainer
     {
-        static int NumInstalls;
+        private static int NumInstalls;
 
         [Test]
         public void Test1()
@@ -89,5 +89,3 @@ namespace Zenject.Tests.Other
         }
     }
 }
-
-

@@ -6,9 +6,9 @@ namespace UniRx.Operators
 
     internal class SelectWhereObservable<T, TR> : OperatorObservableBase<TR>
     {
-        readonly IObservable<T> source;
-        readonly Func<T, TR> selector;
-        readonly Func<TR, bool> predicate;
+        private readonly Func<TR, bool> predicate;
+        private readonly Func<T, TR> selector;
+        private readonly IObservable<T> source;
 
         public SelectWhereObservable(IObservable<T> source, Func<T, TR> selector, Func<TR, bool> predicate)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -23,9 +23,9 @@ namespace UniRx.Operators
             return source.Subscribe(new SelectWhere(this, observer, cancel));
         }
 
-        class SelectWhere : OperatorObserverBase<T, TR>
+        private class SelectWhere : OperatorObserverBase<T, TR>
         {
-            readonly SelectWhereObservable<T, TR> parent;
+            private readonly SelectWhereObservable<T, TR> parent;
 
             public SelectWhere(SelectWhereObservable<T, TR> parent, IObserver<TR> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -42,7 +42,15 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
@@ -53,24 +61,43 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
-                if (isPassed)
-                {
-                    observer.OnNext(v);
-                }
+                if (isPassed) observer.OnNext(v);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

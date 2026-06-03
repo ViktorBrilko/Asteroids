@@ -7,12 +7,12 @@ namespace Zenject
     [NoReflectionBaking]
     public class ResolveProvider : IProvider
     {
-        readonly object _identifier;
-        readonly DiContainer _container;
-        readonly Type _contractType;
-        readonly bool _isOptional;
-        readonly InjectSources _source;
-        readonly bool _matchAll;
+        private readonly DiContainer _container;
+        private readonly Type _contractType;
+        private readonly object _identifier;
+        private readonly bool _isOptional;
+        private readonly bool _matchAll;
+        private readonly InjectSources _source;
 
         public ResolveProvider(
             Type contractType, DiContainer container, object identifier,
@@ -26,15 +26,9 @@ namespace Zenject
             _matchAll = matchAll;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -51,16 +45,12 @@ namespace Zenject
 
             injectAction = null;
             if (_matchAll)
-            {
                 _container.ResolveAll(GetSubContext(context), buffer);
-            }
             else
-            {
                 buffer.Add(_container.Resolve(GetSubContext(context)));
-            }
         }
 
-        InjectContext GetSubContext(InjectContext parent)
+        private InjectContext GetSubContext(InjectContext parent)
         {
             var subContext = parent.CreateSubContext(_contractType, _identifier);
 

@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace UniRx.Operators
 {
     internal class SwitchObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<IObservable<T>> sources;
+        private readonly IObservable<IObservable<T>> sources;
 
         public SwitchObservable(IObservable<IObservable<T>> sources)
             : base(true)
@@ -20,17 +17,17 @@ namespace UniRx.Operators
             return new SwitchObserver(this, observer, cancel).Run();
         }
 
-        class SwitchObserver : OperatorObserverBase<IObservable<T>, T>
+        private class SwitchObserver : OperatorObserverBase<IObservable<T>, T>
         {
-            readonly SwitchObservable<T> parent;
+            private readonly object gate = new();
+            private readonly SerialDisposable innerSubscription = new();
+            private readonly SwitchObservable<T> parent;
+            private bool hasLatest;
+            private bool isStopped;
+            private ulong latest;
 
-            readonly object gate = new object();
-            readonly SerialDisposable innerSubscription = new SerialDisposable();
-            bool isStopped = false;
-            ulong latest = 0UL;
-            bool hasLatest = false;
-
-            public SwitchObserver(SwitchObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public SwitchObserver(SwitchObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
             }
@@ -59,8 +56,14 @@ namespace UniRx.Operators
             {
                 lock (gate)
                 {
-                    try { observer.OnError(error); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(error);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
             }
 
@@ -70,21 +73,25 @@ namespace UniRx.Operators
                 {
                     isStopped = true;
                     if (!hasLatest)
-                    {
-                        try { observer.OnCompleted(); }
-                        finally { Dispose(); }
-                    }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                 }
             }
 
-            class Switch : IObserver<T>
+            private class Switch : IObserver<T>
             {
-                readonly SwitchObserver parent;
-                readonly ulong id;
+                private readonly ulong id;
+                private readonly SwitchObserver parent;
 
                 public Switch(SwitchObserver observer, ulong id)
                 {
-                    this.parent = observer;
+                    parent = observer;
                     this.id = id;
                 }
 
@@ -92,10 +99,7 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        if (parent.latest == id)
-                        {
-                            parent.observer.OnNext(value);
-                        }
+                        if (parent.latest == id) parent.observer.OnNext(value);
                     }
                 }
 
@@ -103,10 +107,7 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        if (parent.latest == id)
-                        {
-                            parent.observer.OnError(error);
-                        }
+                        if (parent.latest == id) parent.observer.OnError(error);
                     }
                 }
 
@@ -117,10 +118,7 @@ namespace UniRx.Operators
                         if (parent.latest == id)
                         {
                             parent.hasLatest = false;
-                            if (parent.isStopped)
-                            {
-                                parent.observer.OnCompleted();
-                            }
+                            if (parent.isStopped) parent.observer.OnCompleted();
                         }
                     }
                 }

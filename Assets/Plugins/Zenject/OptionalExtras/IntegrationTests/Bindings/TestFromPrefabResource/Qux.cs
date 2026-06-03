@@ -7,8 +7,7 @@ namespace Zenject.Tests.Bindings.FromPrefabResource
 {
     public class Qux : MonoBehaviour
     {
-        [Inject]
-        int _arg;
+        [Inject] private int _arg;
 
         [Inject]
         public void Initialize()

@@ -1,4 +1,3 @@
-
 using System.Collections;
 using System.Collections.Generic;
 using ModestTree;
@@ -9,8 +8,8 @@ namespace Zenject.Tests.Bindings
 {
     public class TestFromComponentInHierarchy : ZenjectIntegrationTestFixture
     {
-        Foo _foo1;
-        Foo _foo2;
+        private Foo _foo1;
+        private Foo _foo2;
 
         public void Setup1()
         {
@@ -193,21 +192,17 @@ namespace Zenject.Tests.Bindings
 
         public class Qux
         {
-            [Inject]
-            public List<Foo> Foos;
+            [Inject] public List<Foo> Foos;
         }
 
         public class Bar
         {
-            [Inject]
-            public Foo Foo;
+            [Inject] public Foo Foo;
         }
 
         public class Qiv
         {
-            [InjectOptional]
-            public Foo Foo;
+            [InjectOptional] public Foo Foo;
         }
     }
 }
-

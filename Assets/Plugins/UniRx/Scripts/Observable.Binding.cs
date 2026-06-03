@@ -40,7 +40,8 @@ namespace UniRx
             return source.Multicast(new ReplaySubject<T>(bufferSize));
         }
 
-        public static IConnectableObservable<T> Replay<T>(this IObservable<T> source, int bufferSize, IScheduler scheduler)
+        public static IConnectableObservable<T> Replay<T>(this IObservable<T> source, int bufferSize,
+            IScheduler scheduler)
         {
             return source.Multicast(new ReplaySubject<T>(bufferSize, scheduler));
         }
@@ -50,12 +51,14 @@ namespace UniRx
             return source.Multicast(new ReplaySubject<T>(window));
         }
 
-        public static IConnectableObservable<T> Replay<T>(this IObservable<T> source, TimeSpan window, IScheduler scheduler)
+        public static IConnectableObservable<T> Replay<T>(this IObservable<T> source, TimeSpan window,
+            IScheduler scheduler)
         {
             return source.Multicast(new ReplaySubject<T>(window, scheduler));
         }
 
-        public static IConnectableObservable<T> Replay<T>(this IObservable<T> source, int bufferSize, TimeSpan window, IScheduler scheduler)
+        public static IConnectableObservable<T> Replay<T>(this IObservable<T> source, int bufferSize, TimeSpan window,
+            IScheduler scheduler)
         {
             return source.Multicast(new ReplaySubject<T>(bufferSize, window, scheduler));
         }
@@ -66,7 +69,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// same as Publish().RefCount()
+        ///     same as Publish().RefCount()
         /// </summary>
         public static IObservable<T> Share<T>(this IObservable<T> source)
         {

@@ -9,6 +9,15 @@ namespace Gameplay.Enemies
     {
         [SerializeField] private UfoMovement _parentUfo;
 
+#if UNITY_EDITOR
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(transform.position, GetComponent<CircleCollider2D>().radius * 2);
+        }
+
+#endif
+
         private void OnTriggerEnter2D(Collider2D other)
         {
             if (!other.TryGetComponent(out Player player)) return;
@@ -24,14 +33,5 @@ namespace Gameplay.Enemies
             _parentUfo.StopChasing();
             _parentUfo.Player = null;
         }
-
-#if UNITY_EDITOR
-        private void OnDrawGizmos()
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position, GetComponent<CircleCollider2D>().radius * 2);
-        }
-
-#endif
     }
 }

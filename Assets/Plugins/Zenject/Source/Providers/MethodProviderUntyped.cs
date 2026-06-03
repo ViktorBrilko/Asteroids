@@ -7,8 +7,8 @@ namespace Zenject
     [NoReflectionBaking]
     public class MethodProviderUntyped : IProvider
     {
-        readonly DiContainer _container;
-        readonly Func<InjectContext, object> _method;
+        private readonly DiContainer _container;
+        private readonly Func<InjectContext, object> _method;
 
         public MethodProviderUntyped(
             Func<InjectContext, object> method,
@@ -18,15 +18,9 @@ namespace Zenject
             _method = method;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -49,18 +43,13 @@ namespace Zenject
                 var result = _method(context);
 
                 if (result == null)
-                {
                     Assert.That(!context.MemberType.IsPrimitive(),
                         "Invalid value returned from FromMethod.  Expected non-null.");
-                }
                 else
-                {
                     Assert.That(result.GetType().DerivesFromOrEqual(context.MemberType));
-                }
 
                 buffer.Add(result);
             }
         }
     }
 }
-

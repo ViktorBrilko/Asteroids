@@ -4,8 +4,8 @@ namespace UniRx.Operators
 {
     internal class SubscribeOnMainThreadObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly IObservable<long> subscribeTrigger;
+        private readonly IObservable<T> source;
+        private readonly IObservable<long> subscribeTrigger;
 
         public SubscribeOnMainThreadObservable(IObservable<T> source, IObservable<long> subscribeTrigger)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -20,10 +20,8 @@ namespace UniRx.Operators
             var d = new SerialDisposable();
             d.Disposable = m;
 
-            m.Disposable = subscribeTrigger.SubscribeWithState3(observer, d, source, (_, o, disp, s) =>
-            {
-                disp.Disposable = s.Subscribe(o);
-            });
+            m.Disposable = subscribeTrigger.SubscribeWithState3(observer, d, source,
+                (_, o, disp, s) => { disp.Disposable = s.Subscribe(o); });
 
             return d;
         }

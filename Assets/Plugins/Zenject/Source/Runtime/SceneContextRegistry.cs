@@ -6,12 +6,9 @@ namespace Zenject
 {
     public class SceneContextRegistry
     {
-        readonly Dictionary<Scene, SceneContext> _map = new Dictionary<Scene, SceneContext>();
+        private readonly Dictionary<Scene, SceneContext> _map = new();
 
-        public IEnumerable<SceneContext> SceneContexts
-        {
-            get { return _map.Values; }
-        }
+        public IEnumerable<SceneContext> SceneContexts => _map.Values;
 
         public void Add(SceneContext context)
         {
@@ -42,10 +39,7 @@ namespace Zenject
         {
             SceneContext context;
 
-            if (_map.TryGetValue(scene, out context))
-            {
-                return context;
-            }
+            if (_map.TryGetValue(scene, out context)) return context;
 
             return null;
         }
@@ -54,10 +48,7 @@ namespace Zenject
         {
             var container = TryGetContainerForScene(scene);
 
-            if (container != null)
-            {
-                return container;
-            }
+            if (container != null) return container;
 
             throw Assert.CreateException(
                 "Unable to find DiContainer for scene '{0}'", scene.name);
@@ -65,30 +56,20 @@ namespace Zenject
 
         public DiContainer TryGetContainerForScene(Scene scene)
         {
-            if (scene == ProjectContext.Instance.gameObject.scene)
-            {
-                return ProjectContext.Instance.Container;
-            }
+            if (scene == ProjectContext.Instance.gameObject.scene) return ProjectContext.Instance.Container;
 
             var sceneContext = TryGetSceneContextForScene(scene);
 
-            if (sceneContext != null)
-            {
-                return sceneContext.Container;
-            }
+            if (sceneContext != null) return sceneContext.Container;
 
             return null;
         }
 
         public void Remove(SceneContext context)
         {
-            bool removed = _map.Remove(context.gameObject.scene);
+            var removed = _map.Remove(context.gameObject.scene);
 
-            if (!removed)
-            {
-                Log.Warn("Failed to remove SceneContext from SceneContextRegistry");
-            }
+            if (!removed) Log.Warn("Failed to remove SceneContext from SceneContextRegistry");
         }
     }
-
 }

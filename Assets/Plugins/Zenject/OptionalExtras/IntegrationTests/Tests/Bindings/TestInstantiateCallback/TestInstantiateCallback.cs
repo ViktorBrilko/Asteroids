@@ -1,4 +1,3 @@
-
 using System.Collections;
 using ModestTree;
 using UnityEngine;
@@ -8,22 +7,16 @@ namespace Zenject.Tests.Bindings.InstantiateCallback
 {
     public class TestInstantiateCallback : ZenjectIntegrationTestFixture
     {
-        GameObject FooPrefab
-        {
-            get { return GetPrefab("Foo"); }
-        }
+        private GameObject FooPrefab => GetPrefab("Foo");
 
-        GameObject EmptyPrefab
-        {
-            get { return GetPrefab("Empty"); }
-        }
+        private GameObject EmptyPrefab => GetPrefab("Empty");
 
-        GameObject GetPrefab(string name)
+        private GameObject GetPrefab(string name)
         {
             return FixtureUtil.GetPrefab(GetPrefabPath(name));
         }
 
-        string GetPrefabPath(string name)
+        private string GetPrefabPath(string name)
         {
             return "TestInstantiateCallback/{0}".Fmt(name);
         }
@@ -35,10 +28,10 @@ namespace Zenject.Tests.Bindings.InstantiateCallback
 
             Container.Bind<Foo>().FromNewComponentOnNewGameObject()
                 .AsSingle().OnInstantiated<Foo>((ctx, obj) =>
-                    {
-                        Assert.That(obj.WasInjected);
-                        obj.Value = "asdf";
-                    });
+                {
+                    Assert.That(obj.WasInjected);
+                    obj.Value = "asdf";
+                });
 
             PostInstall();
 
@@ -57,10 +50,10 @@ namespace Zenject.Tests.Bindings.InstantiateCallback
 
             Container.Bind<Foo>().FromNewComponentOn(gameObject)
                 .AsSingle().OnInstantiated<Foo>((ctx, obj) =>
-                    {
-                        Assert.That(obj.WasInjected);
-                        obj.Value = "asdf";
-                    });
+                {
+                    Assert.That(obj.WasInjected);
+                    obj.Value = "asdf";
+                });
 
             PostInstall();
 
@@ -79,10 +72,10 @@ namespace Zenject.Tests.Bindings.InstantiateCallback
 
             Container.Bind<Foo>().FromNewComponentOn(ctx => gameObject)
                 .AsSingle().OnInstantiated<Foo>((ctx, obj) =>
-                    {
-                        Assert.That(obj.WasInjected);
-                        obj.Value = "asdf";
-                    });
+                {
+                    Assert.That(obj.WasInjected);
+                    obj.Value = "asdf";
+                });
 
             PostInstall();
 
@@ -99,10 +92,10 @@ namespace Zenject.Tests.Bindings.InstantiateCallback
 
             Container.Bind<Foo>().FromNewComponentOnNewPrefab(EmptyPrefab)
                 .AsSingle().OnInstantiated<Foo>((ctx, obj) =>
-                    {
-                        Assert.That(obj.WasInjected);
-                        obj.Value = "asdf";
-                    });
+                {
+                    Assert.That(obj.WasInjected);
+                    obj.Value = "asdf";
+                });
 
             PostInstall();
 
@@ -119,10 +112,10 @@ namespace Zenject.Tests.Bindings.InstantiateCallback
 
             Container.Bind<Foo>().FromNewComponentOnNewPrefabResource(GetPrefabPath("Empty"))
                 .AsSingle().OnInstantiated<Foo>((ctx, obj) =>
-                    {
-                        Assert.That(obj.WasInjected);
-                        obj.Value = "asdf";
-                    });
+                {
+                    Assert.That(obj.WasInjected);
+                    obj.Value = "asdf";
+                });
 
             PostInstall();
 
@@ -139,10 +132,10 @@ namespace Zenject.Tests.Bindings.InstantiateCallback
 
             Container.Bind<Foo>().FromNewComponentOnRoot()
                 .AsSingle().OnInstantiated<Foo>((ctx, obj) =>
-                    {
-                        Assert.That(obj.WasInjected);
-                        obj.Value = "asdf";
-                    });
+                {
+                    Assert.That(obj.WasInjected);
+                    obj.Value = "asdf";
+                });
 
             PostInstall();
 
@@ -150,12 +143,6 @@ namespace Zenject.Tests.Bindings.InstantiateCallback
 
             Assert.IsEqual(foo.Value, "asdf");
             yield break;
-        }
-
-        public class Bar : MonoBehaviour
-        {
-            [Inject]
-            public Foo Foo;
         }
 
         [UnityTest]
@@ -168,10 +155,10 @@ namespace Zenject.Tests.Bindings.InstantiateCallback
             Container.QueueForInject(bar);
             Container.Bind<Foo>().FromNewComponentSibling()
                 .AsSingle().OnInstantiated<Foo>((ctx, obj) =>
-                    {
-                        Assert.That(obj.WasInjected);
-                        obj.Value = "asdf";
-                    });
+                {
+                    Assert.That(obj.WasInjected);
+                    obj.Value = "asdf";
+                });
 
             PostInstall();
 
@@ -186,10 +173,10 @@ namespace Zenject.Tests.Bindings.InstantiateCallback
 
             Container.Bind<Foo>().FromComponentInNewPrefab(FooPrefab)
                 .AsSingle().OnInstantiated<Foo>((ctx, obj) =>
-                    {
-                        Assert.That(obj.WasInjected);
-                        obj.Value = "asdf";
-                    });
+                {
+                    Assert.That(obj.WasInjected);
+                    obj.Value = "asdf";
+                });
 
             PostInstall();
 
@@ -206,10 +193,10 @@ namespace Zenject.Tests.Bindings.InstantiateCallback
 
             Container.Bind<Foo>().FromComponentInNewPrefabResource(GetPrefabPath("Foo"))
                 .AsSingle().OnInstantiated<Foo>((ctx, obj) =>
-                    {
-                        Assert.That(obj.WasInjected);
-                        obj.Value = "asdf";
-                    });
+                {
+                    Assert.That(obj.WasInjected);
+                    obj.Value = "asdf";
+                });
 
             PostInstall();
 
@@ -219,6 +206,9 @@ namespace Zenject.Tests.Bindings.InstantiateCallback
             yield break;
         }
 
+        public class Bar : MonoBehaviour
+        {
+            [Inject] public Foo Foo;
+        }
     }
 }
-

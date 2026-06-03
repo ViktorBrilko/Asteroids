@@ -5,8 +5,6 @@ namespace Zenject.Tests.Bindings.FromComponentInHierarchyGameObjectContext
 {
     public class Foo : MonoBehaviour
     {
-        [NonSerialized]
-        [Inject]
-        public Gorp Gorp;
+        [NonSerialized] [Inject] public Gorp Gorp;
     }
 }

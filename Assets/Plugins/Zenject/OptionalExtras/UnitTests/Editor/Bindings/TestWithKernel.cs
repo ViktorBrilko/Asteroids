@@ -6,19 +6,13 @@ namespace Zenject.Tests.Bindings
     [TestFixture]
     public class TestWithKernel : ZenjectUnitTestFixture
     {
-        static int GlobalInitializeCount;
+        private static int GlobalInitializeCount;
 
         public class Foo : IInitializable
         {
-            public bool WasInitialized
-            {
-                get; private set;
-            }
+            public bool WasInitialized { get; private set; }
 
-            public int InitializeCount
-            {
-                get; private set;
-            }
+            public int InitializeCount { get; private set; }
 
             public void Initialize()
             {
@@ -29,11 +23,7 @@ namespace Zenject.Tests.Bindings
 
         public class FooFacade
         {
-            [Inject]
-            public Foo Foo
-            {
-                get; private set;
-            }
+            [Inject] public Foo Foo { get; private set; }
         }
 
         public class FooInstaller : Installer<FooInstaller>
@@ -44,7 +34,7 @@ namespace Zenject.Tests.Bindings
             }
         }
 
-        static void InstallFoo(DiContainer subContainer)
+        private static void InstallFoo(DiContainer subContainer)
         {
             subContainer.Bind<FooFacade>().AsSingle();
             subContainer.BindInterfacesAndSelfTo<Foo>().AsSingle();
@@ -88,10 +78,7 @@ namespace Zenject.Tests.Bindings
 
         public class Bar : IInitializable
         {
-            public int InitializeCount
-            {
-                get; private set;
-            }
+            public int InitializeCount { get; private set; }
 
             public void Initialize()
             {
@@ -146,5 +133,3 @@ namespace Zenject.Tests.Bindings
         }
     }
 }
-
-

@@ -1,15 +1,16 @@
-﻿namespace UniRx.InternalUtil
-{
-	using System;
+﻿using System;
+using System.Runtime.ExceptionServices;
 
-	internal static class ExceptionExtensions
-	{
-		public static void Throw(this Exception exception)
-		{
+namespace UniRx.InternalUtil
+{
+    internal static class ExceptionExtensions
+    {
+        public static void Throw(this Exception exception)
+        {
 #if (NET_4_6 || NET_STANDARD_2_0)
-			System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(exception).Throw();
+            ExceptionDispatchInfo.Capture(exception).Throw();
 #endif
             throw exception;
-		}
-	}
+        }
+    }
 }

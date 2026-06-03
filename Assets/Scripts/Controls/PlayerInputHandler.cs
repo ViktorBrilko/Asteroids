@@ -1,35 +1,23 @@
 using System;
+using Cysharp.Threading.Tasks;
 
 namespace Controls
 {
     public class PlayerInputHandler
     {
-        public Action FireLaser;
+        public Func<bool, bool, UniTask> ChangeSpeed;
         public Action FireBullet;
-        public Action<bool> ChangeSpeed;
-        public Action InertialMovement;
+        public Action FireLaser;
+        public Action StopCompensateInertion;
+        public Func<bool, UniTask> StartMovement;
+        public Func<UniTaskVoid> InertialMovement;
+      //  public Func<bool, bool, UniTask> InertionCompensation;
 
-        private float _xDirection;
-        private float _yDirection;
-        private float _rotation;
+        public float XDirection { get; set; }
 
-        public float XDirection
-        {
-            get => _xDirection;
-            set => _xDirection = value;
-        }
+        public float YDirection { get; set; }
 
-        public float YDirection
-        {
-            get => _yDirection;
-            set => _yDirection = value;
-        }
-
-        public float Rotation
-        {
-            get => _rotation;
-            set => _rotation = value;
-        }
+        public float Rotation { get; set; }
 
         public void TriggerLaser()
         {
@@ -40,16 +28,32 @@ namespace Controls
         {
             FireBullet?.Invoke();
         }
-        
+
         public void TriggerInertialMovement()
         {
             InertialMovement?.Invoke();
         }
         
-        public void TriggerChangeSpeed(bool increase)
+        public void TriggerStartMovement(bool isForward)
         {
-            ChangeSpeed?.Invoke(increase);
+            StartMovement?.Invoke(isForward);
+        }
+
+        public void TriggerChangeSpeed(bool increase, bool forward = true)
+        {
+            ChangeSpeed?.Invoke(increase, forward);
         }
         
+        // public void TriggerInertionCompensation(bool increase, bool forward)
+        // {
+        //     InertionCompensation?.Invoke(increase, forward);
+        // }
+        
+        
+        
+        public void TriggerStopCompensateInertion()
+        {
+            StopCompensateInertion?.Invoke();
+        }
     }
 }

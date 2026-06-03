@@ -7,13 +7,14 @@ namespace Zenject
     [NoReflectionBaking]
     public class InstanceProvider : IProvider
     {
-        readonly object _instance;
-        readonly Type _instanceType;
-        readonly DiContainer _container;
-        readonly Action<InjectContext, object> _instantiateCallback;
+        private readonly DiContainer _container;
+        private readonly object _instance;
+        private readonly Type _instanceType;
+        private readonly Action<InjectContext, object> _instantiateCallback;
 
         public InstanceProvider(
-            Type instanceType, object instance, DiContainer container, Action<InjectContext, object> instantiateCallback)
+            Type instanceType, object instance, DiContainer container,
+            Action<InjectContext, object> instantiateCallback)
         {
             _instanceType = instanceType;
             _instance = instance;
@@ -21,15 +22,9 @@ namespace Zenject
             _instantiateCallback = instantiateCallback;
         }
 
-        public bool IsCached
-        {
-            get { return true; }
-        }
+        public bool IsCached => true;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -46,12 +41,9 @@ namespace Zenject
 
             injectAction = () =>
             {
-                object instance = _container.LazyInject(_instance);
+                var instance = _container.LazyInject(_instance);
 
-                if (_instantiateCallback != null)
-                {
-                    _instantiateCallback(context, instance);
-                }
+                if (_instantiateCallback != null) _instantiateCallback(context, instance);
             };
 
             buffer.Add(_instance);

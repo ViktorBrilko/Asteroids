@@ -10,13 +10,18 @@ namespace UI.ViewModels
 {
     public class LaserChargeViewModel : IInitializable, IDisposable
     {
+        [Data("LaserCharge")] public readonly ReactiveProperty<float> LaserChargeImage = new();
+
         public readonly PlayerWeapon Weapon;
-        [Data("LaserCharge")] 
-        public readonly ReactiveProperty<float> LaserChargeImage = new();
 
         public LaserChargeViewModel(PlayerWeapon weapon)
         {
             Weapon = weapon;
+        }
+
+        public void Dispose()
+        {
+            Weapon.OnLaserChargeStarted -= OnLaserChargeStarted;
         }
 
         public void Initialize()
@@ -25,14 +30,9 @@ namespace UI.ViewModels
             Weapon.OnLaserChargeStarted += OnLaserChargeStarted;
         }
 
-        public void Dispose()
-        {
-            Weapon.OnLaserChargeStarted -= OnLaserChargeStarted;
-        }
-
         private async void OnLaserChargeStarted(float laserCooldown)
         {
-            float elapsedTime = 0f;
+            var elapsedTime = 0f;
 
             while (elapsedTime < laserCooldown)
             {

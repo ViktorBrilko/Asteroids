@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using ModestTree;
 using Zenject.Internal;
-using System.Linq;
+using Object = UnityEngine.Object;
 using TypeExtensions = ModestTree.TypeExtensions;
 
 #if !NOT_UNITY3D
 using UnityEngine;
 
 #if UNITY_EDITOR
-using UnityEditor;
 #endif
 
 #endif
@@ -24,7 +23,7 @@ namespace Zenject
 #if ZEN_STRIP_ASSERTS_IN_BUILDS
         [Conditional("UNITY_EDITOR")]
 #endif
-        public static void AssertIsValidPrefab(UnityEngine.Object prefab)
+        public static void AssertIsValidPrefab(Object prefab)
         {
             Assert.That(!ZenUtilInternal.IsNull(prefab), "Received null prefab during bind command");
 
@@ -32,7 +31,7 @@ namespace Zenject
             // Unfortunately we can't do this check because asset bundles return PrefabType.None here
             // as discussed here: https://github.com/svermeulen/Zenject/issues/269#issuecomment-323419408
             //Assert.That(PrefabUtility.GetPrefabType(prefab) == PrefabType.Prefab,
-                //"Expected prefab but found game object with name '{0}' during bind command", prefab.name);
+            //"Expected prefab but found game object with name '{0}' during bind command", prefab.name);
 #endif
         }
 
@@ -47,7 +46,7 @@ namespace Zenject
             // Unfortunately we can't do this check because asset bundles return PrefabType.None here
             // as discussed here: https://github.com/svermeulen/Zenject/issues/269#issuecomment-323419408
             //Assert.That(PrefabUtility.GetPrefabType(gameObject) != PrefabType.Prefab,
-                //"Expected game object but found prefab instead with name '{0}' during bind command", gameObject.name);
+            //"Expected game object but found prefab instead with name '{0}' during bind command", gameObject.name);
 #endif
         }
 
@@ -56,10 +55,7 @@ namespace Zenject
 #endif
         public static void AssertIsNotComponent(IEnumerable<Type> types)
         {
-            foreach (var type in types)
-            {
-                AssertIsNotComponent(type);
-            }
+            foreach (var type in types) AssertIsNotComponent(type);
         }
 
 #if ZEN_STRIP_ASSERTS_IN_BUILDS
@@ -76,7 +72,8 @@ namespace Zenject
         public static void AssertIsNotComponent(Type type)
         {
             Assert.That(!type.DerivesFrom(typeof(Component)),
-                "Invalid type given during bind command.  Expected type '{0}' to NOT derive from UnityEngine.Component", type);
+                "Invalid type given during bind command.  Expected type '{0}' to NOT derive from UnityEngine.Component",
+                type);
         }
 
 #if ZEN_STRIP_ASSERTS_IN_BUILDS
@@ -84,10 +81,7 @@ namespace Zenject
 #endif
         public static void AssertDerivesFromUnityObject(IEnumerable<Type> types)
         {
-            foreach (var type in types)
-            {
-                AssertDerivesFromUnityObject(type);
-            }
+            foreach (var type in types) AssertDerivesFromUnityObject(type);
         }
 
 #if ZEN_STRIP_ASSERTS_IN_BUILDS
@@ -103,7 +97,7 @@ namespace Zenject
 #endif
         public static void AssertDerivesFromUnityObject(Type type)
         {
-            Assert.That(type.DerivesFrom<UnityEngine.Object>(),
+            Assert.That(type.DerivesFrom<Object>(),
                 "Invalid type given during bind command.  Expected type '{0}' to derive from UnityEngine.Object", type);
         }
 
@@ -112,10 +106,7 @@ namespace Zenject
 #endif
         public static void AssertTypesAreNotComponents(IEnumerable<Type> types)
         {
-            foreach (var type in types)
-            {
-                AssertIsNotComponent(type);
-            }
+            foreach (var type in types) AssertIsNotComponent(type);
         }
 
 #if ZEN_STRIP_ASSERTS_IN_BUILDS
@@ -134,10 +125,7 @@ namespace Zenject
 #endif
         public static void AssertIsInterfaceOrScriptableObject(IEnumerable<Type> types)
         {
-            foreach (var type in types)
-            {
-                AssertIsInterfaceOrScriptableObject(type);
-            }
+            foreach (var type in types) AssertIsInterfaceOrScriptableObject(type);
         }
 
 #if ZEN_STRIP_ASSERTS_IN_BUILDS
@@ -154,7 +142,8 @@ namespace Zenject
         public static void AssertIsInterfaceOrScriptableObject(Type type)
         {
             Assert.That(type.DerivesFrom(typeof(ScriptableObject)) || type.IsInterface(),
-                "Invalid type given during bind command.  Expected type '{0}' to either derive from UnityEngine.ScriptableObject or be an interface", type);
+                "Invalid type given during bind command.  Expected type '{0}' to either derive from UnityEngine.ScriptableObject or be an interface",
+                type);
         }
 
 #if ZEN_STRIP_ASSERTS_IN_BUILDS
@@ -162,10 +151,7 @@ namespace Zenject
 #endif
         public static void AssertIsInterfaceOrComponent(IEnumerable<Type> types)
         {
-            foreach (var type in types)
-            {
-                AssertIsInterfaceOrComponent(type);
-            }
+            foreach (var type in types) AssertIsInterfaceOrComponent(type);
         }
 
 #if ZEN_STRIP_ASSERTS_IN_BUILDS
@@ -182,7 +168,8 @@ namespace Zenject
         public static void AssertIsInterfaceOrComponent(Type type)
         {
             Assert.That(type.DerivesFrom(typeof(Component)) || type.IsInterface(),
-                "Invalid type given during bind command.  Expected type '{0}' to either derive from UnityEngine.Component or be an interface", type);
+                "Invalid type given during bind command.  Expected type '{0}' to either derive from UnityEngine.Component or be an interface",
+                type);
         }
 
 #if ZEN_STRIP_ASSERTS_IN_BUILDS
@@ -190,10 +177,7 @@ namespace Zenject
 #endif
         public static void AssertIsComponent(IEnumerable<Type> types)
         {
-            foreach (var type in types)
-            {
-                AssertIsComponent(type);
-            }
+            foreach (var type in types) AssertIsComponent(type);
         }
 
 #if ZEN_STRIP_ASSERTS_IN_BUILDS
@@ -210,7 +194,8 @@ namespace Zenject
         public static void AssertIsComponent(Type type)
         {
             Assert.That(type.DerivesFrom(typeof(Component)),
-                "Invalid type given during bind command.  Expected type '{0}' to derive from UnityEngine.Component", type);
+                "Invalid type given during bind command.  Expected type '{0}' to derive from UnityEngine.Component",
+                type);
         }
 #else
         public static void AssertTypesAreNotComponents(IEnumerable<Type> types)
@@ -235,10 +220,7 @@ namespace Zenject
 #endif
         public static void AssertTypesAreNotAbstract(IEnumerable<Type> types)
         {
-            foreach (var type in types)
-            {
-                AssertIsNotAbstract(type);
-            }
+            foreach (var type in types) AssertIsNotAbstract(type);
         }
 
 #if ZEN_STRIP_ASSERTS_IN_BUILDS
@@ -246,10 +228,7 @@ namespace Zenject
 #endif
         public static void AssertIsNotAbstract(IEnumerable<Type> types)
         {
-            foreach (var type in types)
-            {
-                AssertIsNotAbstract(type);
-            }
+            foreach (var type in types) AssertIsNotAbstract(type);
         }
 
 #if ZEN_STRIP_ASSERTS_IN_BUILDS
@@ -278,19 +257,22 @@ namespace Zenject
             // TODO: Is it possible to do this on WSA?
 
             Assert.That(parentType.IsOpenGenericType() == concreteType.IsOpenGenericType(),
-                "Invalid type given during bind command.  Expected type '{0}' and type '{1}' to both either be open generic types or not open generic types", parentType, concreteType);
+                "Invalid type given during bind command.  Expected type '{0}' and type '{1}' to both either be open generic types or not open generic types",
+                parentType, concreteType);
 
             if (parentType.IsOpenGenericType())
             {
                 Assert.That(concreteType.IsOpenGenericType());
                 Assert.That(TypeExtensions.IsAssignableToGenericType(concreteType, parentType),
-                    "Invalid type given during bind command.  Expected open generic type '{0}' to derive from open generic type '{1}'", concreteType, parentType);
+                    "Invalid type given during bind command.  Expected open generic type '{0}' to derive from open generic type '{1}'",
+                    concreteType, parentType);
             }
             else
 #endif
             {
                 Assert.That(concreteType.DerivesFromOrEqual(parentType),
-                    "Invalid type given during bind command.  Expected type '{0}' to derive from type '{1}'", concreteType, parentType);
+                    "Invalid type given during bind command.  Expected type '{0}' to derive from type '{1}'",
+                    concreteType, parentType);
             }
         }
 
@@ -310,13 +292,9 @@ namespace Zenject
             IEnumerable<Type> concreteTypes, IEnumerable<Type> parentTypes, InvalidBindResponses invalidBindResponse)
         {
             if (invalidBindResponse == InvalidBindResponses.Assert)
-            {
                 AssertIsDerivedFromTypes(concreteTypes, parentTypes);
-            }
             else
-            {
                 Assert.IsEqual(invalidBindResponse, InvalidBindResponses.Skip);
-            }
         }
 
 #if ZEN_STRIP_ASSERTS_IN_BUILDS
@@ -324,10 +302,7 @@ namespace Zenject
 #endif
         public static void AssertIsDerivedFromTypes(IEnumerable<Type> concreteTypes, IEnumerable<Type> parentTypes)
         {
-            foreach (var concreteType in concreteTypes)
-            {
-                AssertIsDerivedFromTypes(concreteType, parentTypes);
-            }
+            foreach (var concreteType in concreteTypes) AssertIsDerivedFromTypes(concreteType, parentTypes);
         }
 
 #if ZEN_STRIP_ASSERTS_IN_BUILDS
@@ -335,10 +310,7 @@ namespace Zenject
 #endif
         public static void AssertIsDerivedFromTypes(Type concreteType, IEnumerable<Type> parentTypes)
         {
-            foreach (var parentType in parentTypes)
-            {
-                AssertIsDerivedFromType(concreteType, parentType);
-            }
+            foreach (var parentType in parentTypes) AssertIsDerivedFromType(concreteType, parentType);
         }
 
 #if ZEN_STRIP_ASSERTS_IN_BUILDS
@@ -347,12 +319,8 @@ namespace Zenject
         public static void AssertInstanceDerivesFromOrEqual(object instance, IEnumerable<Type> parentTypes)
         {
             if (!ZenUtilInternal.IsNull(instance))
-            {
                 foreach (var baseType in parentTypes)
-                {
                     AssertInstanceDerivesFromOrEqual(instance, baseType);
-                }
-            }
         }
 
 #if ZEN_STRIP_ASSERTS_IN_BUILDS
@@ -361,18 +329,14 @@ namespace Zenject
         public static void AssertInstanceDerivesFromOrEqual(object instance, Type baseType)
         {
             if (!ZenUtilInternal.IsNull(instance))
-            {
                 Assert.That(instance.GetType().DerivesFromOrEqual(baseType),
-                    "Invalid type given during bind command.  Expected type '{0}' to derive from type '{1}'", instance.GetType(), baseType);
-            }
+                    "Invalid type given during bind command.  Expected type '{0}' to derive from type '{1}'",
+                    instance.GetType(), baseType);
         }
 
         public static IProvider CreateCachedProvider(IProvider creator)
         {
-            if (creator.TypeVariesBasedOnMemberType)
-            {
-                return new CachedOpenTypeProvider(creator);
-            }
+            if (creator.TypeVariesBasedOnMemberType) return new CachedOpenTypeProvider(creator);
 
             return new CachedProvider(creator);
         }

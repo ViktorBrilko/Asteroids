@@ -6,12 +6,11 @@ namespace Zenject.Tests.Injection
     [TestFixture]
     public class TestCircularDependencies : ZenjectUnitTestFixture
     {
-        class Test1
+        private class Test1
         {
             public static int CreateCount;
 
-            [Inject]
-            public Test2 Other = null;
+            [Inject] public Test2 Other;
 
             public Test1()
             {
@@ -19,12 +18,11 @@ namespace Zenject.Tests.Injection
             }
         }
 
-        class Test2
+        private class Test2
         {
             public static int CreateCount;
 
-            [Inject]
-            public Test1 Other = null;
+            [Inject] public Test1 Other;
 
             public Test2()
             {
@@ -50,7 +48,7 @@ namespace Zenject.Tests.Injection
             Assert.IsEqual(test2.Other, test1);
         }
 
-        class Test3
+        private class Test3
         {
             public static int CreateCount;
 
@@ -68,7 +66,7 @@ namespace Zenject.Tests.Injection
             }
         }
 
-        class Test4
+        private class Test4
         {
             public static int CreateCount;
 
@@ -104,7 +102,7 @@ namespace Zenject.Tests.Injection
             Assert.IsEqual(test2.Other, test1);
         }
 
-        class Test5
+        private class Test5
         {
             public Test5(Test6 Other)
             {
@@ -112,7 +110,7 @@ namespace Zenject.Tests.Injection
             }
         }
 
-        class Test6
+        private class Test6
         {
             public Test6(Test5 other)
             {
@@ -133,7 +131,7 @@ namespace Zenject.Tests.Injection
             }
         }
 
-        class Test7
+        private class Test7
         {
             public Test7(Test7 other)
             {
@@ -151,5 +149,3 @@ namespace Zenject.Tests.Injection
         }
     }
 }
-
-

@@ -6,23 +6,21 @@ namespace Zenject.Tests.Conditions
     [TestFixture]
     public class TestConditionsIdentifier : ZenjectUnitTestFixture
     {
-        class Test0
+        private class Test0
         {
         }
 
-        class Test1
+        private class Test1
         {
             public Test1(
-                [Inject(Id ="foo")]
-                Test0 name1)
+                [Inject(Id = "foo")] Test0 name1)
             {
             }
         }
 
-        class Test2
+        private class Test2
         {
-            [Inject(Id ="foo")]
-            public Test0 name2 = null;
+            [Inject(Id = "foo")] public Test0 name2;
         }
 
         [Test]
@@ -74,18 +72,16 @@ namespace Zenject.Tests.Conditions
             Assert.IsNotNull(Container.Resolve<Test2>());
         }
 
-        class Test3
+        private class Test3
         {
             public Test3(
-                [Inject(Id ="TestValue2")]
-                Test0 test0)
+                [Inject(Id = "TestValue2")] Test0 test0)
             {
             }
         }
 
-        class Test4
+        private class Test4
         {
-
         }
 
         [Test]

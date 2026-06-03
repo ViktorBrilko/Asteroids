@@ -22,15 +22,15 @@ namespace Zenject.Tests.Signals
 
             var signalBus = Container.Resolve<SignalBus>();
 
-            int count = 1;
+            var count = 1;
 
-            int order1 = 0;
+            var order1 = 0;
             Action handler1 = () => order1 = count++;
 
-            int order2 = 0;
+            var order2 = 0;
             Action handler2 = () => order2 = count++;
 
-            int order3 = 0;
+            var order3 = 0;
             Action handler3 = () => order3 = count++;
 
             signalBus.Subscribe<FooSignal>(handler1);
@@ -51,19 +51,13 @@ namespace Zenject.Tests.Signals
 
             var signalBus = Container.Resolve<SignalBus>();
 
-            bool received = false;
+            var received = false;
 
             Action handler2 = () => received = true;
 
-            Action handler = () =>
-            {
-                signalBus.Subscribe<FooSignal>(handler2);
-            };
+            Action handler = () => { signalBus.Subscribe<FooSignal>(handler2); };
 
-            Action handler3 = () =>
-            {
-                signalBus.Unsubscribe<FooSignal>(handler2);
-            };
+            Action handler3 = () => { signalBus.Unsubscribe<FooSignal>(handler2); };
 
             signalBus.Subscribe<FooSignal>(handler);
 
@@ -124,7 +118,7 @@ namespace Zenject.Tests.Signals
 
             var signalBus2 = subContainer.Resolve<SignalBus>();
 
-            bool received = false;
+            var received = false;
             Action callback = () => received = true;
 
             signalBus2.Subscribe<FooSignal>(callback);
@@ -170,7 +164,7 @@ namespace Zenject.Tests.Signals
 
             var signalBus = Container.Resolve<SignalBus>();
 
-            bool received = false;
+            var received = false;
             signalBus.Subscribe<FooSignal>(() => received = true);
 
             Assert.That(!received);
@@ -209,7 +203,7 @@ namespace Zenject.Tests.Signals
 
             var signalBus = Container.Resolve<SignalBus>();
 
-            int callCount = 0;
+            var callCount = 0;
 
             Action handler = () =>
             {
@@ -239,4 +233,3 @@ namespace Zenject.Tests.Signals
         }
     }
 }
-

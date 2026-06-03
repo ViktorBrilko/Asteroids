@@ -1,8 +1,8 @@
-﻿using Cysharp.Threading.Tasks.Internal;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
 using System.Threading;
+using Cysharp.Threading.Tasks.Internal;
 
 namespace Cysharp.Threading.Tasks
 {
@@ -32,44 +32,33 @@ namespace Cysharp.Threading.Tasks
 
         public WhenEachResult(T result)
         {
-            this.Result = result;
-            this.Exception = null;
+            Result = result;
+            Exception = null;
         }
 
         public WhenEachResult(Exception exception)
         {
             if (exception == null) throw new ArgumentNullException(nameof(exception));
-            this.Result = default;
-            this.Exception = exception;
+            Result = default;
+            Exception = exception;
         }
 
         public void TryThrow()
         {
-            if (IsFaulted)
-            {
-                ExceptionDispatchInfo.Capture(Exception).Throw();
-            }
+            if (IsFaulted) ExceptionDispatchInfo.Capture(Exception).Throw();
         }
 
         public T GetResult()
         {
-            if (IsFaulted)
-            {
-                ExceptionDispatchInfo.Capture(Exception).Throw();
-            }
+            if (IsFaulted) ExceptionDispatchInfo.Capture(Exception).Throw();
             return Result;
         }
 
         public override string ToString()
         {
-            if (IsCompletedSuccessfully)
-            {
-                return Result?.ToString() ?? "";
-            }
-            else
-            {
-                return $"Exception{{{Exception.Message}}}";
-            }
+            if (IsCompletedSuccessfully) return Result?.ToString() ?? "";
+
+            return $"Exception{{{Exception.Message}}}";
         }
     }
 
@@ -82,27 +71,28 @@ namespace Cysharp.Threading.Tasks
 
     internal sealed class WhenEachEnumerable<T> : IUniTaskAsyncEnumerable<WhenEachResult<T>>
     {
-        IEnumerable<UniTask<T>> source;
+        private readonly IEnumerable<UniTask<T>> source;
 
         public WhenEachEnumerable(IEnumerable<UniTask<T>> source)
         {
             this.source = source;
         }
 
-        public IUniTaskAsyncEnumerator<WhenEachResult<T>> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+        public IUniTaskAsyncEnumerator<WhenEachResult<T>> GetAsyncEnumerator(
+            CancellationToken cancellationToken = default)
         {
             return new Enumerator(source, cancellationToken);
         }
 
-        sealed class Enumerator : IUniTaskAsyncEnumerator<WhenEachResult<T>>
+        private sealed class Enumerator : IUniTaskAsyncEnumerator<WhenEachResult<T>>
         {
-            readonly IEnumerable<UniTask<T>> source;
-            CancellationToken cancellationToken;
+            private readonly IEnumerable<UniTask<T>> source;
+            private readonly CancellationToken cancellationToken;
 
-            Channel<WhenEachResult<T>> channel;
-            IUniTaskAsyncEnumerator<WhenEachResult<T>> channelEnumerator;
-            int completeCount;
-            WhenEachState state;
+            private Channel<WhenEachResult<T>> channel;
+            private IUniTaskAsyncEnumerator<WhenEachResult<T>> channelEnumerator;
+            private int completeCount;
+            private WhenEachState state;
 
             public Enumerator(IEnumerable<UniTask<T>> source, CancellationToken cancellationToken)
             {
@@ -123,30 +113,34 @@ namespace Cysharp.Threading.Tasks
                     channelEnumerator = channel.Reader.ReadAllAsync().GetAsyncEnumerator(cancellationToken);
 
                     if (source is UniTask<T>[] array)
-                    {
                         ConsumeAll(this, array, array.Length);
-                    }
                     else
-                    {
                         using (var rentArray = ArrayPoolUtil.Materialize(source))
                         {
                             ConsumeAll(this, rentArray.Array, rentArray.Length);
                         }
-                    }
                 }
 
                 return channelEnumerator.MoveNextAsync();
             }
 
-            static void ConsumeAll(Enumerator self, UniTask<T>[] array, int length)
+            public async UniTask DisposeAsync()
             {
-                for (int i = 0; i < length; i++)
+                if (channelEnumerator != null) await channelEnumerator.DisposeAsync();
+
+                if (state != WhenEachState.Completed)
                 {
-                    RunWhenEachTask(self, array[i], length).Forget();
+                    state = WhenEachState.Completed;
+                    channel.Writer.TryComplete(new OperationCanceledException());
                 }
             }
 
-            static async UniTaskVoid RunWhenEachTask(Enumerator self, UniTask<T> task, int length)
+            private static void ConsumeAll(Enumerator self, UniTask<T>[] array, int length)
+            {
+                for (var i = 0; i < length; i++) RunWhenEachTask(self, array[i], length).Forget();
+            }
+
+            private static async UniTaskVoid RunWhenEachTask(Enumerator self, UniTask<T> task, int length)
             {
                 try
                 {
@@ -162,20 +156,6 @@ namespace Cysharp.Threading.Tasks
                 {
                     self.state = WhenEachState.Completed;
                     self.channel.Writer.TryComplete();
-                }
-            }
-
-            public async UniTask DisposeAsync()
-            {
-                if (channelEnumerator != null)
-                {
-                    await channelEnumerator.DisposeAsync();
-                }
-
-                if (state != WhenEachState.Completed)
-                {
-                    state = WhenEachState.Completed;
-                    channel.Writer.TryComplete(new OperationCanceledException());
                 }
             }
         }

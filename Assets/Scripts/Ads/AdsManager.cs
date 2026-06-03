@@ -11,11 +11,11 @@ namespace Ads
 {
     public class AdsManager : IInitializable, IDisposable
     {
-        private SignalBus _signalBus;
         private BannerView _bannerView;
+        private readonly AdsConfig _config;
+        private readonly LoadLevelService _loadLevelService;
         private RewardedAd _rewardedAd;
-        private AdsConfig _config;
-        private LoadLevelService _loadLevelService;
+        private readonly SignalBus _signalBus;
 
         public AdsManager(SignalBus signalBus, AdsConfig config, LoadLevelService loadLevelService)
         {
@@ -24,22 +24,22 @@ namespace Ads
             _loadLevelService = loadLevelService;
         }
 
-        public void Initialize()
-        {
-            Init();
-            
-            _signalBus.Subscribe<PlayerDiedSignal>(OnPlayerDeath);
-            LoadRewardedAd();
-            
-            _loadLevelService.OnLoadScene += LoadBannerView;
-        }
-
         public void Dispose()
         {
             _signalBus.Unsubscribe<PlayerDiedSignal>(OnPlayerDeath);
             _loadLevelService.OnLoadScene -= LoadBannerView;
             DestroyBannerView(_bannerView);
             DestroyRewardedAd(_rewardedAd);
+        }
+
+        public void Initialize()
+        {
+            Init();
+
+            _signalBus.Subscribe<PlayerDiedSignal>(OnPlayerDeath);
+            LoadRewardedAd();
+
+            _loadLevelService.OnLoadScene += LoadBannerView;
         }
 
         private void Init()
@@ -81,7 +81,7 @@ namespace Ads
                 await Task.Delay(100);
                 Time.timeScale = 0;
             };
-            ad.OnAdFullScreenContentFailed += (AdError error) =>
+            ad.OnAdFullScreenContentFailed += error =>
             {
                 Debug.LogError("Rewarded ad failed to open full screen content " +
                                "with error : " + error);
@@ -92,9 +92,9 @@ namespace Ads
 
         private void LoadBannerView()
         {
-            int deviceWidth = MobileAds.Utils.GetDeviceSafeWidth();
+            var deviceWidth = MobileAds.Utils.GetDeviceSafeWidth();
 
-            AdSize adaptiveSize =
+            var adaptiveSize =
                 AdSize.GetCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(deviceWidth);
 
             var adRequest = new AdRequest();
@@ -106,12 +106,9 @@ namespace Ads
         {
             var adRequest = new AdRequest();
 
-            RewardedAd.Load(_config.ADUnitIDRewarded, adRequest, (RewardedAd ad, LoadAdError error) =>
+            RewardedAd.Load(_config.ADUnitIDRewarded, adRequest, (ad, error) =>
             {
-                if (error != null || ad == null)
-                {
-                    return;
-                }
+                if (error != null || ad == null) return;
 
                 _rewardedAd = ad;
                 RegisterReloadHandler(ad);
@@ -120,10 +117,7 @@ namespace Ads
 
         private void ShowRewardedAd()
         {
-            if (_rewardedAd != null && _rewardedAd.CanShowAd())
-            {
-                _rewardedAd.Show((Reward reward) => { });
-            }
+            if (_rewardedAd != null && _rewardedAd.CanShowAd()) _rewardedAd.Show(reward => { });
         }
     }
 }

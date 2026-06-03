@@ -12,36 +12,21 @@ namespace Gameplay.Players
 {
     public class PlayerWeapon : MonoBehaviour
     {
+        private static readonly int IsShooting = Animator.StringToHash("IsShooting");
         [SerializeField] private GameObject _laser;
         [SerializeField] private Animator _laserAnimator;
         [SerializeField] private Transform _projectileSpawnPoint;
         [SerializeField] private Player _player;
+        private AudioService _audioService;
+        private Spawner<Bullet> _bulletSpawner;
 
         private bool _canShootBullets = true;
-        private int _laserShootsCount;
-        private int _laserCooldown;
         private WeaponConfig _config;
-        private Spawner<Bullet> _bulletSpawner;
-        private bool _isLaserCharging;
-        private static readonly int IsShooting = Animator.StringToHash("IsShooting");
-        private AudioService _audioService;
         private PlayerInputHandler _inputHandler;
+        private bool _isLaserCharging;
+        private int _laserCooldown;
 
-        public event Action<int> OnLaserCountChanged;
-        public event Action<float> OnLaserChargeStarted;
-
-        public int LaserShootsCount => _laserShootsCount;
-
-        [Inject]
-        public void Construct(Spawner<Bullet> bulletSpawner, WeaponConfig config, AudioService audioService,
-            PlayerInputHandler inputHandler)
-        {
-            _bulletSpawner = bulletSpawner;
-            _laserShootsCount = config.LaserCount;
-            _config = config;
-            _audioService = audioService;
-            _inputHandler = inputHandler;
-        }
+        public int LaserShootsCount { get; private set; }
 
         private void OnEnable()
         {
@@ -53,6 +38,20 @@ namespace Gameplay.Players
         {
             _inputHandler.FireBullet -= FireBullets;
             _inputHandler.FireLaser -= FireLaser;
+        }
+
+        public event Action<int> OnLaserCountChanged;
+        public event Action<float> OnLaserChargeStarted;
+
+        [Inject]
+        public void Construct(Spawner<Bullet> bulletSpawner, WeaponConfig config, AudioService audioService,
+            PlayerInputHandler inputHandler)
+        {
+            _bulletSpawner = bulletSpawner;
+            LaserShootsCount = config.LaserCount;
+            _config = config;
+            _audioService = audioService;
+            _inputHandler = inputHandler;
         }
 
         private async void FireBullets()
@@ -69,8 +68,8 @@ namespace Gameplay.Players
 
         private async void FireLaser()
         {
-            if (_laserShootsCount <= 0 || _player.IsUncontrollable) return;
-            
+            if (LaserShootsCount <= 0 || _player.IsUncontrollable) return;
+
             _audioService.PlaySfx(_audioService.Config.LaserShoot);
 
             _canShootBullets = false;
@@ -82,27 +81,24 @@ namespace Gameplay.Players
             _canShootBullets = true;
             _audioService.StopSfx();
 
-            _laserShootsCount--;
-            OnLaserCountChanged?.Invoke(_laserShootsCount);
+            LaserShootsCount--;
+            OnLaserCountChanged?.Invoke(LaserShootsCount);
             ChargeLaser().Forget();
         }
 
         private async UniTaskVoid ChargeLaser()
         {
             if (_isLaserCharging) return;
-            if (_laserShootsCount == _config.LaserCount) return;
+            if (LaserShootsCount == _config.LaserCount) return;
 
             _isLaserCharging = true;
             OnLaserChargeStarted?.Invoke(_config.LaserCooldown);
             await UniTask.Delay(TimeSpan.FromSeconds(_config.LaserCooldown));
-            _laserShootsCount++;
-            OnLaserCountChanged?.Invoke(_laserShootsCount);
+            LaserShootsCount++;
+            OnLaserCountChanged?.Invoke(LaserShootsCount);
             _isLaserCharging = false;
 
-            if (_laserShootsCount != _config.LaserCount)
-            {
-                ChargeLaser().Forget();
-            }
+            if (LaserShootsCount != _config.LaserCount) ChargeLaser().Forget();
         }
     }
 }

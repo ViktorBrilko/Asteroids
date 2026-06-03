@@ -14,7 +14,7 @@ namespace UniRx.InternalUtil
             var rentArray = source.ToArray(); // better to use Arraypool.
             var array = rentArray;
             var len = rentArray.Length;
-            for (int i = 0; i < len; i++)
+            for (var i = 0; i < len; i++)
             {
                 array[i].TrySetResult(value);
                 array[i] = null;

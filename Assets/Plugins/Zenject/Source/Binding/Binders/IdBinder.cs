@@ -3,7 +3,7 @@ namespace Zenject
     [NoReflectionBaking]
     public class IdBinder
     {
-        BindInfo _bindInfo;
+        private readonly BindInfo _bindInfo;
 
         public IdBinder(BindInfo bindInfo)
         {
@@ -16,5 +16,3 @@ namespace Zenject
         }
     }
 }
-
-

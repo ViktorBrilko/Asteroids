@@ -1,12 +1,11 @@
 ﻿using System;
-using UniRx.Operators;
 
 namespace UniRx.Operators
 {
     internal class ScanObservable<TSource> : OperatorObservableBase<TSource>
     {
-        readonly IObservable<TSource> source;
-        readonly Func<TSource, TSource, TSource> accumulator;
+        private readonly Func<TSource, TSource, TSource> accumulator;
+        private readonly IObservable<TSource> source;
 
         public ScanObservable(IObservable<TSource> source, Func<TSource, TSource, TSource> accumulator)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -20,16 +19,17 @@ namespace UniRx.Operators
             return source.Subscribe(new Scan(this, observer, cancel));
         }
 
-        class Scan : OperatorObserverBase<TSource, TSource>
+        private class Scan : OperatorObserverBase<TSource, TSource>
         {
-            readonly ScanObservable<TSource> parent;
-            TSource accumulation;
-            bool isFirst;
+            private readonly ScanObservable<TSource> parent;
+            private TSource accumulation;
+            private bool isFirst;
 
-            public Scan(ScanObservable<TSource> parent, IObserver<TSource> observer, IDisposable cancel) : base(observer, cancel)
+            public Scan(ScanObservable<TSource> parent, IObserver<TSource> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
-                this.isFirst = true;
+                isFirst = true;
             }
 
             public override void OnNext(TSource value)
@@ -47,8 +47,15 @@ namespace UniRx.Operators
                     }
                     catch (Exception ex)
                     {
-                        try { observer.OnError(ex); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnError(ex);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
                         return;
                     }
                 }
@@ -58,25 +65,38 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
 
     internal class ScanObservable<TSource, TAccumulate> : OperatorObservableBase<TAccumulate>
     {
-        readonly IObservable<TSource> source;
-        readonly TAccumulate seed;
-        readonly Func<TAccumulate, TSource, TAccumulate> accumulator;
+        private readonly Func<TAccumulate, TSource, TAccumulate> accumulator;
+        private readonly TAccumulate seed;
+        private readonly IObservable<TSource> source;
 
-        public ScanObservable(IObservable<TSource> source, TAccumulate seed, Func<TAccumulate, TSource, TAccumulate> accumulator)
+        public ScanObservable(IObservable<TSource> source, TAccumulate seed,
+            Func<TAccumulate, TSource, TAccumulate> accumulator)
             : base(source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
@@ -89,16 +109,17 @@ namespace UniRx.Operators
             return source.Subscribe(new Scan(this, observer, cancel));
         }
 
-        class Scan : OperatorObserverBase<TSource, TAccumulate>
+        private class Scan : OperatorObserverBase<TSource, TAccumulate>
         {
-            readonly ScanObservable<TSource, TAccumulate> parent;
-            TAccumulate accumulation;
-            bool isFirst;
+            private readonly ScanObservable<TSource, TAccumulate> parent;
+            private TAccumulate accumulation;
+            private bool isFirst;
 
-            public Scan(ScanObservable<TSource, TAccumulate> parent, IObserver<TAccumulate> observer, IDisposable cancel) : base(observer, cancel)
+            public Scan(ScanObservable<TSource, TAccumulate> parent, IObserver<TAccumulate> observer,
+                IDisposable cancel) : base(observer, cancel)
             {
                 this.parent = parent;
-                this.isFirst = true;
+                isFirst = true;
             }
 
             public override void OnNext(TSource value)
@@ -115,8 +136,15 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
@@ -125,14 +153,26 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

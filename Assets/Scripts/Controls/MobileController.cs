@@ -2,7 +2,7 @@
 {
     public class MobileController
     {
-        private PlayerInputHandler _inputHandler;
+        private readonly PlayerInputHandler _inputHandler;
 
         public MobileController(PlayerInputHandler inputHandler)
         {
@@ -22,25 +22,17 @@
         public void RotateLeft(bool rotate)
         {
             if (rotate)
-            {
                 _inputHandler.Rotation = 1;
-            }
             else
-            {
                 _inputHandler.Rotation = 0;
-            }
         }
 
         public void RotateRight(bool rotate)
         {
             if (rotate)
-            {
                 _inputHandler.Rotation = -1;
-            }
             else
-            {
                 _inputHandler.Rotation = 0;
-            }
         }
 
         public void SetXDirection(float x)
@@ -55,14 +47,13 @@
 
         public void ChangingMovingState(bool state)
         {
-
             if (state)
             {
-                _inputHandler.ChangeSpeed?.Invoke(true);
+               // _inputHandler.ChangeSpeed?.Invoke(true);
             }
             else
             {
-                _inputHandler.ChangeSpeed?.Invoke(false);
+              //  _inputHandler.ChangeSpeed?.Invoke(false);
                 _inputHandler.InertialMovement?.Invoke();
             }
         }

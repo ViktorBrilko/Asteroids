@@ -33,26 +33,22 @@ namespace Zenject.Tests.Bindings
             Assert.IsEqual(((Foo)ifoo).P1, "asdf");
         }
 
-        interface IFoo
+        private interface IFoo
         {
         }
 
-        class IFooFactory : PlaceholderFactory<string, int, string, float, int, IFoo>
+        private class IFooFactory : PlaceholderFactory<string, int, string, float, int, IFoo>
         {
         }
 
-        class Foo : IFoo
+        private class Foo : IFoo
         {
             public Foo(string p1, int p2, string p3, float p4, int p5)
             {
                 P1 = p1;
             }
 
-            public string P1
-            {
-                get;
-                private set;
-            }
+            public string P1 { get; }
 
             public class Factory : PlaceholderFactory<string, int, string, float, int, Foo>
             {
@@ -60,5 +56,3 @@ namespace Zenject.Tests.Bindings
         }
     }
 }
-
-

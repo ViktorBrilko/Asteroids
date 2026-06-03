@@ -19,9 +19,9 @@ namespace Core.Installers
         public override void InstallBindings()
         {
             SignalBusInstaller.Install(Container);
-            
+
             Container.DeclareSignal<PlayerDiedSignal>();
-            
+
             InstallConfigProvider();
             InstallSettings();
             InstallWindowsState();

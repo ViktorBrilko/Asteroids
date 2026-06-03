@@ -92,26 +92,22 @@ namespace Zenject.Tests.Bindings
             Assert.IsEqual(subContainer.ResolveAll<Bar>().Count, 1);
         }
 
-        interface IBar
+        private interface IBar
         {
         }
 
-        class Bar : IBar
+        private class Bar : IBar
         {
         }
 
-        class Foo
+        private class Foo
         {
             public Foo()
             {
                 Bar = new Bar();
             }
 
-            public Bar Bar
-            {
-                get; private set;
-            }
+            public Bar Bar { get; }
         }
     }
 }
-

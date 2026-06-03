@@ -9,7 +9,7 @@ namespace Zenject.ReflectionBaking
 {
     public class AssemblyPathRegistry
     {
-        static List<string> _assemblies;
+        private static List<string> _assemblies;
 
         public static List<string> GetAllGeneratedAssemblyRelativePaths()
         {
@@ -22,13 +22,13 @@ namespace Zenject.ReflectionBaking
             return _assemblies;
         }
 
-        static bool IsManagedAssembly(string systemPath)
+        private static bool IsManagedAssembly(string systemPath)
         {
-            DllType dllType = InternalEditorUtility.DetectDotNetDll(systemPath);
+            var dllType = InternalEditorUtility.DetectDotNetDll(systemPath);
             return dllType != DllType.Unknown && dllType != DllType.Native;
         }
 
-        static List<string> LookupAllGeneratedAssemblyPaths()
+        private static List<string> LookupAllGeneratedAssemblyPaths()
         {
             var assemblies = new List<string>(20);
 
@@ -43,26 +43,24 @@ namespace Zenject.ReflectionBaking
         public static void FindAssemblies(string systemPath, int maxDepth, List<string> result)
         {
             if (maxDepth > 0)
-            {
                 if (Directory.Exists(systemPath))
                 {
                     var dirInfo = new DirectoryInfo(systemPath);
 
                     result.AddRange(
                         dirInfo.GetFiles().Select(x => x.FullName)
-                        .Where(IsManagedAssembly)
-                        .Select(ReflectionBakingInternalUtil.ConvertAbsoluteToAssetPath));
+                            .Where(IsManagedAssembly)
+                            .Select(ReflectionBakingInternalUtil.ConvertAbsoluteToAssetPath));
 
                     var directories = dirInfo.GetDirectories();
 
-                    for (int i = 0; i < directories.Length; i++)
+                    for (var i = 0; i < directories.Length; i++)
                     {
-                        DirectoryInfo current = directories[i];
+                        var current = directories[i];
 
                         FindAssemblies(current.FullName, maxDepth - 1, result);
                     }
                 }
-            }
         }
     }
 }

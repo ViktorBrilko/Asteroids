@@ -1,6 +1,6 @@
-﻿using System; // require keep for Windows Universal App
+﻿// require keep for Windows Universal App
+using System;
 using UnityEngine;
-
 #if !(UNITY_4_0 || UNITY_4_1 || UNITY_4_2 || UNITY_4_3 || UNITY_4_4 || UNITY_4_5)
 using UnityEngine.EventSystems;
 #endif
@@ -34,7 +34,8 @@ namespace UniRx.Triggers
         public static IObservable<Collision2D> OnCollisionEnter2DAsObservable(this Component component)
         {
             if (component == null || component.gameObject == null) return Observable.Empty<Collision2D>();
-            return GetOrAddComponent<ObservableCollision2DTrigger>(component.gameObject).OnCollisionEnter2DAsObservable();
+            return GetOrAddComponent<ObservableCollision2DTrigger>(component.gameObject)
+                .OnCollisionEnter2DAsObservable();
         }
 
 
@@ -42,14 +43,16 @@ namespace UniRx.Triggers
         public static IObservable<Collision2D> OnCollisionExit2DAsObservable(this Component component)
         {
             if (component == null || component.gameObject == null) return Observable.Empty<Collision2D>();
-            return GetOrAddComponent<ObservableCollision2DTrigger>(component.gameObject).OnCollisionExit2DAsObservable();
+            return GetOrAddComponent<ObservableCollision2DTrigger>(component.gameObject)
+                .OnCollisionExit2DAsObservable();
         }
 
         /// <summary>Sent each frame where a collider on another object is touching this object's collider (2D physics only).</summary>
         public static IObservable<Collision2D> OnCollisionStay2DAsObservable(this Component component)
         {
             if (component == null || component.gameObject == null) return Observable.Empty<Collision2D>();
-            return GetOrAddComponent<ObservableCollision2DTrigger>(component.gameObject).OnCollisionStay2DAsObservable();
+            return GetOrAddComponent<ObservableCollision2DTrigger>(component.gameObject)
+                .OnCollisionStay2DAsObservable();
         }
 
         #endregion
@@ -85,7 +88,8 @@ namespace UniRx.Triggers
         /// <summary>This function is called when the MonoBehaviour will be destroyed.</summary>
         public static IObservable<Unit> OnDestroyAsObservable(this Component component)
         {
-            if (component == null || component.gameObject == null) return Observable.Return(Unit.Default); // send destroy message
+            if (component == null || component.gameObject == null)
+                return Observable.Return(Unit.Default); // send destroy message
             return GetOrAddComponent<ObservableDestroyTrigger>(component.gameObject).OnDestroyAsObservable();
         }
 
@@ -133,7 +137,6 @@ namespace UniRx.Triggers
         #endregion
 
 #if !(UNITY_IPHONE || UNITY_ANDROID || UNITY_METRO)
-
         #region ObservableMouseTrigger
 
         /// <summary>OnMouseDown is called when the user has pressed the mouse button while over the GUIElement or Collider.</summary>
@@ -278,21 +281,24 @@ namespace UniRx.Triggers
         public static IObservable<Unit> OnBeforeTransformParentChangedAsObservable(this Component component)
         {
             if (component == null || component.gameObject == null) return Observable.Empty<Unit>();
-            return GetOrAddComponent<ObservableTransformChangedTrigger>(component.gameObject).OnBeforeTransformParentChangedAsObservable();
+            return GetOrAddComponent<ObservableTransformChangedTrigger>(component.gameObject)
+                .OnBeforeTransformParentChangedAsObservable();
         }
 
         /// <summary>This function is called when the parent property of the transform of the GameObject has changed.</summary>
         public static IObservable<Unit> OnTransformParentChangedAsObservable(this Component component)
         {
             if (component == null || component.gameObject == null) return Observable.Empty<Unit>();
-            return GetOrAddComponent<ObservableTransformChangedTrigger>(component.gameObject).OnTransformParentChangedAsObservable();
+            return GetOrAddComponent<ObservableTransformChangedTrigger>(component.gameObject)
+                .OnTransformParentChangedAsObservable();
         }
 
         /// <summary>This function is called when the list of children of the transform of the GameObject has changed.</summary>
         public static IObservable<Unit> OnTransformChildrenChangedAsObservable(this Component component)
         {
             if (component == null || component.gameObject == null) return Observable.Empty<Unit>();
-            return GetOrAddComponent<ObservableTransformChangedTrigger>(component.gameObject).OnTransformChildrenChangedAsObservable();
+            return GetOrAddComponent<ObservableTransformChangedTrigger>(component.gameObject)
+                .OnTransformChildrenChangedAsObservable();
         }
 
         #endregion
@@ -303,7 +309,8 @@ namespace UniRx.Triggers
         public static IObservable<Unit> OnCanvasGroupChangedAsObservable(this Component component)
         {
             if (component == null || component.gameObject == null) return Observable.Empty<Unit>();
-            return GetOrAddComponent<ObservableCanvasGroupChangedTrigger>(component.gameObject).OnCanvasGroupChangedAsObservable();
+            return GetOrAddComponent<ObservableCanvasGroupChangedTrigger>(component.gameObject)
+                .OnCanvasGroupChangedAsObservable();
         }
 
         #endregion
@@ -314,14 +321,16 @@ namespace UniRx.Triggers
         public static IObservable<Unit> OnRectTransformDimensionsChangeAsObservable(this Component component)
         {
             if (component == null || component.gameObject == null) return Observable.Empty<Unit>();
-            return GetOrAddComponent<ObservableRectTransformTrigger>(component.gameObject).OnRectTransformDimensionsChangeAsObservable();
+            return GetOrAddComponent<ObservableRectTransformTrigger>(component.gameObject)
+                .OnRectTransformDimensionsChangeAsObservable();
         }
 
         /// <summary>Callback that is sent if an associated RectTransform is removed.</summary>
         public static IObservable<Unit> OnRectTransformRemovedAsObservable(this Component component)
         {
             if (component == null || component.gameObject == null) return Observable.Empty<Unit>();
-            return GetOrAddComponent<ObservableRectTransformTrigger>(component.gameObject).OnRectTransformRemovedAsObservable();
+            return GetOrAddComponent<ObservableRectTransformTrigger>(component.gameObject)
+                .OnRectTransformRemovedAsObservable();
         }
 
         #endregion
@@ -411,13 +420,15 @@ namespace UniRx.Triggers
         public static IObservable<BaseEventData> OnUpdateSelectedAsObservable(this UIBehaviour component)
         {
             if (component == null || component.gameObject == null) return Observable.Empty<BaseEventData>();
-            return GetOrAddComponent<ObservableUpdateSelectedTrigger>(component.gameObject).OnUpdateSelectedAsObservable();
+            return GetOrAddComponent<ObservableUpdateSelectedTrigger>(component.gameObject)
+                .OnUpdateSelectedAsObservable();
         }
 
         public static IObservable<PointerEventData> OnInitializePotentialDragAsObservable(this UIBehaviour component)
         {
             if (component == null || component.gameObject == null) return Observable.Empty<PointerEventData>();
-            return GetOrAddComponent<ObservableInitializePotentialDragTrigger>(component.gameObject).OnInitializePotentialDragAsObservable();
+            return GetOrAddComponent<ObservableInitializePotentialDragTrigger>(component.gameObject)
+                .OnInitializePotentialDragAsObservable();
         }
 
         public static IObservable<BaseEventData> OnCancelAsObservable(this UIBehaviour component)

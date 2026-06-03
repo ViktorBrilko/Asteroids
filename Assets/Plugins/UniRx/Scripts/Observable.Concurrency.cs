@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using UniRx.Operators;
 
 namespace UniRx
@@ -32,7 +31,8 @@ namespace UniRx
             return new DelaySubscriptionObservable<T>(source, dueTime, Scheduler.DefaultSchedulers.TimeBasedOperations);
         }
 
-        public static IObservable<T> DelaySubscription<T>(this IObservable<T> source, TimeSpan dueTime, IScheduler scheduler)
+        public static IObservable<T> DelaySubscription<T>(this IObservable<T> source, TimeSpan dueTime,
+            IScheduler scheduler)
         {
             return new DelaySubscriptionObservable<T>(source, dueTime, scheduler);
         }
@@ -42,7 +42,8 @@ namespace UniRx
             return new DelaySubscriptionObservable<T>(source, dueTime, Scheduler.DefaultSchedulers.TimeBasedOperations);
         }
 
-        public static IObservable<T> DelaySubscription<T>(this IObservable<T> source, DateTimeOffset dueTime, IScheduler scheduler)
+        public static IObservable<T> DelaySubscription<T>(this IObservable<T> source, DateTimeOffset dueTime,
+            IScheduler scheduler)
         {
             return new DelaySubscriptionObservable<T>(source, dueTime, scheduler);
         }
@@ -54,12 +55,13 @@ namespace UniRx
 
         public static IObservable<T> Amb<T>(IEnumerable<IObservable<T>> sources)
         {
-            var result = Observable.Never<T>();
+            var result = Never<T>();
             foreach (var item in sources)
             {
                 var second = item;
                 result = result.Amb(second);
             }
+
             return result;
         }
 

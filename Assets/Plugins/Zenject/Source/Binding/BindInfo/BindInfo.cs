@@ -36,24 +36,24 @@ namespace Zenject
     [NoReflectionBaking]
     public class BindInfo : IDisposable
     {
+        public readonly List<TypeValuePair> Arguments;
+        public readonly List<Type> ContractTypes;
+        public readonly List<Type> ToTypes; // Only relevant with ToChoices.Concrete
+        public BindingInheritanceMethods BindingInheritanceMethod;
+        public object ConcreteIdentifier;
+        public BindingCondition Condition;
+        public string ContextInfo;
+        public object Identifier;
+        public Action<InjectContext, object> InstantiatedCallback;
+        public InvalidBindResponses InvalidBindResponse;
         public bool MarkAsCreationBinding;
         public bool MarkAsUniqueSingleton;
-        public object ConcreteIdentifier;
-        public bool SaveProvider;
+        public bool NonLazy;
         public bool OnlyBindIfNotBound;
         public bool RequireExplicitScope;
-        public object Identifier;
-        public readonly List<Type> ContractTypes;
-        public BindingInheritanceMethods BindingInheritanceMethod;
-        public InvalidBindResponses InvalidBindResponse;
-        public bool NonLazy;
-        public BindingCondition Condition;
-        public ToChoices ToChoice;
-        public string ContextInfo;
-        public readonly List<Type> ToTypes; // Only relevant with ToChoices.Concrete
+        public bool SaveProvider;
         public ScopeTypes Scope;
-        public readonly List<TypeValuePair> Arguments;
-        public Action<InjectContext, object> InstantiatedCallback;
+        public ToChoices ToChoice;
 
         public BindInfo()
         {

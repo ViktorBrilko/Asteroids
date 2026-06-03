@@ -8,35 +8,25 @@ namespace Zenject
 {
     public abstract class KeyedFactoryBase<TBase, TKey> : IValidatable
     {
-        [Inject]
-        readonly DiContainer _container = null;
+        [Inject] private readonly DiContainer _container;
 
-        [InjectOptional]
-        readonly List<ValuePair<TKey, Type>> _typePairs = null;
+        [InjectOptional] private readonly Type _fallbackType;
 
-        Dictionary<TKey, Type> _typeMap = null;
+        [InjectOptional] private readonly List<ValuePair<TKey, Type>> _typePairs;
 
-        [InjectOptional]
-        readonly Type _fallbackType = null;
+        protected DiContainer Container => _container;
 
-        protected DiContainer Container
+        protected abstract IEnumerable<Type> ProvidedTypes { get; }
+
+        public ICollection<TKey> Keys => TypeMap.Keys;
+
+        protected Dictionary<TKey, Type> TypeMap { get; private set; }
+
+        public virtual void Validate()
         {
-            get { return _container; }
-        }
-
-        protected abstract IEnumerable<Type> ProvidedTypes
-        {
-            get;
-        }
-
-        public ICollection<TKey> Keys
-        {
-            get { return _typeMap.Keys; }
-        }
-
-        protected Dictionary<TKey, Type> TypeMap
-        {
-            get { return _typeMap; }
+            foreach (var constructType in TypeMap.Values)
+                Container.InstantiateExplicit(
+                    constructType, ValidationUtil.CreateDefaultArgs(ProvidedTypes.ToArray()));
         }
 
         [Inject]
@@ -49,41 +39,30 @@ namespace Zenject
             var duplicates = _typePairs.Select(x => x.First).GetDuplicates();
 
             if (!duplicates.IsEmpty())
-            {
                 throw Assert.CreateException(
                     "Found duplicate values in KeyedFactory: {0}", duplicates.Select(x => x.ToString()).Join(", "));
-            }
 #endif
 
-            _typeMap = _typePairs.ToDictionary(x => x.First, x => x.Second);
+            TypeMap = _typePairs.ToDictionary(x => x.First, x => x.Second);
             _typePairs.Clear();
         }
 
         public bool HasKey(TKey key)
         {
-            return _typeMap.ContainsKey(key);
+            return TypeMap.ContainsKey(key);
         }
 
         protected Type GetTypeForKey(TKey key)
         {
             Type keyedType;
 
-            if (!_typeMap.TryGetValue(key, out keyedType))
+            if (!TypeMap.TryGetValue(key, out keyedType))
             {
                 Assert.IsNotNull(_fallbackType, "Could not find instance for key '{0}'", key);
                 return _fallbackType;
             }
 
             return keyedType;
-        }
-
-        public virtual void Validate()
-        {
-            foreach (var constructType in _typeMap.Values)
-            {
-                Container.InstantiateExplicit(
-                    constructType, ValidationUtil.CreateDefaultArgs(ProvidedTypes.ToArray()));
-            }
         }
 
         protected static ConditionCopyNonLazyBinder AddBindingInternal<TDerived>(DiContainer container, TKey key)
@@ -97,10 +76,7 @@ namespace Zenject
     // Zero parameters
     public class KeyedFactory<TBase, TKey> : KeyedFactoryBase<TBase, TKey>
     {
-        protected override IEnumerable<Type> ProvidedTypes
-        {
-            get { return new Type[0]; }
-        }
+        protected override IEnumerable<Type> ProvidedTypes => new Type[0];
 
         public virtual TBase Create(TKey key)
         {

@@ -8,16 +8,9 @@ namespace Zenject.Tests.Other
     {
         public class Foo
         {
-            [Inject]
-            public int Value2
-            {
-                get; set;
-            }
+            [Inject] public int Value2 { get; set; }
 
-            public string Value
-            {
-                get; set;
-            }
+            public string Value { get; set; }
 
             public class Factory : PlaceholderFactory<Foo>
             {
@@ -34,10 +27,10 @@ namespace Zenject.Tests.Other
             Container.BindInstance(5).WhenInjectedInto<Foo>();
 
             Container.Bind<Foo>().AsSingle().OnInstantiated<Foo>((ctx, f) =>
-                {
-                    Assert.IsEqual(f.Value2, 5);
-                    f.Value = "asdf";
-                });
+            {
+                Assert.IsEqual(f.Value2, 5);
+                f.Value = "asdf";
+            });
 
             var foo = Container.Resolve<Foo>();
 
@@ -50,10 +43,10 @@ namespace Zenject.Tests.Other
             Container.BindInstance(5).WhenInjectedInto<Foo>();
 
             Container.BindFactory<Foo, Foo.Factory>().OnInstantiated<Foo>((ctx, f) =>
-                {
-                    Assert.IsEqual(f.Value2, 5);
-                    f.Value = "asdf";
-                });
+            {
+                Assert.IsEqual(f.Value2, 5);
+                f.Value = "asdf";
+            });
 
             var foo = Container.Resolve<Foo.Factory>().Create();
 
@@ -66,10 +59,10 @@ namespace Zenject.Tests.Other
             Container.BindInstance(5).WhenInjectedInto<Foo>();
 
             Container.BindMemoryPool<Foo, Foo.Pool>().OnInstantiated<Foo>((ctx, f) =>
-                {
-                    Assert.IsEqual(f.Value2, 5);
-                    f.Value = "asdf";
-                });
+            {
+                Assert.IsEqual(f.Value2, 5);
+                f.Value = "asdf";
+            });
 
             var foo = Container.Resolve<Foo.Pool>().Spawn();
 

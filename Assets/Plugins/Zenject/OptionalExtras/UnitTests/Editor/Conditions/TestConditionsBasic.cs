@@ -10,17 +10,17 @@ namespace Zenject.Tests.Conditions
         {
         }
 
-        class Foo1 : IFoo
+        private class Foo1 : IFoo
         {
         }
 
-        class Foo2 : IFoo
+        private class Foo2 : IFoo
         {
         }
 
-        class Bar1
+        private class Bar1
         {
-            public IFoo Foo;
+            public readonly IFoo Foo;
 
             public Bar1(IFoo foo)
             {
@@ -28,9 +28,9 @@ namespace Zenject.Tests.Conditions
             }
         }
 
-        class Bar2
+        private class Bar2
         {
-            public IFoo Foo;
+            public readonly IFoo Foo;
 
             public Bar2(IFoo foo)
             {
@@ -63,6 +63,3 @@ namespace Zenject.Tests.Conditions
         }
     }
 }
-
-
-

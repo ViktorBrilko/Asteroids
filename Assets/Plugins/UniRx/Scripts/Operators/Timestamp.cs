@@ -4,8 +4,8 @@ namespace UniRx.Operators
 {
     internal class TimestampObservable<T> : OperatorObservableBase<Timestamped<T>>
     {
-        readonly IObservable<T> source;
-        readonly IScheduler scheduler;
+        private readonly IScheduler scheduler;
+        private readonly IObservable<T> source;
 
         public TimestampObservable(IObservable<T> source, IScheduler scheduler)
             : base(scheduler == Scheduler.CurrentThread || source.IsRequiredSubscribeOnCurrentThread())
@@ -19,9 +19,9 @@ namespace UniRx.Operators
             return source.Subscribe(new Timestamp(this, observer, cancel));
         }
 
-        class Timestamp : OperatorObserverBase<T, Timestamped<T>>
+        private class Timestamp : OperatorObserverBase<T, Timestamped<T>>
         {
-            readonly TimestampObservable<T> parent;
+            private readonly TimestampObservable<T> parent;
 
             public Timestamp(TimestampObservable<T> parent, IObserver<Timestamped<T>> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -31,19 +31,31 @@ namespace UniRx.Operators
 
             public override void OnNext(T value)
             {
-                base.observer.OnNext(new Timestamped<T>(value, parent.scheduler.Now));
+                observer.OnNext(new Timestamped<T>(value, parent.scheduler.Now));
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

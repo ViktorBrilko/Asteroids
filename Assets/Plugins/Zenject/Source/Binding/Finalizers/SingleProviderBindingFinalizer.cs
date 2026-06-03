@@ -6,7 +6,7 @@ namespace Zenject
     [NoReflectionBaking]
     public class SingleProviderBindingFinalizer : ProviderBindingFinalizer
     {
-        readonly Func<DiContainer, Type, IProvider> _providerFactory;
+        private readonly Func<DiContainer, Type, IProvider> _providerFactory;
 
         public SingleProviderBindingFinalizer(
             BindInfo bindInfo, Func<DiContainer, Type, IProvider> providerFactory)
@@ -27,10 +27,8 @@ namespace Zenject
             {
                 // Empty sometimes when using convention based bindings
                 if (!BindInfo.ToTypes.IsEmpty())
-                {
                     RegisterProvidersForAllContractsPerConcreteType(
                         container, BindInfo.ToTypes, _providerFactory);
-                }
             }
         }
     }

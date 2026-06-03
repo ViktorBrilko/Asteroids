@@ -2,7 +2,7 @@ using System;
 
 namespace ModestTree.Util
 {
-    [AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.All)]
     public class PreserveAttribute : Attribute
     {
     }

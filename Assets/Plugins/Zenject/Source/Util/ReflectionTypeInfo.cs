@@ -7,12 +7,12 @@ namespace Zenject.Internal
     [NoReflectionBaking]
     public class ReflectionTypeInfo
     {
-        public readonly Type Type;
         public readonly Type BaseType;
-        public readonly List<InjectPropertyInfo> InjectProperties;
-        public readonly List<InjectFieldInfo> InjectFields;
         public readonly InjectConstructorInfo InjectConstructor;
+        public readonly List<InjectFieldInfo> InjectFields;
         public readonly List<InjectMethodInfo> InjectMethods;
+        public readonly List<InjectPropertyInfo> InjectProperties;
+        public readonly Type Type;
 
         public ReflectionTypeInfo(
             Type type,
@@ -48,8 +48,8 @@ namespace Zenject.Internal
         [NoReflectionBaking]
         public class InjectParameterInfo
         {
-            public readonly ParameterInfo ParameterInfo;
             public readonly InjectableInfo InjectableInfo;
+            public readonly ParameterInfo ParameterInfo;
 
             public InjectParameterInfo(
                 ParameterInfo parameterInfo,
@@ -63,8 +63,8 @@ namespace Zenject.Internal
         [NoReflectionBaking]
         public class InjectPropertyInfo
         {
-            public readonly PropertyInfo PropertyInfo;
             public readonly InjectableInfo InjectableInfo;
+            public readonly PropertyInfo PropertyInfo;
 
             public InjectPropertyInfo(
                 PropertyInfo propertyInfo,
@@ -106,4 +106,3 @@ namespace Zenject.Internal
         }
     }
 }
-

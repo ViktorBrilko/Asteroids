@@ -1,4 +1,3 @@
-
 using System.Collections;
 using System.Collections.Generic;
 using ModestTree;
@@ -198,8 +197,7 @@ namespace Zenject.Tests.Bindings
 
         public class Qux : MonoBehaviour
         {
-            [Inject]
-            public Qux OtherQux;
+            [Inject] public Qux OtherQux;
         }
 
         public interface IBar
@@ -212,33 +210,26 @@ namespace Zenject.Tests.Bindings
 
         public class FooOptional : MonoBehaviour
         {
-            [InjectOptional]
-            public Bar Bar;
+            [InjectOptional] public Bar Bar;
         }
 
         public class FooOptional2 : MonoBehaviour
         {
-            [Inject]
-            public Bar Bar;
+            [Inject] public Bar Bar;
         }
 
         public class Foo : MonoBehaviour
         {
-            [Inject]
-            public Bar Bar;
+            [Inject] public Bar Bar;
 
-            [Inject]
-            public IBar IBar;
+            [Inject] public List<Qux> Qux;
 
-            [Inject]
-            public List<Qux> Qux;
+            [Inject] public IBar IBar;
         }
 
         public class Gorp : MonoBehaviour
         {
-            [Inject]
-            public Bar Bar;
+            [Inject] public Bar Bar;
         }
     }
 }
-

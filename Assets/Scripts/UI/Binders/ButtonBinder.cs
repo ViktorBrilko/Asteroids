@@ -7,8 +7,8 @@ namespace UI.Binders
 {
     public class ButtonBinder : IBinder
     {
-        private readonly Button _view;
         private readonly UnityAction _modelAction;
+        private readonly Button _view;
 
         public ButtonBinder(Button view, Action model)
         {

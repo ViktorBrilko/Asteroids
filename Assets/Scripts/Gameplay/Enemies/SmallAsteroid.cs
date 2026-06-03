@@ -11,23 +11,6 @@ namespace Gameplay.Enemies
     {
         private SmallAsteroidConfig _config;
 
-        [Inject]
-        public void Construct(SignalBus signalBus, SmallAsteroidConfig config, AudioService audioService)
-        {
-            base.Construct(signalBus, audioService);
-            _config = config;
-            
-            HealthService.Init(_config.Health);
-            EnemyMove.Init(config.MoveSpeed, config.AfterCollisionSpeed, config.CollisionEffectTime, config.RotationSpeed);
-            
-            EnemyType = EnemyTypes.SmallAsteroid;
-        }
-        
-        private void OnCollisionEnter2D(Collision2D other)
-        {
-            CollideWithPlayer(other, _config.Damage);
-        }
-        
         public void OnEnable()
         {
             HealthService.OnDied += Die;
@@ -37,12 +20,30 @@ namespace Gameplay.Enemies
         {
             HealthService.OnDied -= Die;
         }
-     
+
+        private void OnCollisionEnter2D(Collision2D other)
+        {
+            CollideWithPlayer(other, _config.Damage);
+        }
+
         public void Die()
         {
             AudioService.PlaySfx(AudioService.Config.Explosion);
             SignalBus.Fire(new ResetSignal<SmallAsteroid>(this));
             SignalBus.Fire(new EnemyDiedSignal(this, transform.position));
+        }
+
+        [Inject]
+        public void Construct(SignalBus signalBus, SmallAsteroidConfig config, AudioService audioService)
+        {
+            base.Construct(signalBus, audioService);
+            _config = config;
+
+            HealthService.Init(_config.Health);
+            EnemyMove.Init(config.MoveSpeed, config.AfterCollisionSpeed, config.CollisionEffectTime,
+                config.RotationSpeed);
+
+            EnemyType = EnemyTypes.SmallAsteroid;
         }
     }
 }

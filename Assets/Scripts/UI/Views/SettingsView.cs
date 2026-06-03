@@ -1,4 +1,3 @@
-using System;
 using MVVM;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,13 +17,13 @@ namespace UI.Views
 
         [SerializeField] public GameObject SettingsPanel;
 
-        [Setter("MusicVolume")] 
+        [Setter("MusicVolume")]
         public float MusicVolume
         {
             set => MusicVolumeSlider.SetValueWithoutNotify(value);
         }
-        
-        [Setter("SfxVolume")] 
+
+        [Setter("SfxVolume")]
         public float SfxVolume
         {
             set => SfxVolumeSlider.SetValueWithoutNotify(value);

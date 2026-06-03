@@ -5,7 +5,7 @@ namespace Zenject
 {
     public class ExecutionOrderInstaller : Installer<List<Type>, ExecutionOrderInstaller>
     {
-        List<Type> _typeOrder;
+        private readonly List<Type> _typeOrder;
 
         public ExecutionOrderInstaller(List<Type> typeOrder)
         {
@@ -16,7 +16,7 @@ namespace Zenject
         {
             // All tickables without explicit priorities assigned are given order of zero,
             // so put all of these before that (ie. negative)
-            int order = -1 * _typeOrder.Count;
+            var order = -1 * _typeOrder.Count;
 
             foreach (var type in _typeOrder)
             {
@@ -26,4 +26,3 @@ namespace Zenject
         }
     }
 }
-

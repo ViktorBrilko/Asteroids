@@ -10,9 +10,9 @@ namespace UniRx.Operators
 
     internal class SelectObservable<T, TR> : OperatorObservableBase<TR>, ISelect<TR>
     {
-        readonly IObservable<T> source;
-        readonly Func<T, TR> selector;
-        readonly Func<T, int, TR> selectorWithIndex;
+        private readonly Func<T, TR> selector;
+        private readonly Func<T, int, TR> selectorWithIndex;
+        private readonly IObservable<T> source;
 
         public SelectObservable(IObservable<T> source, Func<T, TR> selector)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -25,7 +25,7 @@ namespace UniRx.Operators
             : base(source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
-            this.selectorWithIndex = selector;
+            selectorWithIndex = selector;
         }
 
         // sometimes cause "which no ahead of time (AOT) code was generated." on IL2CPP...
@@ -44,31 +44,21 @@ namespace UniRx.Operators
 
         public IObservable<TR> CombinePredicate(Func<TR, bool> predicate)
         {
-            if (this.selector != null)
-            {
-                return new SelectWhereObservable<T, TR>(this.source, this.selector, predicate);
-            }
-            else
-            {
-                return new WhereObservable<TR>(this, predicate); // can't combine
-            }
+            if (selector != null) return new SelectWhereObservable<T, TR>(source, selector, predicate);
+
+            return new WhereObservable<TR>(this, predicate); // can't combine
         }
 
         protected override IDisposable SubscribeCore(IObserver<TR> observer, IDisposable cancel)
         {
-            if (selector != null)
-            {
-                return source.Subscribe(new Select(this, observer, cancel));
-            }
-            else
-            {
-                return source.Subscribe(new Select_(this, observer, cancel));
-            }
+            if (selector != null) return source.Subscribe(new Select(this, observer, cancel));
+
+            return source.Subscribe(new Select_(this, observer, cancel));
         }
 
-        class Select : OperatorObserverBase<T, TR>
+        private class Select : OperatorObserverBase<T, TR>
         {
-            readonly SelectObservable<T, TR> parent;
+            private readonly SelectObservable<T, TR> parent;
 
             public Select(SelectObservable<T, TR> parent, IObserver<TR> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -85,7 +75,15 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
@@ -94,26 +92,40 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
 
         // with Index
-        class Select_ : OperatorObserverBase<T, TR>
+        private class Select_ : OperatorObserverBase<T, TR>
         {
-            readonly SelectObservable<T, TR> parent;
-            int index;
+            private readonly SelectObservable<T, TR> parent;
+            private int index;
 
             public Select_(SelectObservable<T, TR> parent, IObserver<TR> observer, IDisposable cancel)
                 : base(observer, cancel)
             {
                 this.parent = parent;
-                this.index = 0;
+                index = 0;
             }
 
             public override void OnNext(T value)
@@ -125,7 +137,15 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
@@ -134,12 +154,26 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

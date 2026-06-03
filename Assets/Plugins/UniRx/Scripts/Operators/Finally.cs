@@ -4,8 +4,8 @@ namespace UniRx.Operators
 {
     internal class FinallyObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly Action finallyAction;
+        private readonly Action finallyAction;
+        private readonly IObservable<T> source;
 
         public FinallyObservable(IObservable<T> source, Action finallyAction)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -19,9 +19,9 @@ namespace UniRx.Operators
             return new Finally(this, observer, cancel).Run();
         }
 
-        class Finally : OperatorObserverBase<T, T>
+        private class Finally : OperatorObserverBase<T, T>
         {
-            readonly FinallyObservable<T> parent;
+            private readonly FinallyObservable<T> parent;
 
             public Finally(FinallyObservable<T> parent, IObserver<T> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -43,25 +43,41 @@ namespace UniRx.Operators
                     throw;
                 }
 
-                return StableCompositeDisposable.Create(subscription, Disposable.Create(() =>
-                {
-                    parent.finallyAction();
-                }));
+                return StableCompositeDisposable.Create(subscription,
+                    Disposable.Create(() => { parent.finallyAction(); }));
             }
 
             public override void OnNext(T value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); };
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); };
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
         }
     }

@@ -5,9 +5,7 @@ namespace UniRx
     [Serializable]
     public struct Unit : IEquatable<Unit>
     {
-        static readonly Unit @default = new Unit();
-
-        public static Unit Default { get { return @default; } }
+        public static Unit Default { get; } = new();
 
         public static bool operator ==(Unit first, Unit second)
         {
@@ -23,6 +21,7 @@ namespace UniRx
         {
             return true;
         }
+
         public override bool Equals(object obj)
         {
             return obj is Unit;

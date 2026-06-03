@@ -101,14 +101,10 @@ namespace Zenject.Tests.Bindings
                 Bar = bar;
             }
 
-            public Bar Bar
-            {
-                get;
-                private set;
-            }
+            public Bar Bar { get; }
         }
 
-        DiContainer CreateFooSubContainer()
+        private DiContainer CreateFooSubContainer()
         {
             var subContainer = new DiContainer();
 
@@ -124,6 +120,3 @@ namespace Zenject.Tests.Bindings
         }
     }
 }
-
-
-

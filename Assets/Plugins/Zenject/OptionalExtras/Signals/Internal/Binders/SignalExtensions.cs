@@ -1,9 +1,11 @@
 using System;
+
 namespace Zenject
 {
     public static class SignalExtensions
     {
-        public static SignalDeclarationBindInfo CreateDefaultSignalDeclarationBindInfo(DiContainer container, Type signalType)
+        public static SignalDeclarationBindInfo CreateDefaultSignalDeclarationBindInfo(DiContainer container,
+            Type signalType)
         {
             return new SignalDeclarationBindInfo(signalType)
             {
@@ -13,35 +15,36 @@ namespace Zenject
             };
         }
 
-        public static DeclareSignalIdRequireHandlerAsyncTickPriorityCopyBinder DeclareSignal(this DiContainer container, Type type)
+        public static DeclareSignalIdRequireHandlerAsyncTickPriorityCopyBinder DeclareSignal(this DiContainer container,
+            Type type)
         {
             var signalBindInfo = CreateDefaultSignalDeclarationBindInfo(container, type);
 
             var bindInfo = container.Bind<SignalDeclaration>().AsCached()
-                .WithArguments(signalBindInfo).WhenInjectedInto(typeof(SignalBus), typeof(SignalDeclarationAsyncInitializer)).BindInfo;
+                .WithArguments(signalBindInfo)
+                .WhenInjectedInto(typeof(SignalBus), typeof(SignalDeclarationAsyncInitializer)).BindInfo;
 
             var signalBinder = new DeclareSignalIdRequireHandlerAsyncTickPriorityCopyBinder(signalBindInfo);
             signalBinder.AddCopyBindInfo(bindInfo);
             return signalBinder;
         }
 
-        public static DeclareSignalIdRequireHandlerAsyncTickPriorityCopyBinder DeclareSignal<TSignal>(this DiContainer container)
+        public static DeclareSignalIdRequireHandlerAsyncTickPriorityCopyBinder DeclareSignal<TSignal>(
+            this DiContainer container)
         {
             return container.DeclareSignal(typeof(TSignal));
         }
 
-        public static DeclareSignalIdRequireHandlerAsyncTickPriorityCopyBinder DeclareSignalWithInterfaces<TSignal>(this DiContainer container)
+        public static DeclareSignalIdRequireHandlerAsyncTickPriorityCopyBinder DeclareSignalWithInterfaces<TSignal>(
+            this DiContainer container)
         {
-            Type type = typeof(TSignal);
+            var type = typeof(TSignal);
 
             var declaration = container.DeclareSignal(type);
 
-            Type[] interfaces = type.GetInterfaces();
-            int numOfInterfaces = interfaces.Length;
-            for (int i = 0; i < numOfInterfaces; i++)
-            {
-                container.DeclareSignal(interfaces[i]);
-            }
+            var interfaces = type.GetInterfaces();
+            var numOfInterfaces = interfaces.Length;
+            for (var i = 0; i < numOfInterfaces; i++) container.DeclareSignal(interfaces[i]);
 
             return declaration;
         }
@@ -54,4 +57,3 @@ namespace Zenject
         }
     }
 }
-

@@ -7,15 +7,12 @@ namespace Zenject
 #if UNITY_EDITOR
     public static class StaticMemoryPoolRegistry
     {
-        public static event Action<IMemoryPool> PoolAdded = delegate {};
-        public static event Action<IMemoryPool> PoolRemoved = delegate {};
+        private static readonly List<IMemoryPool> _pools = new();
 
-        readonly static List<IMemoryPool> _pools = new List<IMemoryPool>();
+        public static IEnumerable<IMemoryPool> Pools => _pools;
 
-        public static IEnumerable<IMemoryPool> Pools
-        {
-            get { return _pools; }
-        }
+        public static event Action<IMemoryPool> PoolAdded = delegate { };
+        public static event Action<IMemoryPool> PoolRemoved = delegate { };
 
         public static void Add(IMemoryPool memoryPool)
         {

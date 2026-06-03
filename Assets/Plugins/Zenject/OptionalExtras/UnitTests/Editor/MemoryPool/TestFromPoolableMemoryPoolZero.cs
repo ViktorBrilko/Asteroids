@@ -1,4 +1,3 @@
-
 using System;
 using NUnit.Framework;
 using Assert = ModestTree.Assert;
@@ -10,32 +9,27 @@ namespace Zenject.Tests.Bindings
     {
         public class Foo : IPoolable<IMemoryPool>, IDisposable
         {
-            IMemoryPool _pool;
-
-            public IMemoryPool Pool
-            {
-                get { return _pool; }
-            }
-
-            void SetDefaults()
-            {
-                _pool = null;
-            }
+            public IMemoryPool Pool { get; private set; }
 
             public void Dispose()
             {
-                _pool.Despawn(this);
+                Pool.Despawn(this);
             }
 
             public void OnDespawned()
             {
-                _pool = null;
+                Pool = null;
                 SetDefaults();
             }
 
             public void OnSpawned(IMemoryPool pool)
             {
-                _pool = pool;
+                Pool = pool;
+            }
+
+            private void SetDefaults()
+            {
+                Pool = null;
             }
 
             public class Factory : PlaceholderFactory<Foo>

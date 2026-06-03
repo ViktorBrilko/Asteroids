@@ -19,9 +19,7 @@ namespace UI.ViewModels.Installers
             Container.BindInterfacesAndSelfTo<GameMenuButtonViewModel>().AsSingle().NonLazy();
 
             if (Application.isMobilePlatform)
-            {
                 Container.BindInterfacesAndSelfTo<MobileButtonsViewModel>().AsSingle().NonLazy();
-            }
         }
     }
 }

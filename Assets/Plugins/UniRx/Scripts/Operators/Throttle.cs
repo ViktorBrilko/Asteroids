@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace UniRx.Operators
 {
     internal class ThrottleObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly TimeSpan dueTime;
-        readonly IScheduler scheduler;
+        private readonly TimeSpan dueTime;
+        private readonly IScheduler scheduler;
+        private readonly IObservable<T> source;
 
-        public ThrottleObservable(IObservable<T> source, TimeSpan dueTime, IScheduler scheduler) 
+        public ThrottleObservable(IObservable<T> source, TimeSpan dueTime, IScheduler scheduler)
             : base(scheduler == Scheduler.CurrentThread || source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
@@ -24,16 +21,17 @@ namespace UniRx.Operators
             return new Throttle(this, observer, cancel).Run();
         }
 
-        class Throttle : OperatorObserverBase<T, T>
+        private class Throttle : OperatorObserverBase<T, T>
         {
-            readonly ThrottleObservable<T> parent;
-            readonly object gate = new object();
-            T latestValue = default(T);
-            bool hasValue = false;
-            SerialDisposable cancelable;
-            ulong id = 0;
+            private readonly object gate = new();
+            private readonly ThrottleObservable<T> parent;
+            private SerialDisposable cancelable;
+            private bool hasValue;
+            private ulong id;
+            private T latestValue;
 
-            public Throttle(ThrottleObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public Throttle(ThrottleObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer,
+                cancel)
             {
                 this.parent = parent;
             }
@@ -46,14 +44,11 @@ namespace UniRx.Operators
                 return StableCompositeDisposable.Create(cancelable, subscription);
             }
 
-            void OnNext(ulong currentid)
+            private void OnNext(ulong currentid)
             {
                 lock (gate)
                 {
-                    if (hasValue && id == currentid)
-                    {
-                        observer.OnNext(latestValue);
-                    }
+                    if (hasValue && id == currentid) observer.OnNext(latestValue);
                     hasValue = false;
                 }
             }
@@ -82,7 +77,14 @@ namespace UniRx.Operators
                 {
                     hasValue = false;
                     id = unchecked(id + 1);
-                    try { observer.OnError(error); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(error);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
             }
 
@@ -92,13 +94,17 @@ namespace UniRx.Operators
 
                 lock (gate)
                 {
-                    if (hasValue)
-                    {
-                        observer.OnNext(latestValue);
-                    }
+                    if (hasValue) observer.OnNext(latestValue);
                     hasValue = false;
                     id = unchecked(id + 1);
-                    try { observer.OnCompleted(); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnCompleted();
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
             }
         }

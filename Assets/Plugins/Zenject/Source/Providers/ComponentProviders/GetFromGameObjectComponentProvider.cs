@@ -10,9 +10,9 @@ namespace Zenject
     [NoReflectionBaking]
     public class GetFromGameObjectComponentProvider : IProvider
     {
-        readonly GameObject _gameObject;
-        readonly Type _componentType;
-        readonly bool _matchSingle;
+        private readonly Type _componentType;
+        private readonly GameObject _gameObject;
+        private readonly bool _matchSingle;
 
         // if concreteType is null we use the contract type from inject context
         public GetFromGameObjectComponentProvider(
@@ -23,15 +23,9 @@ namespace Zenject
             _gameObject = gameObject;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -50,7 +44,7 @@ namespace Zenject
                 var match = _gameObject.GetComponent(_componentType);
 
                 Assert.IsNotNull(match, "Could not find component with type '{0}' on prefab '{1}'",
-                _componentType, _gameObject.name);
+                    _componentType, _gameObject.name);
 
                 buffer.Add(match);
                 return;
@@ -59,8 +53,8 @@ namespace Zenject
             var allComponents = _gameObject.GetComponents(_componentType);
 
             Assert.That(allComponents.Length >= 1,
-            "Expected to find at least one component with type '{0}' on prefab '{1}'",
-            _componentType, _gameObject.name);
+                "Expected to find at least one component with type '{0}' on prefab '{1}'",
+                _componentType, _gameObject.name);
 
             buffer.AllocFreeAddRange(allComponents);
         }
@@ -68,4 +62,3 @@ namespace Zenject
 }
 
 #endif
-

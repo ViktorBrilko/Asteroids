@@ -15,16 +15,16 @@ namespace Gameplay.Base
 {
     public class EnemyGeneratorService : IInitializable, IDisposable
     {
-        private SignalBus _signalBus;
-        private Spawner<Asteroid> _asteroidSpawner;
-        private Spawner<SmallAsteroid> _smallAsteroidSpawner;
-        private Spawner<Ufo> _ufoSpawner;
-        private GameFieldConfig _config;
-        private GameField _gameField;
-        private List<IDieable> _enemies;
         private int _asteroidsCount;
-        private int _ufosCount;
+        private readonly Spawner<Asteroid> _asteroidSpawner;
+        private readonly GameFieldConfig _config;
         private CancellationTokenSource _cts;
+        private List<IDieable> _enemies;
+        private readonly GameField _gameField;
+        private readonly SignalBus _signalBus;
+        private readonly Spawner<SmallAsteroid> _smallAsteroidSpawner;
+        private int _ufosCount;
+        private readonly Spawner<Ufo> _ufoSpawner;
 
         public EnemyGeneratorService(Spawner<Asteroid> asteroidSpawner, GameField gameField, GameFieldConfig config,
             SignalBus signalBus, Spawner<SmallAsteroid> smallAsteroidSpawner, Spawner<Ufo> ufoSpawner)
@@ -36,16 +36,6 @@ namespace Gameplay.Base
 
             _config = config;
             _signalBus = signalBus;
-        }
-
-        public void Initialize()
-        {
-            _cts = new CancellationTokenSource();
-
-            _signalBus.Subscribe<EnemyDiedSignal>(OnEnemyDeath);
-
-          //  SpawnUfos(_cts.Token).Forget();
-            SpawnAsteroids(_cts.Token).Forget();
         }
 
         public void Dispose()
@@ -60,6 +50,16 @@ namespace Gameplay.Base
             }
         }
 
+        public void Initialize()
+        {
+            _cts = new CancellationTokenSource();
+
+            _signalBus.Subscribe<EnemyDiedSignal>(OnEnemyDeath);
+
+            //  SpawnUfos(_cts.Token).Forget();
+            //SpawnAsteroids(_cts.Token).Forget();
+        }
+
         private async void OnEnemyDeath(EnemyDiedSignal signal)
         {
             if (signal.Enemy is Asteroid _)
@@ -67,30 +67,21 @@ namespace Gameplay.Base
                 _asteroidsCount--;
                 SpawnSmallAsteroids(signal.DeathPosition);
 
-                if (_asteroidsCount < _config.MaxAsteroids)
-                {
-                    await SpawnAsteroids(_cts.Token);
-                }
+                if (_asteroidsCount < _config.MaxAsteroids) await SpawnAsteroids(_cts.Token);
             }
             else if (signal.Enemy is Ufo _)
             {
                 _ufosCount--;
 
-                if (_ufosCount < _config.MaxUfos)
-                {
-                    await SpawnUfos(_cts.Token);
-                }
+                if (_ufosCount < _config.MaxUfos) await SpawnUfos(_cts.Token);
             }
         }
 
         private void SpawnSmallAsteroids(Vector3 position)
         {
-            int asteroidsCount = Random.Range(_config.MinSmallAsteroids, _config.MaxSmallAsteroids);
+            var asteroidsCount = Random.Range(_config.MinSmallAsteroids, _config.MaxSmallAsteroids);
 
-            for (int i = 0; i < asteroidsCount; i++)
-            {
-                _smallAsteroidSpawner.SpawnItem(position, GetRandomRotation());
-            }
+            for (var i = 0; i < asteroidsCount; i++) _smallAsteroidSpawner.SpawnItem(position, GetRandomRotation());
         }
 
         private async UniTask SpawnAsteroids(CancellationToken cancellationToken)
@@ -100,7 +91,7 @@ namespace Gameplay.Base
                 while (_asteroidsCount < _config.MaxAsteroids)
                 {
                     await UniTask.Delay(_config.AsteroidSpawnCooldown, cancellationToken: cancellationToken);
-                    Vector3 spawnPosition = GetSpawnPosition();
+                    var spawnPosition = GetSpawnPosition();
                     _asteroidSpawner.SpawnItem(spawnPosition, GetRandomRotation());
                     _asteroidsCount++;
                 }
@@ -117,7 +108,7 @@ namespace Gameplay.Base
                 while (_ufosCount < _config.MaxUfos)
                 {
                     await UniTask.Delay(_config.UfoSpawnCooldown, cancellationToken: cancellationToken);
-                    Vector3 spawnPosition = GetSpawnPosition();
+                    var spawnPosition = GetSpawnPosition();
                     _ufoSpawner.SpawnItem(spawnPosition, GetRandomRotation());
                     _ufosCount++;
                 }
@@ -129,9 +120,9 @@ namespace Gameplay.Base
 
         private Vector3 GetSpawnPosition()
         {
-            bool isNotInCameraView = false;
-            Vector3 candidatePosition = new Vector3();
-            int attempts = 0;
+            var isNotInCameraView = false;
+            var candidatePosition = new Vector3();
+            var attempts = 0;
 
             while (!isNotInCameraView && attempts < _config.MaxAttemptsToPlaceEnemy)
             {
@@ -141,28 +132,23 @@ namespace Gameplay.Base
 
                 var viewportPosition = Camera.main.WorldToViewportPoint(candidatePosition);
 
-                bool isXOnScreen = viewportPosition.x is < 1 and > 0;
-                bool isYOnScreen = viewportPosition.y is < 1 and > 0;
+                var isXOnScreen = viewportPosition.x is < 1 and > 0;
+                var isYOnScreen = viewportPosition.y is < 1 and > 0;
 
-                if (!isXOnScreen && !isYOnScreen)
-                {
-                    isNotInCameraView = true;
-                }
+                if (!isXOnScreen && !isYOnScreen) isNotInCameraView = true;
 
                 attempts++;
             }
 
             if (attempts >= _config.MaxAttemptsToPlaceEnemy)
-            {
                 Debug.Log("The number of attempts to find the enemy position has expired.");
-            }
 
             return candidatePosition;
         }
 
         private Quaternion GetRandomRotation()
         {
-            int zRotation = Random.Range(0, 360);
+            var zRotation = Random.Range(0, 360);
             return Quaternion.Euler(0, 0, zRotation);
         }
     }

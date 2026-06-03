@@ -1,19 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using UnityEngine;
 
 namespace UniRx.Diagnostics
 {
     public class ObservableLogger : IObservable<LogEntry>
     {
-        static readonly Subject<LogEntry> logPublisher = new Subject<LogEntry>();
+        private static readonly Subject<LogEntry> logPublisher = new();
 
-        public static readonly ObservableLogger Listener = new ObservableLogger();
+        public static readonly ObservableLogger Listener = new();
 
         private ObservableLogger()
         {
+        }
 
+        public IDisposable Subscribe(IObserver<LogEntry> observer)
+        {
+            return logPublisher.Subscribe(observer);
         }
 
         public static Action<LogEntry> RegisterLogger(Logger logger)
@@ -21,11 +22,6 @@ namespace UniRx.Diagnostics
             if (logger.Name == null) throw new ArgumentNullException("logger.Name is null");
 
             return logPublisher.OnNext;
-        }
-
-        public IDisposable Subscribe(IObserver<LogEntry> observer)
-        {
-            return logPublisher.Subscribe(observer);
         }
     }
 }

@@ -1,26 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using UniRx.Operators;
 
 namespace UniRx.Operators
 {
     internal class GroupedObservable<TKey, TElement> : IGroupedObservable<TKey, TElement>
     {
-        readonly TKey key;
-        readonly IObservable<TElement> subject;
-        readonly RefCountDisposable refCount;
-
-        public TKey Key
-        {
-            get { return key; }
-        }
+        private readonly RefCountDisposable refCount;
+        private readonly IObservable<TElement> subject;
 
         public GroupedObservable(TKey key, ISubject<TElement> subject, RefCountDisposable refCount)
         {
-            this.key = key;
+            this.Key = key;
             this.subject = subject;
             this.refCount = refCount;
         }
+
+        public TKey Key { get; }
 
         public IDisposable Subscribe(IObserver<TElement> observer)
         {
@@ -30,15 +25,17 @@ namespace UniRx.Operators
         }
     }
 
-    internal class GroupByObservable<TSource, TKey, TElement> : OperatorObservableBase<IGroupedObservable<TKey, TElement>>
+    internal class
+        GroupByObservable<TSource, TKey, TElement> : OperatorObservableBase<IGroupedObservable<TKey, TElement>>
     {
-        readonly IObservable<TSource> source;
-        readonly Func<TSource, TKey> keySelector;
-        readonly Func<TSource, TElement> elementSelector;
-        readonly int? capacity;
-        readonly IEqualityComparer<TKey> comparer;
+        private readonly int? capacity;
+        private readonly IEqualityComparer<TKey> comparer;
+        private readonly Func<TSource, TElement> elementSelector;
+        private readonly Func<TSource, TKey> keySelector;
+        private readonly IObservable<TSource> source;
 
-        public GroupByObservable(IObservable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, int? capacity, IEqualityComparer<TKey> comparer)
+        public GroupByObservable(IObservable<TSource> source, Func<TSource, TKey> keySelector,
+            Func<TSource, TElement> elementSelector, int? capacity, IEqualityComparer<TKey> comparer)
             : base(source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
@@ -48,32 +45,30 @@ namespace UniRx.Operators
             this.comparer = comparer;
         }
 
-        protected override IDisposable SubscribeCore(IObserver<IGroupedObservable<TKey, TElement>> observer, IDisposable cancel)
+        protected override IDisposable SubscribeCore(IObserver<IGroupedObservable<TKey, TElement>> observer,
+            IDisposable cancel)
         {
             return new GroupBy(this, observer, cancel).Run();
         }
 
-        class GroupBy : OperatorObserverBase<TSource, IGroupedObservable<TKey, TElement>>
+        private class GroupBy : OperatorObserverBase<TSource, IGroupedObservable<TKey, TElement>>
         {
-            readonly GroupByObservable<TSource, TKey, TElement> parent;
-            readonly Dictionary<TKey, ISubject<TElement>> map;
-            ISubject<TElement> nullKeySubject;
+            private readonly Dictionary<TKey, ISubject<TElement>> map;
+            private readonly GroupByObservable<TSource, TKey, TElement> parent;
 
-            CompositeDisposable groupDisposable;
-            RefCountDisposable refCountDisposable;
+            private CompositeDisposable groupDisposable;
+            private ISubject<TElement> nullKeySubject;
+            private RefCountDisposable refCountDisposable;
 
-            public GroupBy(GroupByObservable<TSource, TKey, TElement> parent, IObserver<IGroupedObservable<TKey, TElement>> observer, IDisposable cancel)
+            public GroupBy(GroupByObservable<TSource, TKey, TElement> parent,
+                IObserver<IGroupedObservable<TKey, TElement>> observer, IDisposable cancel)
                 : base(observer, cancel)
             {
                 this.parent = parent;
                 if (parent.capacity.HasValue)
-                {
                     map = new Dictionary<TKey, ISubject<TElement>>(parent.capacity.Value, parent.comparer);
-                }
                 else
-                {
                     map = new Dictionary<TKey, ISubject<TElement>>(parent.comparer);
-                }
             }
 
             public IDisposable Run()
@@ -160,10 +155,7 @@ namespace UniRx.Operators
                 {
                     if (nullKeySubject != null) nullKeySubject.OnCompleted();
 
-                    foreach (var s in map.Values)
-                    {
-                        s.OnCompleted();
-                    }
+                    foreach (var s in map.Values) s.OnCompleted();
 
                     observer.OnCompleted();
                 }
@@ -173,16 +165,13 @@ namespace UniRx.Operators
                 }
             }
 
-            void Error(Exception exception)
+            private void Error(Exception exception)
             {
                 try
                 {
                     if (nullKeySubject != null) nullKeySubject.OnError(exception);
 
-                    foreach (var s in map.Values)
-                    {
-                        s.OnError(exception);
-                    }
+                    foreach (var s in map.Values) s.OnError(exception);
 
                     observer.OnError(exception);
                 }

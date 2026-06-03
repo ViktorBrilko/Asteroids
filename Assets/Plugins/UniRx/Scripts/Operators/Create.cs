@@ -4,7 +4,7 @@ namespace UniRx.Operators
 {
     internal class CreateObservable<T> : OperatorObservableBase<T>
     {
-        readonly Func<IObserver<T>, IDisposable> subscribe;
+        private readonly Func<IObserver<T>, IDisposable> subscribe;
 
         public CreateObservable(Func<IObserver<T>, IDisposable> subscribe)
             : base(true) // fail safe
@@ -24,7 +24,7 @@ namespace UniRx.Operators
             return subscribe(observer) ?? Disposable.Empty;
         }
 
-        class Create : OperatorObserverBase<T, T>
+        private class Create : OperatorObserverBase<T, T>
         {
             public Create(IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
             {
@@ -32,27 +32,39 @@ namespace UniRx.Operators
 
             public override void OnNext(T value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
 
     internal class CreateObservable<T, TState> : OperatorObservableBase<T>
     {
-        readonly TState state;
-        readonly Func<TState, IObserver<T>, IDisposable> subscribe;
+        private readonly TState state;
+        private readonly Func<TState, IObserver<T>, IDisposable> subscribe;
 
         public CreateObservable(TState state, Func<TState, IObserver<T>, IDisposable> subscribe)
             : base(true) // fail safe
@@ -61,7 +73,8 @@ namespace UniRx.Operators
             this.subscribe = subscribe;
         }
 
-        public CreateObservable(TState state, Func<TState, IObserver<T>, IDisposable> subscribe, bool isRequiredSubscribeOnCurrentThread)
+        public CreateObservable(TState state, Func<TState, IObserver<T>, IDisposable> subscribe,
+            bool isRequiredSubscribeOnCurrentThread)
             : base(isRequiredSubscribeOnCurrentThread)
         {
             this.state = state;
@@ -74,7 +87,7 @@ namespace UniRx.Operators
             return subscribe(state, observer) ?? Disposable.Empty;
         }
 
-        class Create : OperatorObserverBase<T, T>
+        private class Create : OperatorObserverBase<T, T>
         {
             public Create(IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
             {
@@ -82,26 +95,38 @@ namespace UniRx.Operators
 
             public override void OnNext(T value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
 
     internal class CreateSafeObservable<T> : OperatorObservableBase<T>
     {
-        readonly Func<IObserver<T>, IDisposable> subscribe;
+        private readonly Func<IObserver<T>, IDisposable> subscribe;
 
         public CreateSafeObservable(Func<IObserver<T>, IDisposable> subscribe)
             : base(true) // fail safe
@@ -121,7 +146,7 @@ namespace UniRx.Operators
             return subscribe(observer) ?? Disposable.Empty;
         }
 
-        class CreateSafe : OperatorObserverBase<T, T>
+        private class CreateSafe : OperatorObserverBase<T, T>
         {
             public CreateSafe(IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
             {
@@ -131,7 +156,7 @@ namespace UniRx.Operators
             {
                 try
                 {
-                    base.observer.OnNext(value);
+                    observer.OnNext(value);
                 }
                 catch
                 {
@@ -142,14 +167,26 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

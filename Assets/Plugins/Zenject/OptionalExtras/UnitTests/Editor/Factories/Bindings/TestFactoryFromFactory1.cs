@@ -9,7 +9,8 @@ namespace Zenject.Tests.Bindings
         [Test]
         public void TestSelf()
         {
-            Container.BindFactory<string, Foo, Foo.Factory>().FromIFactory(b => b.To<CustomFooFactory>().AsCached()).NonLazy();
+            Container.BindFactory<string, Foo, Foo.Factory>().FromIFactory(b => b.To<CustomFooFactory>().AsCached())
+                .NonLazy();
 
             Assert.IsEqual(Container.Resolve<Foo.Factory>().Create("asdf").Value, "asdf");
         }
@@ -17,12 +18,13 @@ namespace Zenject.Tests.Bindings
         [Test]
         public void TestConcrete()
         {
-            Container.BindFactory<string, IFoo, IFooFactory>().To<Foo>().FromIFactory(b => b.To<CustomFooFactory>().AsCached()).NonLazy();
+            Container.BindFactory<string, IFoo, IFooFactory>().To<Foo>()
+                .FromIFactory(b => b.To<CustomFooFactory>().AsCached()).NonLazy();
 
             Assert.IsEqual(Container.Resolve<IFooFactory>().Create("asdf").Value, "asdf");
         }
 
-        class CustomFooFactory : IFactory<string, Foo>
+        private class CustomFooFactory : IFactory<string, Foo>
         {
             public Foo Create(string value)
             {
@@ -30,30 +32,23 @@ namespace Zenject.Tests.Bindings
             }
         }
 
-        interface IFoo
+        private interface IFoo
         {
-            string Value
-            {
-                get;
-            }
+            string Value { get; }
         }
 
-        class IFooFactory : PlaceholderFactory<string, IFoo>
+        private class IFooFactory : PlaceholderFactory<string, IFoo>
         {
         }
 
-        class Foo : IFoo
+        private class Foo : IFoo
         {
             public Foo(string value)
             {
                 Value = value;
             }
 
-            public string Value
-            {
-                get;
-                private set;
-            }
+            public string Value { get; }
 
             public class Factory : PlaceholderFactory<string, Foo>
             {
@@ -61,4 +56,3 @@ namespace Zenject.Tests.Bindings
         }
     }
 }
-

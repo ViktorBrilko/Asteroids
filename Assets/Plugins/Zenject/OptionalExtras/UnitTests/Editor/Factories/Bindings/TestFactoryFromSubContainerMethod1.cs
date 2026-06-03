@@ -18,42 +18,35 @@ namespace Zenject.Tests.Bindings
         [Test]
         public void TestConcrete()
         {
-            Container.BindFactory<string, IFoo, IFooFactory>().To<Foo>().FromSubContainerResolve().ByMethod(InstallFoo).NonLazy();
+            Container.BindFactory<string, IFoo, IFooFactory>().To<Foo>().FromSubContainerResolve().ByMethod(InstallFoo)
+                .NonLazy();
 
             Assert.IsEqual(Container.Resolve<IFooFactory>().Create("asdf").Value, "asdf");
         }
 
-        void InstallFoo(DiContainer subContainer, string value)
+        private void InstallFoo(DiContainer subContainer, string value)
         {
             subContainer.Bind<Foo>().AsSingle().WithArgumentsExplicit(
                 InjectUtil.CreateArgListExplicit(value));
         }
 
-        interface IFoo
+        private interface IFoo
         {
-            string Value
-            {
-                get;
-            }
-
+            string Value { get; }
         }
 
-        class IFooFactory : PlaceholderFactory<string, IFoo>
+        private class IFooFactory : PlaceholderFactory<string, IFoo>
         {
         }
 
-        class Foo : IFoo
+        private class Foo : IFoo
         {
             public Foo(string value)
             {
                 Value = value;
             }
 
-            public string Value
-            {
-                get;
-                private set;
-            }
+            public string Value { get; }
 
             public class Factory : PlaceholderFactory<string, Foo>
             {
@@ -61,6 +54,3 @@ namespace Zenject.Tests.Bindings
         }
     }
 }
-
-
-

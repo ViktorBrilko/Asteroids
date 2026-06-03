@@ -1,4 +1,3 @@
-
 namespace Zenject
 {
     // This is installed by default in ProjectContext, however, if you are using Zenject outside
@@ -18,4 +17,3 @@ namespace Zenject
         }
     }
 }
-

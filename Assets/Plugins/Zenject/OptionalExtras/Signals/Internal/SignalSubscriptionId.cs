@@ -6,42 +6,32 @@ namespace Zenject
     [DebuggerStepThrough]
     public struct SignalSubscriptionId : IEquatable<SignalSubscriptionId>
     {
-        BindingId _signalId;
-        object _callback;
+        private BindingId _signalId;
 
         public SignalSubscriptionId(BindingId signalId, object callback)
         {
             _signalId = signalId;
-            _callback = callback;
+            Callback = callback;
         }
 
-        public BindingId SignalId
-        {
-            get { return _signalId; }
-        }
+        public BindingId SignalId => _signalId;
 
-        public object Callback
-        {
-            get { return _callback; }
-        }
+        public object Callback { get; }
 
         public override int GetHashCode()
         {
             unchecked // Overflow is fine, just wrap
             {
-                int hash = 17;
+                var hash = 17;
                 hash = hash * 29 + _signalId.GetHashCode();
-                hash = hash * 29 + _callback.GetHashCode();
+                hash = hash * 29 + Callback.GetHashCode();
                 return hash;
             }
         }
 
         public override bool Equals(object that)
         {
-            if (that is SignalSubscriptionId)
-            {
-                return Equals((SignalSubscriptionId)that);
-            }
+            if (that is SignalSubscriptionId) return Equals((SignalSubscriptionId)that);
 
             return false;
         }
@@ -49,15 +39,15 @@ namespace Zenject
         public bool Equals(SignalSubscriptionId that)
         {
             return Equals(_signalId, that._signalId)
-                && Equals(Callback, that.Callback);
+                   && Equals(Callback, that.Callback);
         }
 
-        public static bool operator == (SignalSubscriptionId left, SignalSubscriptionId right)
+        public static bool operator ==(SignalSubscriptionId left, SignalSubscriptionId right)
         {
             return left.Equals(right);
         }
 
-        public static bool operator != (SignalSubscriptionId left, SignalSubscriptionId right)
+        public static bool operator !=(SignalSubscriptionId left, SignalSubscriptionId right)
         {
             return !left.Equals(right);
         }

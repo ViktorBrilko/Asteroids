@@ -1,9 +1,8 @@
 ﻿#if !UNITY_METRO
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Text;
+using System.Threading;
 using UniRx.InternalUtil;
 
 namespace UniRx
@@ -12,16 +11,9 @@ namespace UniRx
     {
         public static readonly IScheduler ThreadPool = new ThreadPoolScheduler();
 
-        class ThreadPoolScheduler : IScheduler, ISchedulerPeriodic
+        private class ThreadPoolScheduler : IScheduler, ISchedulerPeriodic
         {
-            public ThreadPoolScheduler()
-            {
-            }
-
-            public DateTimeOffset Now
-            {
-                get { return Scheduler.Now; }
-            }
+            public DateTimeOffset Now => Scheduler.Now;
 
             public IDisposable Schedule(Action action)
             {
@@ -29,18 +21,10 @@ namespace UniRx
 
                 System.Threading.ThreadPool.QueueUserWorkItem(_ =>
                 {
-                    if (!d.IsDisposed)
-                    {
-                        action();
-                    }
+                    if (!d.IsDisposed) action();
                 });
 
                 return d;
-            }
-
-            public IDisposable Schedule(DateTimeOffset dueTime, Action action)
-            {
-                return Schedule(dueTime - Now, action);
             }
 
             public IDisposable Schedule(TimeSpan dueTime, Action action)
@@ -53,30 +37,32 @@ namespace UniRx
                 return new PeriodicTimer(period, action);
             }
 
+            public IDisposable Schedule(DateTimeOffset dueTime, Action action)
+            {
+                return Schedule(dueTime - Now, action);
+            }
+
             public void ScheduleQueueing<T>(ICancelable cancel, T state, Action<T> action)
             {
                 System.Threading.ThreadPool.QueueUserWorkItem(callBackState =>
                 {
-                    if (!cancel.IsDisposed)
-                    {
-                        action((T)callBackState);
-                    }
+                    if (!cancel.IsDisposed) action((T)callBackState);
                 }, state);
             }
 
             // timer was borrwed from Rx Official
 
-            sealed class Timer : IDisposable
+            private sealed class Timer : IDisposable
             {
-                static readonly HashSet<System.Threading.Timer> s_timers = new HashSet<System.Threading.Timer>();
+                private static readonly HashSet<System.Threading.Timer> s_timers = new();
 
                 private readonly SingleAssignmentDisposable _disposable;
 
                 private Action _action;
-                private System.Threading.Timer _timer;
 
-                private bool _hasAdded;
+                private readonly bool _hasAdded;
                 private bool _hasRemoved;
+                private System.Threading.Timer _timer;
 
                 public Timer(TimeSpan dueTime, Action action)
                 {
@@ -84,7 +70,8 @@ namespace UniRx
                     _disposable.Disposable = Disposable.Create(Unroot);
 
                     _action = action;
-                    _timer = new System.Threading.Timer(Tick, null, dueTime, TimeSpan.FromMilliseconds(System.Threading.Timeout.Infinite));
+                    _timer = new System.Threading.Timer(Tick, null, dueTime,
+                        TimeSpan.FromMilliseconds(Timeout.Infinite));
 
                     lock (s_timers)
                     {
@@ -97,14 +84,16 @@ namespace UniRx
                     }
                 }
 
+                public void Dispose()
+                {
+                    _disposable.Dispose();
+                }
+
                 private void Tick(object state)
                 {
                     try
                     {
-                        if (!_disposable.IsDisposed)
-                        {
-                            _action();
-                        }
+                        if (!_disposable.IsDisposed) _action();
                     }
                     finally
                     {
@@ -135,39 +124,26 @@ namespace UniRx
                     if (timer != null)
                         timer.Dispose();
                 }
-
-                public void Dispose()
-                {
-                    _disposable.Dispose();
-                }
             }
 
-            sealed class PeriodicTimer : IDisposable
+            private sealed class PeriodicTimer : IDisposable
             {
-                static readonly HashSet<System.Threading.Timer> s_timers = new HashSet<System.Threading.Timer>();
+                private static readonly HashSet<System.Threading.Timer> s_timers = new();
+                private readonly AsyncLock _gate;
 
                 private Action _action;
                 private System.Threading.Timer _timer;
-                private readonly AsyncLock _gate;
 
                 public PeriodicTimer(TimeSpan period, Action action)
                 {
-                    this._action = action;
-                    this._timer = new System.Threading.Timer(Tick, null, period, period);
-                    this._gate = new AsyncLock();
+                    _action = action;
+                    _timer = new System.Threading.Timer(Tick, null, period, period);
+                    _gate = new AsyncLock();
 
                     lock (s_timers)
                     {
                         s_timers.Add(_timer);
                     }
-                }
-
-                private void Tick(object state)
-                {
-                    _gate.Wait(() =>
-                    {
-                        _action();
-                    });
                 }
 
                 public void Dispose()
@@ -188,6 +164,11 @@ namespace UniRx
                         timer.Dispose();
                         _action = Stubs.Nop;
                     }
+                }
+
+                private void Tick(object state)
+                {
+                    _gate.Wait(() => { _action(); });
                 }
             }
         }

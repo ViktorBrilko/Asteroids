@@ -4,64 +4,27 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace UniRx.Toolkit
 {
     /// <summary>
-    /// Bass class of ObjectPool.
+    ///     Bass class of ObjectPool.
     /// </summary>
     public abstract class ObjectPool<T> : IDisposable
-        where T : UnityEngine.Component
+        where T : Component
     {
-        bool isDisposed = false;
-        Queue<T> q;
+        private bool isDisposed;
+        private Queue<T> q;
 
         /// <summary>
-        /// Limit of instace count.
+        ///     Limit of instace count.
         /// </summary>
-        protected int MaxPoolCount
-        {
-            get
-            {
-                return int.MaxValue;
-            }
-        }
+        protected int MaxPoolCount => int.MaxValue;
 
         /// <summary>
-        /// Create instance when needed.
-        /// </summary>
-        protected abstract T CreateInstance();
-
-        /// <summary>
-        /// Called before return to pool, useful for set active object(it is default behavior).
-        /// </summary>
-        protected virtual void OnBeforeRent(T instance)
-        {
-            instance.gameObject.SetActive(true);
-        }
-
-        /// <summary>
-        /// Called before return to pool, useful for set inactive object(it is default behavior).
-        /// </summary>
-        protected virtual void OnBeforeReturn(T instance)
-        {
-            instance.gameObject.SetActive(false);
-        }
-
-        /// <summary>
-        /// Called when clear or disposed, useful for destroy instance or other finalize method.
-        /// </summary>
-        protected virtual void OnClear(T instance)
-        {
-            if (instance == null) return;
-
-            var go = instance.gameObject;
-            if (go == null) return;
-            UnityEngine.Object.Destroy(go);
-        }
-
-        /// <summary>
-        /// Current pooled object count.
+        ///     Current pooled object count.
         /// </summary>
         public int Count
         {
@@ -73,14 +36,47 @@ namespace UniRx.Toolkit
         }
 
         /// <summary>
-        /// Get instance from pool.
+        ///     Create instance when needed.
+        /// </summary>
+        protected abstract T CreateInstance();
+
+        /// <summary>
+        ///     Called before return to pool, useful for set active object(it is default behavior).
+        /// </summary>
+        protected virtual void OnBeforeRent(T instance)
+        {
+            instance.gameObject.SetActive(true);
+        }
+
+        /// <summary>
+        ///     Called before return to pool, useful for set inactive object(it is default behavior).
+        /// </summary>
+        protected virtual void OnBeforeReturn(T instance)
+        {
+            instance.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        ///     Called when clear or disposed, useful for destroy instance or other finalize method.
+        /// </summary>
+        protected virtual void OnClear(T instance)
+        {
+            if (instance == null) return;
+
+            var go = instance.gameObject;
+            if (go == null) return;
+            Object.Destroy(go);
+        }
+
+        /// <summary>
+        ///     Get instance from pool.
         /// </summary>
         public T Rent()
         {
             if (isDisposed) throw new ObjectDisposedException("ObjectPool was already disposed.");
             if (q == null) q = new Queue<T>();
 
-            var instance = (q.Count > 0)
+            var instance = q.Count > 0
                 ? q.Dequeue()
                 : CreateInstance();
 
@@ -89,7 +85,7 @@ namespace UniRx.Toolkit
         }
 
         /// <summary>
-        /// Return instance to pool.
+        ///     Return instance to pool.
         /// </summary>
         public void Return(T instance)
         {
@@ -98,17 +94,14 @@ namespace UniRx.Toolkit
 
             if (q == null) q = new Queue<T>();
 
-            if ((q.Count + 1) == MaxPoolCount)
-            {
-                throw new InvalidOperationException("Reached Max PoolSize");
-            }
+            if (q.Count + 1 == MaxPoolCount) throw new InvalidOperationException("Reached Max PoolSize");
 
             OnBeforeReturn(instance);
             q.Enqueue(instance);
         }
 
         /// <summary>
-        /// Clear pool.
+        ///     Clear pool.
         /// </summary>
         public void Clear(bool callOnBeforeRent = false)
         {
@@ -116,16 +109,13 @@ namespace UniRx.Toolkit
             while (q.Count != 0)
             {
                 var instance = q.Dequeue();
-                if (callOnBeforeRent)
-                {
-                    OnBeforeRent(instance);
-                }
+                if (callOnBeforeRent) OnBeforeRent(instance);
                 OnClear(instance);
             }
         }
 
         /// <summary>
-        /// Trim pool instances. 
+        ///     Trim pool instances.
         /// </summary>
         /// <param name="instanceCountRatio">0.0f = clear all ~ 1.0f = live all.</param>
         /// <param name="minSize">Min pool count.</param>
@@ -143,33 +133,28 @@ namespace UniRx.Toolkit
             while (q.Count > size)
             {
                 var instance = q.Dequeue();
-                if (callOnBeforeRent)
-                {
-                    OnBeforeRent(instance);
-                }
+                if (callOnBeforeRent) OnBeforeRent(instance);
                 OnClear(instance);
             }
         }
 
         /// <summary>
-        /// If needs shrink pool frequently, start check timer.
+        ///     If needs shrink pool frequently, start check timer.
         /// </summary>
         /// <param name="checkInterval">Interval of call Shrink.</param>
         /// <param name="instanceCountRatio">0.0f = clearAll ~ 1.0f = live all.</param>
         /// <param name="minSize">Min pool count.</param>
         /// <param name="callOnBeforeRent">If true, call OnBeforeRent before OnClear.</param>
-        public IDisposable StartShrinkTimer(TimeSpan checkInterval, float instanceCountRatio, int minSize, bool callOnBeforeRent = false)
+        public IDisposable StartShrinkTimer(TimeSpan checkInterval, float instanceCountRatio, int minSize,
+            bool callOnBeforeRent = false)
         {
             return Observable.Interval(checkInterval)
                 .TakeWhile(_ => !isDisposed)
-                .Subscribe(_ =>
-                {
-                    Shrink(instanceCountRatio, minSize, callOnBeforeRent);
-                });
+                .Subscribe(_ => { Shrink(instanceCountRatio, minSize, callOnBeforeRent); });
         }
 
         /// <summary>
-        /// Fill pool before rent operation.
+        ///     Fill pool before rent operation.
         /// </summary>
         /// <param name="preloadCount">Pool instance count.</param>
         /// <param name="threshold">Create count per frame.</param>
@@ -177,10 +162,12 @@ namespace UniRx.Toolkit
         {
             if (q == null) q = new Queue<T>(preloadCount);
 
-            return Observable.FromMicroCoroutine<Unit>((observer, cancel) => PreloadCore(preloadCount, threshold, observer, cancel));
+            return Observable.FromMicroCoroutine<Unit>((observer, cancel) =>
+                PreloadCore(preloadCount, threshold, observer, cancel));
         }
 
-        IEnumerator PreloadCore(int preloadCount, int threshold, IObserver<Unit> observer, CancellationToken cancellationToken)
+        private IEnumerator PreloadCore(int preloadCount, int threshold, IObserver<Unit> observer,
+            CancellationToken cancellationToken)
         {
             while (Count < preloadCount && !cancellationToken.IsCancellationRequested)
             {
@@ -189,8 +176,7 @@ namespace UniRx.Toolkit
 
                 var createCount = Math.Min(requireCount, threshold);
 
-                for (int i = 0; i < createCount; i++)
-                {
+                for (var i = 0; i < createCount; i++)
                     try
                     {
                         var instance = CreateInstance();
@@ -201,7 +187,7 @@ namespace UniRx.Toolkit
                         observer.OnError(ex);
                         yield break;
                     }
-                }
+
                 yield return null; // next frame.
             }
 
@@ -215,10 +201,7 @@ namespace UniRx.Toolkit
         {
             if (!isDisposed)
             {
-                if (disposing)
-                {
-                    Clear(false);
-                }
+                if (disposing) Clear();
 
                 isDisposed = true;
             }
@@ -233,60 +216,21 @@ namespace UniRx.Toolkit
     }
 
     /// <summary>
-    /// Bass class of ObjectPool. If needs asynchronous initialization, use this instead of standard ObjectPool.
+    ///     Bass class of ObjectPool. If needs asynchronous initialization, use this instead of standard ObjectPool.
     /// </summary>
     public abstract class AsyncObjectPool<T> : IDisposable
-        where T : UnityEngine.Component
+        where T : Component
     {
-        bool isDisposed = false;
-        Queue<T> q;
+        private bool isDisposed;
+        private Queue<T> q;
 
         /// <summary>
-        /// Limit of instace count.
+        ///     Limit of instace count.
         /// </summary>
-        protected int MaxPoolCount
-        {
-            get
-            {
-                return int.MaxValue;
-            }
-        }
+        protected int MaxPoolCount => int.MaxValue;
 
         /// <summary>
-        /// Create instance when needed.
-        /// </summary>
-        protected abstract IObservable<T> CreateInstanceAsync();
-
-        /// <summary>
-        /// Called before return to pool, useful for set active object(it is default behavior).
-        /// </summary>
-        protected virtual void OnBeforeRent(T instance)
-        {
-            instance.gameObject.SetActive(true);
-        }
-
-        /// <summary>
-        /// Called before return to pool, useful for set inactive object(it is default behavior).
-        /// </summary>
-        protected virtual void OnBeforeReturn(T instance)
-        {
-            instance.gameObject.SetActive(false);
-        }
-
-        /// <summary>
-        /// Called when clear or disposed, useful for destroy instance or other finalize method.
-        /// </summary>
-        protected virtual void OnClear(T instance)
-        {
-            if (instance == null) return;
-
-            var go = instance.gameObject;
-            if (go == null) return;
-            UnityEngine.Object.Destroy(go);
-        }
-
-        /// <summary>
-        /// Current pooled object count.
+        ///     Current pooled object count.
         /// </summary>
         public int Count
         {
@@ -298,7 +242,40 @@ namespace UniRx.Toolkit
         }
 
         /// <summary>
-        /// Get instance from pool.
+        ///     Create instance when needed.
+        /// </summary>
+        protected abstract IObservable<T> CreateInstanceAsync();
+
+        /// <summary>
+        ///     Called before return to pool, useful for set active object(it is default behavior).
+        /// </summary>
+        protected virtual void OnBeforeRent(T instance)
+        {
+            instance.gameObject.SetActive(true);
+        }
+
+        /// <summary>
+        ///     Called before return to pool, useful for set inactive object(it is default behavior).
+        /// </summary>
+        protected virtual void OnBeforeReturn(T instance)
+        {
+            instance.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        ///     Called when clear or disposed, useful for destroy instance or other finalize method.
+        /// </summary>
+        protected virtual void OnClear(T instance)
+        {
+            if (instance == null) return;
+
+            var go = instance.gameObject;
+            if (go == null) return;
+            Object.Destroy(go);
+        }
+
+        /// <summary>
+        ///     Get instance from pool.
         /// </summary>
         public IObservable<T> RentAsync()
         {
@@ -319,7 +296,7 @@ namespace UniRx.Toolkit
         }
 
         /// <summary>
-        /// Return instance to pool.
+        ///     Return instance to pool.
         /// </summary>
         public void Return(T instance)
         {
@@ -328,17 +305,14 @@ namespace UniRx.Toolkit
 
             if (q == null) q = new Queue<T>();
 
-            if ((q.Count + 1) == MaxPoolCount)
-            {
-                throw new InvalidOperationException("Reached Max PoolSize");
-            }
+            if (q.Count + 1 == MaxPoolCount) throw new InvalidOperationException("Reached Max PoolSize");
 
             OnBeforeReturn(instance);
             q.Enqueue(instance);
         }
 
         /// <summary>
-        /// Trim pool instances. 
+        ///     Trim pool instances.
         /// </summary>
         /// <param name="instanceCountRatio">0.0f = clear all ~ 1.0f = live all.</param>
         /// <param name="minSize">Min pool count.</param>
@@ -356,33 +330,28 @@ namespace UniRx.Toolkit
             while (q.Count > size)
             {
                 var instance = q.Dequeue();
-                if (callOnBeforeRent)
-                {
-                    OnBeforeRent(instance);
-                }
+                if (callOnBeforeRent) OnBeforeRent(instance);
                 OnClear(instance);
             }
         }
 
         /// <summary>
-        /// If needs shrink pool frequently, start check timer.
+        ///     If needs shrink pool frequently, start check timer.
         /// </summary>
         /// <param name="checkInterval">Interval of call Shrink.</param>
         /// <param name="instanceCountRatio">0.0f = clearAll ~ 1.0f = live all.</param>
         /// <param name="minSize">Min pool count.</param>
         /// <param name="callOnBeforeRent">If true, call OnBeforeRent before OnClear.</param>
-        public IDisposable StartShrinkTimer(TimeSpan checkInterval, float instanceCountRatio, int minSize, bool callOnBeforeRent = false)
+        public IDisposable StartShrinkTimer(TimeSpan checkInterval, float instanceCountRatio, int minSize,
+            bool callOnBeforeRent = false)
         {
             return Observable.Interval(checkInterval)
                 .TakeWhile(_ => !isDisposed)
-                .Subscribe(_ =>
-                {
-                    Shrink(instanceCountRatio, minSize, callOnBeforeRent);
-                });
+                .Subscribe(_ => { Shrink(instanceCountRatio, minSize, callOnBeforeRent); });
         }
 
         /// <summary>
-        /// Clear pool.
+        ///     Clear pool.
         /// </summary>
         public void Clear(bool callOnBeforeRent = false)
         {
@@ -390,16 +359,13 @@ namespace UniRx.Toolkit
             while (q.Count != 0)
             {
                 var instance = q.Dequeue();
-                if (callOnBeforeRent)
-                {
-                    OnBeforeRent(instance);
-                }
+                if (callOnBeforeRent) OnBeforeRent(instance);
                 OnClear(instance);
             }
         }
 
         /// <summary>
-        /// Fill pool before rent operation.
+        ///     Fill pool before rent operation.
         /// </summary>
         /// <param name="preloadCount">Pool instance count.</param>
         /// <param name="threshold">Create count per frame.</param>
@@ -407,10 +373,12 @@ namespace UniRx.Toolkit
         {
             if (q == null) q = new Queue<T>(preloadCount);
 
-            return Observable.FromMicroCoroutine<Unit>((observer, cancel) => PreloadCore(preloadCount, threshold, observer, cancel));
+            return Observable.FromMicroCoroutine<Unit>((observer, cancel) =>
+                PreloadCore(preloadCount, threshold, observer, cancel));
         }
 
-        IEnumerator PreloadCore(int preloadCount, int threshold, IObserver<Unit> observer, CancellationToken cancellationToken)
+        private IEnumerator PreloadCore(int preloadCount, int threshold, IObserver<Unit> observer,
+            CancellationToken cancellationToken)
         {
             while (Count < preloadCount && !cancellationToken.IsCancellationRequested)
             {
@@ -420,27 +388,22 @@ namespace UniRx.Toolkit
                 var createCount = Math.Min(requireCount, threshold);
 
                 var loaders = new IObservable<Unit>[createCount];
-                for (int i = 0; i < createCount; i++)
+                for (var i = 0; i < createCount; i++)
                 {
                     var instanceFuture = CreateInstanceAsync();
                     loaders[i] = instanceFuture.ForEachAsync(x => Return(x));
                 }
 
                 var awaiter = Observable.WhenAll(loaders).ToYieldInstruction(false, cancellationToken);
-                while (!(awaiter.HasResult || awaiter.IsCanceled || awaiter.HasError))
-                {
-                    yield return null;
-                }
+                while (!(awaiter.HasResult || awaiter.IsCanceled || awaiter.HasError)) yield return null;
 
                 if (awaiter.HasError)
                 {
                     observer.OnError(awaiter.Error);
                     yield break;
                 }
-                else if (awaiter.IsCanceled)
-                {
-                    yield break; // end.
-                }
+
+                if (awaiter.IsCanceled) yield break; // end.
             }
 
             observer.OnNext(Unit.Default);
@@ -453,10 +416,7 @@ namespace UniRx.Toolkit
         {
             if (!isDisposed)
             {
-                if (disposing)
-                {
-                    Clear(false);
-                }
+                if (disposing) Clear();
 
                 isDisposed = true;
             }

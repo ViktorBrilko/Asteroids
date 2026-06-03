@@ -4,9 +4,9 @@ namespace UniRx.Operators
 {
     internal class RangeObservable : OperatorObservableBase<int>
     {
-        readonly int start;
-        readonly int count;
-        readonly IScheduler scheduler;
+        private readonly int count;
+        private readonly IScheduler scheduler;
+        private readonly int start;
 
         public RangeObservable(int start, int count, IScheduler scheduler)
             : base(scheduler == Scheduler.CurrentThread)
@@ -24,23 +24,24 @@ namespace UniRx.Operators
 
             if (scheduler == Scheduler.Immediate)
             {
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
-                    int v = start + i;
+                    var v = start + i;
                     observer.OnNext(v);
                 }
+
                 observer.OnCompleted();
 
                 return Disposable.Empty;
             }
-            else
+
             {
                 var i = 0;
-                return scheduler.Schedule((Action self) =>
+                return scheduler.Schedule(self =>
                 {
                     if (i < count)
                     {
-                        int v = start + i;
+                        var v = start + i;
                         observer.OnNext(v);
                         i++;
                         self();
@@ -53,7 +54,7 @@ namespace UniRx.Operators
             }
         }
 
-        class Range : OperatorObserverBase<int, int>
+        private class Range : OperatorObserverBase<int, int>
         {
             public Range(IObserver<int> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -64,7 +65,7 @@ namespace UniRx.Operators
             {
                 try
                 {
-                    base.observer.OnNext(value);
+                    observer.OnNext(value);
                 }
                 catch
                 {
@@ -75,14 +76,26 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

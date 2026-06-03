@@ -2,8 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using ModestTree;
+using UnityEngine;
 using Zenject.Internal;
 
 namespace Zenject
@@ -11,8 +11,8 @@ namespace Zenject
     [NoReflectionBaking]
     public abstract class SubContainerCreatorByNewPrefabDynamicContext : SubContainerCreatorDynamicContext
     {
-        readonly IPrefabProvider _prefabProvider;
-        readonly GameObjectCreationParameters _gameObjectBindInfo;
+        private readonly GameObjectCreationParameters _gameObjectBindInfo;
+        private readonly IPrefabProvider _prefabProvider;
 
         public SubContainerCreatorByNewPrefabDynamicContext(
             DiContainer container,
@@ -31,10 +31,9 @@ namespace Zenject
                 prefab, _gameObjectBindInfo, null, out shouldMakeActive);
 
             if (gameObj.GetComponent<GameObjectContext>() != null)
-            {
                 throw Assert.CreateException(
-                    "Found GameObjectContext already attached to prefab with name '{0}'!  When using ByNewPrefabMethod or ByNewPrefabInstaller, the GameObjectContext is added to the prefab dynamically", prefab.name);
-            }
+                    "Found GameObjectContext already attached to prefab with name '{0}'!  When using ByNewPrefabMethod or ByNewPrefabInstaller, the GameObjectContext is added to the prefab dynamically",
+                    prefab.name);
 
             return gameObj;
         }
@@ -43,8 +42,8 @@ namespace Zenject
     [NoReflectionBaking]
     public class SubContainerCreatorByNewPrefabInstaller : SubContainerCreatorByNewPrefabDynamicContext
     {
-        readonly Type _installerType;
-        readonly List<TypeValuePair> _extraArgs;
+        private readonly List<TypeValuePair> _extraArgs;
+        private readonly Type _installerType;
 
         public SubContainerCreatorByNewPrefabInstaller(
             DiContainer container, IPrefabProvider prefabProvider,
@@ -56,33 +55,34 @@ namespace Zenject
             _extraArgs = extraArgs;
 
             Assert.That(installerType.DerivesFrom<InstallerBase>(),
-                "Invalid installer type given during bind command.  Expected type '{0}' to derive from 'Installer<>'", installerType);
+                "Invalid installer type given during bind command.  Expected type '{0}' to derive from 'Installer<>'",
+                installerType);
         }
 
         protected override void AddInstallers(List<TypeValuePair> args, GameObjectContext context)
         {
             context.AddNormalInstaller(
                 new ActionInstaller(subContainer =>
-                    {
-                        var extraArgs = ZenPools.SpawnList<TypeValuePair>();
+                {
+                    var extraArgs = ZenPools.SpawnList<TypeValuePair>();
 
-                        extraArgs.AllocFreeAddRange(_extraArgs);
-                        extraArgs.AllocFreeAddRange(args);
+                    extraArgs.AllocFreeAddRange(_extraArgs);
+                    extraArgs.AllocFreeAddRange(args);
 
-                        var installer = (InstallerBase)subContainer.InstantiateExplicit(
-                            _installerType, extraArgs);
+                    var installer = (InstallerBase)subContainer.InstantiateExplicit(
+                        _installerType, extraArgs);
 
-                        ZenPools.DespawnList(extraArgs);
+                    ZenPools.DespawnList(extraArgs);
 
-                        installer.InstallBindings();
-                    }));
+                    installer.InstallBindings();
+                }));
         }
     }
 
     [NoReflectionBaking]
     public class SubContainerCreatorByNewPrefabMethod : SubContainerCreatorByNewPrefabDynamicContext
     {
-        readonly Action<DiContainer> _installerMethod;
+        private readonly Action<DiContainer> _installerMethod;
 
         public SubContainerCreatorByNewPrefabMethod(
             DiContainer container, IPrefabProvider prefabProvider,
@@ -104,7 +104,7 @@ namespace Zenject
     [NoReflectionBaking]
     public class SubContainerCreatorByNewPrefabMethod<TParam1> : SubContainerCreatorByNewPrefabDynamicContext
     {
-        readonly Action<DiContainer, TParam1> _installerMethod;
+        private readonly Action<DiContainer, TParam1> _installerMethod;
 
         public SubContainerCreatorByNewPrefabMethod(
             DiContainer container, IPrefabProvider prefabProvider,
@@ -121,17 +121,14 @@ namespace Zenject
             Assert.That(args[0].Type.DerivesFromOrEqual<TParam1>());
 
             context.AddNormalInstaller(
-                new ActionInstaller(subContainer =>
-                    {
-                        _installerMethod(subContainer, (TParam1)args[0].Value);
-                    }));
+                new ActionInstaller(subContainer => { _installerMethod(subContainer, (TParam1)args[0].Value); }));
         }
     }
 
     [NoReflectionBaking]
     public class SubContainerCreatorByNewPrefabMethod<TParam1, TParam2> : SubContainerCreatorByNewPrefabDynamicContext
     {
-        readonly Action<DiContainer, TParam1, TParam2> _installerMethod;
+        private readonly Action<DiContainer, TParam1, TParam2> _installerMethod;
 
         public SubContainerCreatorByNewPrefabMethod(
             DiContainer container, IPrefabProvider prefabProvider,
@@ -150,18 +147,19 @@ namespace Zenject
 
             context.AddNormalInstaller(
                 new ActionInstaller(subContainer =>
-                    {
-                        _installerMethod(subContainer,
-                            (TParam1)args[0].Value,
-                            (TParam2)args[1].Value);
-                    }));
+                {
+                    _installerMethod(subContainer,
+                        (TParam1)args[0].Value,
+                        (TParam2)args[1].Value);
+                }));
         }
     }
 
     [NoReflectionBaking]
-    public class SubContainerCreatorByNewPrefabMethod<TParam1, TParam2, TParam3> : SubContainerCreatorByNewPrefabDynamicContext
+    public class
+        SubContainerCreatorByNewPrefabMethod<TParam1, TParam2, TParam3> : SubContainerCreatorByNewPrefabDynamicContext
     {
-        readonly Action<DiContainer, TParam1, TParam2, TParam3> _installerMethod;
+        private readonly Action<DiContainer, TParam1, TParam2, TParam3> _installerMethod;
 
         public SubContainerCreatorByNewPrefabMethod(
             DiContainer container, IPrefabProvider prefabProvider,
@@ -181,19 +179,21 @@ namespace Zenject
 
             context.AddNormalInstaller(
                 new ActionInstaller(subContainer =>
-                    {
-                        _installerMethod(subContainer,
-                            (TParam1)args[0].Value,
-                            (TParam2)args[1].Value,
-                            (TParam3)args[2].Value);
-                    }));
+                {
+                    _installerMethod(subContainer,
+                        (TParam1)args[0].Value,
+                        (TParam2)args[1].Value,
+                        (TParam3)args[2].Value);
+                }));
         }
     }
 
     [NoReflectionBaking]
-    public class SubContainerCreatorByNewPrefabMethod<TParam1, TParam2, TParam3, TParam4> : SubContainerCreatorByNewPrefabDynamicContext
+    public class
+        SubContainerCreatorByNewPrefabMethod<TParam1, TParam2, TParam3, TParam4> :
+        SubContainerCreatorByNewPrefabDynamicContext
     {
-        readonly
+        private readonly
 #if !NET_4_6
             ModestTree.Util.
 #endif
@@ -205,7 +205,7 @@ namespace Zenject
 #if !NET_4_6
             ModestTree.Util.
 #endif
-            Action<DiContainer, TParam1, TParam2, TParam3, TParam4> installerMethod)
+                Action<DiContainer, TParam1, TParam2, TParam3, TParam4> installerMethod)
             : base(container, prefabProvider, gameObjectBindInfo)
         {
             _installerMethod = installerMethod;
@@ -221,20 +221,22 @@ namespace Zenject
 
             context.AddNormalInstaller(
                 new ActionInstaller(subContainer =>
-                    {
-                        _installerMethod(subContainer,
-                            (TParam1)args[0].Value,
-                            (TParam2)args[1].Value,
-                            (TParam3)args[2].Value,
-                            (TParam4)args[3].Value);
-                    }));
+                {
+                    _installerMethod(subContainer,
+                        (TParam1)args[0].Value,
+                        (TParam2)args[1].Value,
+                        (TParam3)args[2].Value,
+                        (TParam4)args[3].Value);
+                }));
         }
     }
 
     [NoReflectionBaking]
-    public class SubContainerCreatorByNewPrefabMethod<TParam1, TParam2, TParam3, TParam4, TParam5> : SubContainerCreatorByNewPrefabDynamicContext
+    public class
+        SubContainerCreatorByNewPrefabMethod<TParam1, TParam2, TParam3, TParam4, TParam5> :
+        SubContainerCreatorByNewPrefabDynamicContext
     {
-        readonly
+        private readonly
 #if !NET_4_6
             ModestTree.Util.
 #endif
@@ -246,7 +248,7 @@ namespace Zenject
 #if !NET_4_6
             ModestTree.Util.
 #endif
-            Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5> installerMethod)
+                Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5> installerMethod)
             : base(container, prefabProvider, gameObjectBindInfo)
         {
             _installerMethod = installerMethod;
@@ -263,21 +265,23 @@ namespace Zenject
 
             context.AddNormalInstaller(
                 new ActionInstaller(subContainer =>
-                    {
-                        _installerMethod(subContainer,
-                            (TParam1)args[0].Value,
-                            (TParam2)args[1].Value,
-                            (TParam3)args[2].Value,
-                            (TParam4)args[3].Value,
-                            (TParam5)args[4].Value);
-                    }));
+                {
+                    _installerMethod(subContainer,
+                        (TParam1)args[0].Value,
+                        (TParam2)args[1].Value,
+                        (TParam3)args[2].Value,
+                        (TParam4)args[3].Value,
+                        (TParam5)args[4].Value);
+                }));
         }
     }
 
     [NoReflectionBaking]
-    public class SubContainerCreatorByNewPrefabMethod<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6> : SubContainerCreatorByNewPrefabDynamicContext
+    public class
+        SubContainerCreatorByNewPrefabMethod<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6> :
+        SubContainerCreatorByNewPrefabDynamicContext
     {
-        readonly
+        private readonly
 #if !NET_4_6
             ModestTree.Util.
 #endif
@@ -289,7 +293,7 @@ namespace Zenject
 #if !NET_4_6
             ModestTree.Util.
 #endif
-            Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6> installerMethod)
+                Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6> installerMethod)
             : base(container, prefabProvider, gameObjectBindInfo)
         {
             _installerMethod = installerMethod;
@@ -307,26 +311,28 @@ namespace Zenject
 
             context.AddNormalInstaller(
                 new ActionInstaller(subContainer =>
-                    {
-                        _installerMethod(subContainer,
-                            (TParam1)args[0].Value,
-                            (TParam2)args[1].Value,
-                            (TParam3)args[2].Value,
-                            (TParam4)args[3].Value,
-                            (TParam5)args[4].Value,
-                            (TParam6)args[5].Value);
-                    }));
+                {
+                    _installerMethod(subContainer,
+                        (TParam1)args[0].Value,
+                        (TParam2)args[1].Value,
+                        (TParam3)args[2].Value,
+                        (TParam4)args[3].Value,
+                        (TParam5)args[4].Value,
+                        (TParam6)args[5].Value);
+                }));
         }
     }
 
     [NoReflectionBaking]
-    public class SubContainerCreatorByNewPrefabMethod<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9, TParam10> : SubContainerCreatorByNewPrefabDynamicContext
+    public class SubContainerCreatorByNewPrefabMethod<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7,
+        TParam8, TParam9, TParam10> : SubContainerCreatorByNewPrefabDynamicContext
     {
-        readonly
+        private readonly
 #if !NET_4_6
             ModestTree.Util.
 #endif
-            Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9, TParam10> _installerMethod;
+            Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9,
+                TParam10> _installerMethod;
 
         public SubContainerCreatorByNewPrefabMethod(
             DiContainer container, IPrefabProvider prefabProvider,
@@ -334,7 +340,8 @@ namespace Zenject
 #if !NET_4_6
             ModestTree.Util.
 #endif
-            Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9, TParam10> installerMethod)
+                Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9,
+                    TParam10> installerMethod)
             : base(container, prefabProvider, gameObjectBindInfo)
         {
             _installerMethod = installerMethod;
@@ -357,19 +364,19 @@ namespace Zenject
 
             context.AddNormalInstaller(
                 new ActionInstaller(subContainer =>
-                    {
-                        _installerMethod(subContainer,
-                            (TParam1)args[0].Value,
-                            (TParam2)args[1].Value,
-                            (TParam3)args[2].Value,
-                            (TParam4)args[3].Value,
-                            (TParam5)args[4].Value,
-                            (TParam6)args[5].Value,
-                            (TParam7)args[6].Value,
-                            (TParam8)args[7].Value,
-                            (TParam9)args[8].Value,
-                            (TParam10)args[9].Value);
-                    }));
+                {
+                    _installerMethod(subContainer,
+                        (TParam1)args[0].Value,
+                        (TParam2)args[1].Value,
+                        (TParam3)args[2].Value,
+                        (TParam4)args[3].Value,
+                        (TParam5)args[4].Value,
+                        (TParam6)args[5].Value,
+                        (TParam7)args[6].Value,
+                        (TParam8)args[7].Value,
+                        (TParam9)args[8].Value,
+                        (TParam10)args[9].Value);
+                }));
         }
     }
 }

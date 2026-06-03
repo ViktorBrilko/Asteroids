@@ -48,10 +48,12 @@ namespace Zenject
             return this;
         }
 
-        public FactoryToChoiceBinder<TContract> WithFactoryArguments<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6>(
+        public FactoryToChoiceBinder<TContract> WithFactoryArguments<TParam1, TParam2, TParam3, TParam4, TParam5,
+            TParam6>(
             TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6)
         {
-            FactoryBindInfo.Arguments = InjectUtil.CreateArgListExplicit(param1, param2, param3, param4, param5, param6);
+            FactoryBindInfo.Arguments =
+                InjectUtil.CreateArgListExplicit(param1, param2, param3, param4, param5, param6);
             return this;
         }
 
@@ -68,4 +70,3 @@ namespace Zenject
         }
     }
 }
-

@@ -8,18 +8,20 @@ namespace Zenject
     [NoReflectionBaking]
     public class ProjectContextEditor : ContextEditor
     {
-        SerializedProperty _settingsProperty;
-        SerializedProperty _editorReflectionBakingCoverageModeProperty;
-        SerializedProperty _buildsReflectionBakingCoverageModeProperty;
-        SerializedProperty _parentNewObjectsUnderContextProperty;
+        private SerializedProperty _buildsReflectionBakingCoverageModeProperty;
+        private SerializedProperty _editorReflectionBakingCoverageModeProperty;
+        private SerializedProperty _parentNewObjectsUnderContextProperty;
+        private SerializedProperty _settingsProperty;
 
         public override void OnEnable()
         {
             base.OnEnable();
 
             _settingsProperty = serializedObject.FindProperty("_settings");
-            _editorReflectionBakingCoverageModeProperty = serializedObject.FindProperty("_editorReflectionBakingCoverageMode");
-            _buildsReflectionBakingCoverageModeProperty = serializedObject.FindProperty("_buildsReflectionBakingCoverageMode");
+            _editorReflectionBakingCoverageModeProperty =
+                serializedObject.FindProperty("_editorReflectionBakingCoverageMode");
+            _buildsReflectionBakingCoverageModeProperty =
+                serializedObject.FindProperty("_buildsReflectionBakingCoverageMode");
             _parentNewObjectsUnderContextProperty = serializedObject.FindProperty("_parentNewObjectsUnderContext");
         }
 

@@ -3,7 +3,9 @@
 namespace Zenject
 {
     [NoReflectionBaking]
-    public class NameTransformScopeConcreteIdArgConditionCopyNonLazyBinder : TransformScopeConcreteIdArgConditionCopyNonLazyBinder
+    public class
+        NameTransformScopeConcreteIdArgConditionCopyNonLazyBinder :
+        TransformScopeConcreteIdArgConditionCopyNonLazyBinder
     {
         public NameTransformScopeConcreteIdArgConditionCopyNonLazyBinder(
             BindInfo bindInfo,

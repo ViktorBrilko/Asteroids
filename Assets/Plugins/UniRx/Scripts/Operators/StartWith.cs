@@ -4,9 +4,9 @@ namespace UniRx.Operators
 {
     internal class StartWithObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly T value;
-        readonly Func<T> valueFactory;
+        private readonly IObservable<T> source;
+        private readonly T value;
+        private readonly Func<T> valueFactory;
 
         public StartWithObservable(IObservable<T> source, T value)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -27,11 +27,12 @@ namespace UniRx.Operators
             return new StartWith(this, observer, cancel).Run();
         }
 
-        class StartWith : OperatorObserverBase<T, T>
+        private class StartWith : OperatorObserverBase<T, T>
         {
-            readonly StartWithObservable<T> parent;
+            private readonly StartWithObservable<T> parent;
 
-            public StartWith(StartWithObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public StartWith(StartWithObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer,
+                cancel)
             {
                 this.parent = parent;
             }
@@ -40,42 +41,57 @@ namespace UniRx.Operators
             {
                 T t;
                 if (parent.valueFactory == null)
-                {
                     t = parent.value;
-                }
                 else
-                {
                     try
                     {
                         t = parent.valueFactory();
                     }
                     catch (Exception ex)
                     {
-                        try { observer.OnError(ex); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnError(ex);
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
                         return Disposable.Empty;
                     }
-                }
 
                 OnNext(t);
-                return parent.source.Subscribe(base.observer); // good bye StartWithObserver
+                return parent.source.Subscribe(observer); // good bye StartWithObserver
             }
 
             public override void OnNext(T value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

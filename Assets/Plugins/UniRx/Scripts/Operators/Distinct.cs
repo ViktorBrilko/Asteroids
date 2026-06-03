@@ -5,8 +5,8 @@ namespace UniRx.Operators
 {
     internal class DistinctObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly IEqualityComparer<T> comparer;
+        private readonly IEqualityComparer<T> comparer;
+        private readonly IObservable<T> source;
 
         public DistinctObservable(IObservable<T> source, IEqualityComparer<T> comparer)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -20,14 +20,14 @@ namespace UniRx.Operators
             return source.Subscribe(new Distinct(this, observer, cancel));
         }
 
-        class Distinct : OperatorObserverBase<T, T>
+        private class Distinct : OperatorObserverBase<T, T>
         {
-            readonly HashSet<T> hashSet;
+            private readonly HashSet<T> hashSet;
 
             public Distinct(DistinctObservable<T> parent, IObserver<T> observer, IDisposable cancel)
                 : base(observer, cancel)
             {
-                hashSet = (parent.comparer == null)
+                hashSet = parent.comparer == null
                     ? new HashSet<T>()
                     : new HashSet<T>(parent.comparer);
             }
@@ -43,33 +43,52 @@ namespace UniRx.Operators
                 }
                 catch (Exception exception)
                 {
-                    try { observer.OnError(exception); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(exception);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
-                if (isAdded)
-                {
-                    observer.OnNext(value);
-                }
+                if (isAdded) observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
 
     internal class DistinctObservable<T, TKey> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly IEqualityComparer<TKey> comparer;
-        readonly Func<T, TKey> keySelector;
+        private readonly IEqualityComparer<TKey> comparer;
+        private readonly Func<T, TKey> keySelector;
+        private readonly IObservable<T> source;
 
         public DistinctObservable(IObservable<T> source, Func<T, TKey> keySelector, IEqualityComparer<TKey> comparer)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -84,16 +103,16 @@ namespace UniRx.Operators
             return source.Subscribe(new Distinct(this, observer, cancel));
         }
 
-        class Distinct : OperatorObserverBase<T, T>
+        private class Distinct : OperatorObserverBase<T, T>
         {
-            readonly DistinctObservable<T, TKey> parent;
-            readonly HashSet<TKey> hashSet;
+            private readonly HashSet<TKey> hashSet;
+            private readonly DistinctObservable<T, TKey> parent;
 
             public Distinct(DistinctObservable<T, TKey> parent, IObserver<T> observer, IDisposable cancel)
                 : base(observer, cancel)
             {
                 this.parent = parent;
-                hashSet = (parent.comparer == null)
+                hashSet = parent.comparer == null
                     ? new HashSet<TKey>()
                     : new HashSet<TKey>(parent.comparer);
             }
@@ -109,24 +128,43 @@ namespace UniRx.Operators
                 }
                 catch (Exception exception)
                 {
-                    try { observer.OnError(exception); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(exception);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
-                if (isAdded)
-                {
-                    observer.OnNext(value);
-                }
+                if (isAdded) observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

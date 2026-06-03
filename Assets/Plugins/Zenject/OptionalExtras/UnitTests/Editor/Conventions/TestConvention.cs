@@ -71,7 +71,8 @@ namespace Zenject.Tests.Convention
         public void TestInNamespace()
         {
             Container.Bind<IFoo>()
-                .To(x => x.AllTypes().DerivingFrom<IFoo>().InNamespace("Zenject.Tests.Convention.NamespaceTest")).AsTransient();
+                .To(x => x.AllTypes().DerivingFrom<IFoo>().InNamespace("Zenject.Tests.Convention.NamespaceTest"))
+                .AsTransient();
 
             Assert.IsEqual(Container.ResolveAll<IFoo>().Count(), 1);
         }

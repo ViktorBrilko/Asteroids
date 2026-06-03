@@ -9,23 +9,23 @@ namespace UI.ViewModels
 {
     public class GameMenuButtonViewModel : IInitializable, IDisposable
     {
-        private AudioService _audioService;
-        private WindowsState _windowsState;
-        
+        private readonly AudioService _audioService;
+        private readonly WindowsState _windowsState;
+
         public GameMenuButtonViewModel(AudioService audioService, WindowsState windowsState)
         {
             _audioService = audioService;
             _windowsState = windowsState;
         }
-        
-        public void Initialize()
-        {
-        }
 
         public void Dispose()
         {
         }
-        
+
+        public void Initialize()
+        {
+        }
+
         [Method("OpenMenuButtonClick")]
         public void OnMenuOpenClicked()
         {

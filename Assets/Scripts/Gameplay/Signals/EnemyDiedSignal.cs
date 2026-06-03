@@ -5,13 +5,13 @@ namespace Gameplay.Signals
 {
     public class EnemyDiedSignal
     {
-        public IDieable Enemy { get; }
-        public Vector3 DeathPosition { get; }
-
         public EnemyDiedSignal(IDieable enemy, Vector3 deathPosition)
         {
             Enemy = enemy;
             DeathPosition = deathPosition;
         }
+
+        public IDieable Enemy { get; }
+        public Vector3 DeathPosition { get; }
     }
 }

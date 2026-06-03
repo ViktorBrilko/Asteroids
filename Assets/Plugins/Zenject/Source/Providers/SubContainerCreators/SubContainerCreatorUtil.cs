@@ -1,7 +1,5 @@
-using System;
 using ModestTree;
 #if !NOT_UNITY3D
-using UnityEngine;
 #endif
 
 namespace Zenject
@@ -32,10 +30,8 @@ namespace Zenject
 
 #if !NOT_UNITY3D
                 if (subContainerBindInfo.DefaultParentName != null)
-                {
                     DefaultGameObjectParentInstaller.Install(
                         subContainer, subContainerBindInfo.DefaultParentName);
-                }
 #endif
             }
         }

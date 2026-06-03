@@ -9,13 +9,18 @@ namespace UI.ViewModels
 {
     public class PlayerPositionViewModel : IInitializable, IDisposable
     {
+        [Data("Position")] public readonly ReactiveProperty<string> _currentPosition = new();
+
         public readonly PlayerMovement PlayerMovementLogic;
-        [Data("Position")]
-        public readonly  ReactiveProperty<string> _currentPosition = new();
 
         public PlayerPositionViewModel(PlayerMovement playerMovementLogic)
         {
             PlayerMovementLogic = playerMovementLogic;
+        }
+
+        public void Dispose()
+        {
+            PlayerMovementLogic.OnPositionChanged -= OnPositionChanged;
         }
 
         public void Initialize()
@@ -24,11 +29,6 @@ namespace UI.ViewModels
             PlayerMovementLogic.OnPositionChanged += OnPositionChanged;
         }
 
-        public void Dispose()
-        {
-            PlayerMovementLogic.OnPositionChanged -= OnPositionChanged;
-        }
-        
         private void OnPositionChanged(Vector2 position = new())
         {
             _currentPosition.Value = "Position " + position;

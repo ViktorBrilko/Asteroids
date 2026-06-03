@@ -7,7 +7,7 @@ namespace Zenject
     public class PoolWrapperFactory<T> : IFactory<T>
         where T : IDisposable
     {
-        readonly IMemoryPool<T> _pool;
+        private readonly IMemoryPool<T> _pool;
 
         public PoolWrapperFactory(IMemoryPool<T> pool)
         {
@@ -23,7 +23,7 @@ namespace Zenject
     public class PoolWrapperFactory<TParam1, TValue> : IFactory<TParam1, TValue>
         where TValue : IDisposable
     {
-        readonly IMemoryPool<TParam1, TValue> _pool;
+        private readonly IMemoryPool<TParam1, TValue> _pool;
 
         public PoolWrapperFactory(IMemoryPool<TParam1, TValue> pool)
         {

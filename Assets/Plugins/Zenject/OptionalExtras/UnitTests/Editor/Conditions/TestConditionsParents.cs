@@ -7,17 +7,17 @@ namespace Zenject.Tests.Conditions
     [TestFixture]
     public class TestConditionsParents : ZenjectUnitTestFixture
     {
-        class Test0
+        private class Test0
         {
         }
 
-        interface ITest1
+        private interface ITest1
         {
         }
 
-        class Test1 : ITest1
+        private class Test1 : ITest1
         {
-            public Test0 test0;
+            public readonly Test0 test0;
 
             public Test1(Test0 test0)
             {
@@ -25,7 +25,7 @@ namespace Zenject.Tests.Conditions
             }
         }
 
-        class Test2 : ITest1
+        private class Test2 : ITest1
         {
             public Test0 test0;
 
@@ -35,9 +35,9 @@ namespace Zenject.Tests.Conditions
             }
         }
 
-        class Test3 : ITest1
+        private class Test3 : ITest1
         {
-            public Test1 test1;
+            public readonly Test1 test1;
 
             public Test3(Test1 test1)
             {
@@ -45,9 +45,9 @@ namespace Zenject.Tests.Conditions
             }
         }
 
-        class Test4 : ITest1
+        private class Test4 : ITest1
         {
-            public Test1 test1;
+            public readonly Test1 test1;
 
             public Test4(Test1 test1)
             {
@@ -121,11 +121,11 @@ namespace Zenject.Tests.Conditions
         public void TestCase6()
         {
             Container.Bind<ITest1>().To<Test2>().AsSingle().NonLazy();
-            Container.Bind<Test0>().AsSingle().When(c => c.AllObjectTypes.Where(x => typeof(ITest1).IsAssignableFrom(x)).Any());
+            Container.Bind<Test0>().AsSingle()
+                .When(c => c.AllObjectTypes.Where(x => typeof(ITest1).IsAssignableFrom(x)).Any());
 
             var test1 = Container.Resolve<ITest1>();
             Assert.That(test1 != null);
         }
     }
 }
-

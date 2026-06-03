@@ -1,25 +1,13 @@
 ﻿using System;
-using System.Collections;
 
 namespace UniRx
 {
     public sealed class MultipleAssignmentDisposable : IDisposable, ICancelable
     {
-        static readonly BooleanDisposable True = new BooleanDisposable(true);
+        private static readonly BooleanDisposable True = new(true);
+        private IDisposable current;
 
-        object gate = new object();
-        IDisposable current;
-
-        public bool IsDisposed
-        {
-            get
-            {
-                lock (gate)
-                {
-                    return current == True;
-                }
-            }
-        }
+        private readonly object gate = new();
 
         public IDisposable Disposable
         {
@@ -27,7 +15,7 @@ namespace UniRx
             {
                 lock (gate)
                 {
-                    return (current == True)
+                    return current == True
                         ? UniRx.Disposable.Empty
                         : current;
                 }
@@ -37,15 +25,21 @@ namespace UniRx
                 var shouldDispose = false;
                 lock (gate)
                 {
-                    shouldDispose = (current == True);
-                    if (!shouldDispose)
-                    {
-                        current = value;
-                    }
+                    shouldDispose = current == True;
+                    if (!shouldDispose) current = value;
                 }
-                if (shouldDispose && value != null)
+
+                if (shouldDispose && value != null) value.Dispose();
+            }
+        }
+
+        public bool IsDisposed
+        {
+            get
+            {
+                lock (gate)
                 {
-                    value.Dispose();
+                    return current == True;
                 }
             }
         }

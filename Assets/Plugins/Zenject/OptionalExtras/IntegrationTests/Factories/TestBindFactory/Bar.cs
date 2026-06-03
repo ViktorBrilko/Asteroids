@@ -10,4 +10,3 @@ namespace Zenject.Tests.Factories.BindFactory
         }
     }
 }
-

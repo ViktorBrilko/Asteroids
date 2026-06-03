@@ -1,18 +1,17 @@
-﻿using System;
-
-#if UniRxLibrary
+﻿#if UniRxLibrary
 using UnityObservable = UniRx.ObservableUnity;
 #else
 using UnityObservable = UniRx.Observable;
 #endif
+using System;
 
 namespace UniRx.Operators
 {
     internal class DelayFrameSubscriptionObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly int frameCount;
-        readonly FrameCountType frameCountType;
+        private readonly int frameCount;
+        private readonly FrameCountType frameCountType;
+        private readonly IObservable<T> source;
 
         public DelayFrameSubscriptionObservable(IObservable<T> source, int frameCount, FrameCountType frameCountType)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -26,10 +25,7 @@ namespace UniRx.Operators
         {
             var d = new MultipleAssignmentDisposable();
             d.Disposable = UnityObservable.TimerFrame(frameCount, frameCountType)
-                .SubscribeWithState3(observer, d, source, (_, o, disp, s) =>
-                {
-                    disp.Disposable = s.Subscribe(o);
-                });
+                .SubscribeWithState3(observer, d, source, (_, o, disp, s) => { disp.Disposable = s.Subscribe(o); });
 
             return d;
         }

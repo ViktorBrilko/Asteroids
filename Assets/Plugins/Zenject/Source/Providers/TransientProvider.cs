@@ -9,11 +9,11 @@ namespace Zenject
     [NoReflectionBaking]
     public class TransientProvider : IProvider
     {
-        readonly DiContainer _container;
-        readonly Type _concreteType;
-        readonly List<TypeValuePair> _extraArguments;
-        readonly object _concreteIdentifier;
-        readonly Action<InjectContext, object> _instantiateCallback;
+        private readonly object _concreteIdentifier;
+        private readonly Type _concreteType;
+        private readonly DiContainer _container;
+        private readonly List<TypeValuePair> _extraArguments;
+        private readonly Action<InjectContext, object> _instantiateCallback;
 
         public TransientProvider(
             Type concreteType, DiContainer container,
@@ -32,22 +32,13 @@ namespace Zenject
             _instantiateCallback = instantiateCallback;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return _concreteType.IsOpenGenericType(); }
-        }
+        public bool TypeVariesBasedOnMemberType => _concreteType.IsOpenGenericType();
 
         public Type GetInstanceType(InjectContext context)
         {
-            if (!_concreteType.DerivesFromOrEqual(context.MemberType))
-            {
-                return null;
-            }
+            if (!_concreteType.DerivesFromOrEqual(context.MemberType)) return null;
 
             return GetTypeToCreate(context.MemberType);
         }
@@ -74,16 +65,13 @@ namespace Zenject
                 Assert.That(extraArgs.Count == 0);
                 ZenPools.DespawnList(extraArgs);
 
-                if (_instantiateCallback != null)
-                {
-                    _instantiateCallback(context, instance);
-                }
+                if (_instantiateCallback != null) _instantiateCallback(context, instance);
             };
 
             buffer.Add(instance);
         }
 
-        Type GetTypeToCreate(Type contractType)
+        private Type GetTypeToCreate(Type contractType)
         {
             return ProviderUtil.GetTypeToInstantiate(contractType, _concreteType);
         }

@@ -8,25 +8,19 @@ namespace Gameplay.Base
     public class EnemyMoveService : MonoBehaviour
     {
         [SerializeField] private GameObject _model;
-
-        private float _regularSpeed;
-        private float _currentSpeed;
         private float _afterCollisionSpeed;
-        private float _rotationSpeed;
         private int _collisionEffectTime;
         private CancellationTokenSource _cts;
+        private float _currentSpeed;
+
+        private float _regularSpeed;
+        private float _rotationSpeed;
 
         protected Vector3 Direction;
 
-        public void Init(float moveSpeed, float afterCollisionSpeed, int collisionEffectTime, float rotationSpeed)
+        private void Update()
         {
-            _regularSpeed = moveSpeed;
-            _rotationSpeed = rotationSpeed;
-            _currentSpeed = _regularSpeed;
-            _afterCollisionSpeed = afterCollisionSpeed;
-            _collisionEffectTime = collisionEffectTime;
-
-            StartRegularMovement();
+            Move(Direction);
         }
 
         private void OnEnable()
@@ -44,9 +38,15 @@ namespace Gameplay.Base
             }
         }
 
-        private void Update()
+        public void Init(float moveSpeed, float afterCollisionSpeed, int collisionEffectTime, float rotationSpeed)
         {
-            Move(Direction);
+            _regularSpeed = moveSpeed;
+            _rotationSpeed = rotationSpeed;
+            _currentSpeed = _regularSpeed;
+            _afterCollisionSpeed = afterCollisionSpeed;
+            _collisionEffectTime = collisionEffectTime;
+
+            StartRegularMovement();
         }
 
         protected void StartRegularMovement()
@@ -83,7 +83,7 @@ namespace Gameplay.Base
                     _model.transform.RotateAround(_model.transform.position, Vector3.forward,
                         _rotationSpeed * Time.deltaTime);
                     elapsedTime += Time.deltaTime;
-                    await UniTask.NextFrame(cancellationToken: _cts.Token);
+                    await UniTask.NextFrame(_cts.Token);
                 }
 
                 _model.transform.localEulerAngles = Vector3.zero;

@@ -12,11 +12,19 @@ namespace Zenject
     // Placeholder factories can be used to choose a creation method in an installer, using FactoryBinder
     public abstract class PlaceholderFactoryBase<TValue> : IPlaceholderFactory
     {
-        IProvider _provider;
-        InjectContext _injectContext;
+        private InjectContext _injectContext;
+        private IProvider _provider;
+
+        protected abstract IEnumerable<Type> ParamTypes { get; }
+
+        public virtual void Validate()
+        {
+            _provider.GetInstance(
+                _injectContext, ValidationUtil.CreateDefaultArgs(ParamTypes.ToArray()));
+        }
 
         [Inject]
-        void Construct(IProvider provider, InjectContext injectContext)
+        private void Construct(IProvider provider, InjectContext injectContext)
         {
             Assert.IsNotNull(provider);
             Assert.IsNotNull(injectContext);
@@ -31,31 +39,17 @@ namespace Zenject
             {
                 var result = _provider.GetInstance(_injectContext, extraArgs);
 
-                if (_injectContext.Container.IsValidating && result is ValidationMarker)
-                {
-                    return default(TValue);
-                }
+                if (_injectContext.Container.IsValidating && result is ValidationMarker) return default;
 
                 Assert.That(result == null || result.GetType().DerivesFromOrEqual<TValue>());
 
-                return (TValue) result;
+                return (TValue)result;
             }
             catch (Exception e)
             {
                 throw new ZenjectException(
                     "Error during construction of type '{0}' via {1}.Create method!".Fmt(typeof(TValue), GetType()), e);
             }
-        }
-
-        public virtual void Validate()
-        {
-            _provider.GetInstance(
-                _injectContext, ValidationUtil.CreateDefaultArgs(ParamTypes.ToArray()));
-        }
-
-        protected abstract IEnumerable<Type> ParamTypes
-        {
-            get;
         }
     }
 }

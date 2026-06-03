@@ -2,16 +2,15 @@
 using System.Collections.Generic;
 using MVVM;
 using UniRx;
-using UnityEngine;
 using UnityEngine.UI;
 
 namespace UI.Binders
 {
     public class ListImageBinder : IBinder, IObserver<int>
     {
-        private List<Image> _view;
-        private ReactiveProperty<int> _property;
         private IDisposable _handle;
+        private readonly ReactiveProperty<int> _property;
+        private readonly List<Image> _view;
 
         public ListImageBinder(List<Image> view, ReactiveProperty<int> property)
         {
@@ -33,17 +32,11 @@ namespace UI.Binders
 
         public void OnNext(int value)
         {
-            for (int i = 0; i < _view.Count; i++)
-            {
+            for (var i = 0; i < _view.Count; i++)
                 if (i < value)
-                {
                     _view[i].fillAmount = 1;
-                }
                 else
-                {
                     _view[i].fillAmount = 0;
-                }
-            }
         }
 
         public void OnCompleted()

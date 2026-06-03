@@ -1,20 +1,20 @@
-﻿using System;
-
-#if UniRxLibrary
+﻿#if UniRxLibrary
 using UnityObservable = UniRx.ObservableUnity;
 #else
 using UnityObservable = UniRx.Observable;
 #endif
+using System;
 
 namespace UniRx.Operators
 {
     internal class ThrottleFirstFrameObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly int frameCount;
-        readonly FrameCountType frameCountType;
+        private readonly int frameCount;
+        private readonly FrameCountType frameCountType;
+        private readonly IObservable<T> source;
 
-        public ThrottleFirstFrameObservable(IObservable<T> source, int frameCount, FrameCountType frameCountType) : base(source.IsRequiredSubscribeOnCurrentThread())
+        public ThrottleFirstFrameObservable(IObservable<T> source, int frameCount, FrameCountType frameCountType) :
+            base(source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
             this.frameCount = frameCount;
@@ -26,16 +26,17 @@ namespace UniRx.Operators
             return new ThrottleFirstFrame(this, observer, cancel).Run();
         }
 
-        class ThrottleFirstFrame : OperatorObserverBase<T, T>
+        private class ThrottleFirstFrame : OperatorObserverBase<T, T>
         {
-            readonly ThrottleFirstFrameObservable<T> parent;
-            readonly object gate = new object();
-            bool open = true;
-            SerialDisposable cancelable;
+            private readonly object gate = new();
+            private readonly ThrottleFirstFrameObservable<T> parent;
+            private SerialDisposable cancelable;
+            private bool open = true;
 
-            ThrottleFirstFrameTick tick;
+            private ThrottleFirstFrameTick tick;
 
-            public ThrottleFirstFrame(ThrottleFirstFrameObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public ThrottleFirstFrame(ThrottleFirstFrameObservable<T> parent, IObserver<T> observer, IDisposable cancel)
+                : base(observer, cancel)
             {
                 this.parent = parent;
             }
@@ -49,7 +50,7 @@ namespace UniRx.Operators
                 return StableCompositeDisposable.Create(cancelable, subscription);
             }
 
-            void OnNext()
+            private void OnNext()
             {
                 lock (gate)
                 {
@@ -78,7 +79,14 @@ namespace UniRx.Operators
 
                 lock (gate)
                 {
-                    try { observer.OnError(error); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(error);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
             }
 
@@ -88,14 +96,21 @@ namespace UniRx.Operators
 
                 lock (gate)
                 {
-                    try { observer.OnCompleted(); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnCompleted();
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
             }
 
             // immutable, can share.
-            class ThrottleFirstFrameTick : IObserver<long>
+            private class ThrottleFirstFrameTick : IObserver<long>
             {
-                readonly ThrottleFirstFrame parent;
+                private readonly ThrottleFirstFrame parent;
 
                 public ThrottleFirstFrameTick(ThrottleFirstFrame parent)
                 {

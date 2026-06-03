@@ -4,56 +4,26 @@
 
 using ModestTree;
 using UnityEngine;
-using UnityEngine.Analytics;
 
 namespace Zenject
 {
     public abstract class MonoKernel : MonoBehaviour
     {
-        [InjectLocal]
-        TickableManager _tickableManager = null;
+        [InjectLocal] private DisposableManager _disposablesManager;
 
-        [InjectLocal]
-        InitializableManager _initializableManager = null;
+        private bool _hasInitialized;
 
-        [InjectLocal]
-        DisposableManager _disposablesManager = null;
+        [InjectLocal] private InitializableManager _initializableManager;
 
-        [InjectOptional] 
-        private IDecoratableMonoKernel decoratableMonoKernel;
+        [InjectLocal] private TickableManager _tickableManager;
 
-        bool _hasInitialized;
-        bool _isDestroyed;
+        [InjectOptional] private IDecoratableMonoKernel decoratableMonoKernel;
 
-        protected bool IsDestroyed
-        {
-            get { return _isDestroyed; }
-        }
+        protected bool IsDestroyed { get; private set; }
 
         public virtual void Start()
         {
-            if (decoratableMonoKernel?.ShouldInitializeOnStart()??true)
-            {
-                Initialize();
-            }
-        }
-
-        public void Initialize()
-        {
-            // We don't put this in start in case Start is overridden
-            if (!_hasInitialized)
-            {
-                _hasInitialized = true;
-
-                if (decoratableMonoKernel != null)
-                {
-                    decoratableMonoKernel.Initialize();
-                }
-                else
-                {
-                    _initializableManager.Initialize();
-                }
-            }
+            if (decoratableMonoKernel?.ShouldInitializeOnStart() ?? true) Initialize();
         }
 
         public virtual void Update()
@@ -62,13 +32,9 @@ namespace Zenject
             if (_tickableManager != null)
             {
                 if (decoratableMonoKernel != null)
-                {
                     decoratableMonoKernel.Update();
-                }
                 else
-                {
                     _tickableManager.Update();
-                }
             }
         }
 
@@ -78,13 +44,9 @@ namespace Zenject
             if (_tickableManager != null)
             {
                 if (decoratableMonoKernel != null)
-                {
                     decoratableMonoKernel.FixedUpdate();
-                }
                 else
-                {
                     _tickableManager.FixedUpdate();
-                }
             }
         }
 
@@ -94,13 +56,9 @@ namespace Zenject
             if (_tickableManager != null)
             {
                 if (decoratableMonoKernel != null)
-                {
                     decoratableMonoKernel.LateUpdate();
-                }
                 else
-                {
                     _tickableManager.LateUpdate();
-                }
             }
         }
 
@@ -109,8 +67,8 @@ namespace Zenject
             // _disposablesManager can be null if we get destroyed before the Start event
             if (_disposablesManager != null)
             {
-                Assert.That(!_isDestroyed);
-                _isDestroyed = true;
+                Assert.That(!IsDestroyed);
+                IsDestroyed = true;
 
                 if (decoratableMonoKernel != null)
                 {
@@ -122,6 +80,20 @@ namespace Zenject
                     _disposablesManager.Dispose();
                     _disposablesManager.LateDispose();
                 }
+            }
+        }
+
+        public void Initialize()
+        {
+            // We don't put this in start in case Start is overridden
+            if (!_hasInitialized)
+            {
+                _hasInitialized = true;
+
+                if (decoratableMonoKernel != null)
+                    decoratableMonoKernel.Initialize();
+                else
+                    _initializableManager.Initialize();
             }
         }
     }

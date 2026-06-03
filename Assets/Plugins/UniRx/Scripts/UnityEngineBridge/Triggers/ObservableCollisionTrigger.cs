@@ -1,17 +1,34 @@
-﻿using System; // require keep for Windows Universal App
+﻿using System;
 using UnityEngine;
+// require keep for Windows Universal App
 
 namespace UniRx.Triggers
 {
     [DisallowMultipleComponent]
     public class ObservableCollisionTrigger : ObservableTriggerBase
     {
-        Subject<Collision> onCollisionEnter;
+        private Subject<Collision> onCollisionEnter;
+
+        private Subject<Collision> onCollisionExit;
+
+        private Subject<Collision> onCollisionStay;
 
         /// <summary>OnCollisionEnter is called when this collider/rigidbody has begun touching another rigidbody/collider.</summary>
-         void OnCollisionEnter(Collision collision)
+        private void OnCollisionEnter(Collision collision)
         {
             if (onCollisionEnter != null) onCollisionEnter.OnNext(collision);
+        }
+
+        /// <summary>OnCollisionExit is called when this collider/rigidbody has stopped touching another rigidbody/collider.</summary>
+        private void OnCollisionExit(Collision collisionInfo)
+        {
+            if (onCollisionExit != null) onCollisionExit.OnNext(collisionInfo);
+        }
+
+        /// <summary>OnCollisionStay is called once per frame for every collider/rigidbody that is touching rigidbody/collider.</summary>
+        private void OnCollisionStay(Collision collisionInfo)
+        {
+            if (onCollisionStay != null) onCollisionStay.OnNext(collisionInfo);
         }
 
         /// <summary>OnCollisionEnter is called when this collider/rigidbody has begun touching another rigidbody/collider.</summary>
@@ -20,26 +37,10 @@ namespace UniRx.Triggers
             return onCollisionEnter ?? (onCollisionEnter = new Subject<Collision>());
         }
 
-        Subject<Collision> onCollisionExit;
-
-        /// <summary>OnCollisionExit is called when this collider/rigidbody has stopped touching another rigidbody/collider.</summary>
-         void OnCollisionExit(Collision collisionInfo)
-        {
-            if (onCollisionExit != null) onCollisionExit.OnNext(collisionInfo);
-        }
-
         /// <summary>OnCollisionExit is called when this collider/rigidbody has stopped touching another rigidbody/collider.</summary>
         public IObservable<Collision> OnCollisionExitAsObservable()
         {
             return onCollisionExit ?? (onCollisionExit = new Subject<Collision>());
-        }
-
-        Subject<Collision> onCollisionStay;
-
-        /// <summary>OnCollisionStay is called once per frame for every collider/rigidbody that is touching rigidbody/collider.</summary>
-         void OnCollisionStay(Collision collisionInfo)
-        {
-            if (onCollisionStay != null) onCollisionStay.OnNext(collisionInfo);
         }
 
         /// <summary>OnCollisionStay is called once per frame for every collider/rigidbody that is touching rigidbody/collider.</summary>
@@ -50,18 +51,9 @@ namespace UniRx.Triggers
 
         protected override void RaiseOnCompletedOnDestroy()
         {
-            if (onCollisionEnter != null)
-            {
-                onCollisionEnter.OnCompleted();
-            }
-            if (onCollisionExit != null)
-            {
-                onCollisionExit.OnCompleted();
-            }
-            if (onCollisionStay != null)
-            {
-                onCollisionStay.OnCompleted();
-            }
+            if (onCollisionEnter != null) onCollisionEnter.OnCompleted();
+            if (onCollisionExit != null) onCollisionExit.OnCompleted();
+            if (onCollisionStay != null) onCollisionStay.OnCompleted();
         }
     }
 }

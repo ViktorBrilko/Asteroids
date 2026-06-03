@@ -82,7 +82,7 @@ namespace Zenject.Tests.Bindings
             Assert.IsEqual(Container.Resolve<Foo>(), foo);
         }
 
-        IEnumerable<Foo> CreateFoos(InjectContext ctx)
+        private IEnumerable<Foo> CreateFoos(InjectContext ctx)
         {
             yield return new Foo();
         }
@@ -90,7 +90,7 @@ namespace Zenject.Tests.Bindings
         [Test]
         public void TestTransient2()
         {
-            int numCalls = 0;
+            var numCalls = 0;
 
             Func<InjectContext, IEnumerable<object>> method = ctx =>
             {
@@ -112,20 +112,19 @@ namespace Zenject.Tests.Bindings
         [Test]
         public void TestCached2()
         {
-            Container.Bind(typeof(Foo), typeof(IFoo)).To<Foo>().FromMethodMultipleUntyped(ctx => new[] { new Foo() }).AsSingle().NonLazy();
+            Container.Bind(typeof(Foo), typeof(IFoo)).To<Foo>().FromMethodMultipleUntyped(ctx => new[] { new Foo() })
+                .AsSingle().NonLazy();
 
             Assert.IsEqual(Container.Resolve<Foo>(), Container.Resolve<Foo>());
             Assert.IsEqual(Container.Resolve<Foo>(), Container.Resolve<IFoo>());
         }
 
-        interface IFoo
+        private interface IFoo
         {
         }
 
-        class Foo : IFoo
+        private class Foo : IFoo
         {
         }
     }
 }
-
-

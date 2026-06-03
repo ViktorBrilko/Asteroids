@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace UniRx.Operators
 {
     internal class SampleObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly TimeSpan interval;
-        readonly IScheduler scheduler;
+        private readonly TimeSpan interval;
+        private readonly IScheduler scheduler;
+        private readonly IObservable<T> source;
 
         public SampleObservable(IObservable<T> source, TimeSpan interval, IScheduler scheduler)
             : base(source.IsRequiredSubscribeOnCurrentThread() || scheduler == Scheduler.CurrentThread)
@@ -24,16 +21,17 @@ namespace UniRx.Operators
             return new Sample(this, observer, cancel).Run();
         }
 
-        class Sample : OperatorObserverBase<T, T>
+        private class Sample : OperatorObserverBase<T, T>
         {
-            readonly SampleObservable<T> parent;
-            readonly object gate = new object();
-            T latestValue = default(T);
-            bool isUpdated = false;
-            bool isCompleted = false;
-            SingleAssignmentDisposable sourceSubscription;
+            private readonly object gate = new();
+            private readonly SampleObservable<T> parent;
+            private bool isCompleted;
+            private bool isUpdated;
+            private T latestValue;
+            private SingleAssignmentDisposable sourceSubscription;
 
-            public Sample(SampleObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public Sample(SampleObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer,
+                cancel)
             {
                 this.parent = parent;
             }
@@ -47,18 +45,14 @@ namespace UniRx.Operators
                 IDisposable scheduling;
                 var periodicScheduler = parent.scheduler as ISchedulerPeriodic;
                 if (periodicScheduler != null)
-                {
                     scheduling = periodicScheduler.SchedulePeriodic(parent.interval, OnNextTick);
-                }
                 else
-                {
                     scheduling = parent.scheduler.Schedule(parent.interval, OnNextRecursive);
-                }
 
                 return StableCompositeDisposable.Create(sourceSubscription, scheduling);
             }
 
-            void OnNextTick()
+            private void OnNextTick()
             {
                 lock (gate)
                 {
@@ -68,14 +62,20 @@ namespace UniRx.Operators
                         isUpdated = false;
                         observer.OnNext(value);
                     }
+
                     if (isCompleted)
-                    {
-                        try { observer.OnCompleted(); } finally { Dispose(); }
-                    }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                 }
             }
 
-            void OnNextRecursive(Action<TimeSpan> self)
+            private void OnNextRecursive(Action<TimeSpan> self)
             {
                 lock (gate)
                 {
@@ -85,11 +85,18 @@ namespace UniRx.Operators
                         isUpdated = false;
                         observer.OnNext(value);
                     }
+
                     if (isCompleted)
-                    {
-                        try { observer.OnCompleted(); } finally { Dispose(); }
-                    }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                 }
+
                 self(parent.interval);
             }
 
@@ -106,7 +113,14 @@ namespace UniRx.Operators
             {
                 lock (gate)
                 {
-                    try { base.observer.OnError(error); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(error);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
             }
 
@@ -123,8 +137,8 @@ namespace UniRx.Operators
 
     internal class SampleObservable<T, T2> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly IObservable<T2> intervalSource;
+        private readonly IObservable<T2> intervalSource;
+        private readonly IObservable<T> source;
 
         public SampleObservable(IObservable<T> source, IObservable<T2> intervalSource)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -138,14 +152,14 @@ namespace UniRx.Operators
             return new Sample(this, observer, cancel).Run();
         }
 
-        class Sample : OperatorObserverBase<T, T>
+        private class Sample : OperatorObserverBase<T, T>
         {
-            readonly SampleObservable<T, T2> parent;
-            readonly object gate = new object();
-            T latestValue = default(T);
-            bool isUpdated = false;
-            bool isCompleted = false;
-            SingleAssignmentDisposable sourceSubscription;
+            private readonly object gate = new();
+            private readonly SampleObservable<T, T2> parent;
+            private bool isCompleted;
+            private bool isUpdated;
+            private T latestValue;
+            private SingleAssignmentDisposable sourceSubscription;
 
             public Sample(
                 SampleObservable<T, T2> parent, IObserver<T> observer, IDisposable cancel)
@@ -159,7 +173,7 @@ namespace UniRx.Operators
                 sourceSubscription = new SingleAssignmentDisposable();
                 sourceSubscription.Disposable = parent.source.Subscribe(this);
 
-                var scheduling = this.parent.intervalSource.Subscribe(new SampleTick(this));
+                var scheduling = parent.intervalSource.Subscribe(new SampleTick(this));
 
                 return StableCompositeDisposable.Create(sourceSubscription, scheduling);
             }
@@ -177,7 +191,14 @@ namespace UniRx.Operators
             {
                 lock (gate)
                 {
-                    try { base.observer.OnError(error); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(error);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
             }
 
@@ -190,9 +211,9 @@ namespace UniRx.Operators
                 }
             }
 
-            class SampleTick : IObserver<T2>
+            private class SampleTick : IObserver<T2>
             {
-                readonly Sample parent;
+                private readonly Sample parent;
 
                 public SampleTick(Sample parent)
                 {
@@ -208,10 +229,16 @@ namespace UniRx.Operators
                             parent.isUpdated = false;
                             parent.observer.OnNext(parent.latestValue);
                         }
+
                         if (parent.isCompleted)
-                        {
-                            try { parent.observer.OnCompleted(); } finally { parent.Dispose(); }
-                        }
+                            try
+                            {
+                                parent.observer.OnCompleted();
+                            }
+                            finally
+                            {
+                                parent.Dispose();
+                            }
                     }
                 }
 
@@ -229,10 +256,16 @@ namespace UniRx.Operators
                             parent.isUpdated = false;
                             parent.observer.OnNext(value);
                         }
+
                         if (parent.isCompleted)
-                        {
-                            try { parent.observer.OnCompleted(); } finally { parent.Dispose(); }
-                        }
+                            try
+                            {
+                                parent.observer.OnCompleted();
+                            }
+                            finally
+                            {
+                                parent.Dispose();
+                            }
                     }
                 }
             }

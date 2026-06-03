@@ -3,23 +3,29 @@
 #if (NET_4_6 || NET_STANDARD_2_0)
 
 using System;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace UniRx
 {
     /// <summary>
-    /// Provides a set of static methods for converting tasks to observable sequences.
+    ///     Provides a set of static methods for converting tasks to observable sequences.
     /// </summary>
     public static class TaskObservableExtensions
     {
         /// <summary>
-        /// Returns an observable sequence that signals when the task completes.
+        ///     Returns an observable sequence that signals when the task completes.
         /// </summary>
         /// <param name="task">Task to convert to an observable sequence.</param>
-        /// <returns>An observable sequence that produces a unit value when the task completes, or propagates the exception produced by the task.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="task"/> is null.</exception>
-        /// <remarks>If the specified task object supports cancellation, consider using <see cref="Observable.FromAsync(Func{CancellationToken, Task})"/> instead.</remarks>
+        /// <returns>
+        ///     An observable sequence that produces a unit value when the task completes, or propagates the exception
+        ///     produced by the task.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="task" /> is null.</exception>
+        /// <remarks>
+        ///     If the specified task object supports cancellation, consider using
+        ///     <see cref="Observable.FromAsync(Func{CancellationToken, Task})" /> instead.
+        /// </remarks>
         public static IObservable<Unit> ToObservable(this Task task)
         {
             if (task == null)
@@ -29,13 +35,19 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Returns an observable sequence that signals when the task completes.
+        ///     Returns an observable sequence that signals when the task completes.
         /// </summary>
         /// <param name="task">Task to convert to an observable sequence.</param>
         /// <param name="scheduler">Scheduler on which to notify observers about completion, cancellation or failure.</param>
-        /// <returns>An observable sequence that produces a unit value when the task completes, or propagates the exception produced by the task.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="task"/> is null or <paramref name="scheduler"/> is null.</exception>
-        /// <remarks>If the specified task object supports cancellation, consider using <see cref="Observable.FromAsync(Func{CancellationToken, Task})"/> instead.</remarks>
+        /// <returns>
+        ///     An observable sequence that produces a unit value when the task completes, or propagates the exception
+        ///     produced by the task.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="task" /> is null or <paramref name="scheduler" /> is null.</exception>
+        /// <remarks>
+        ///     If the specified task object supports cancellation, consider using
+        ///     <see cref="Observable.FromAsync(Func{CancellationToken, Task})" /> instead.
+        /// </remarks>
         public static IObservable<Unit> ToObservable(this Task task, IScheduler scheduler)
         {
             if (task == null)
@@ -57,7 +69,7 @@ namespace UniRx
                 switch (task.Status)
                 {
                     case TaskStatus.RanToCompletion:
-                        res = Observable.Return<Unit>(Unit.Default, scheduler);
+                        res = Observable.Return(Unit.Default, scheduler);
                         break;
                     case TaskStatus.Faulted:
                         res = Observable.Throw<Unit>(task.Exception.InnerException, scheduler);
@@ -107,13 +119,16 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Returns an observable sequence that propagates the result of the task.
+        ///     Returns an observable sequence that propagates the result of the task.
         /// </summary>
         /// <typeparam name="TResult">The type of the result produced by the task.</typeparam>
         /// <param name="task">Task to convert to an observable sequence.</param>
         /// <returns>An observable sequence that produces the task's result, or propagates the exception produced by the task.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="task"/> is null.</exception>
-        /// <remarks>If the specified task object supports cancellation, consider using <see cref="Observable.FromAsync{TResult}(Func{CancellationToken, Task{TResult}})"/> instead.</remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="task" /> is null.</exception>
+        /// <remarks>
+        ///     If the specified task object supports cancellation, consider using
+        ///     <see cref="Observable.FromAsync{TResult}(Func{CancellationToken, Task{TResult}})" /> instead.
+        /// </remarks>
         public static IObservable<TResult> ToObservable<TResult>(this Task<TResult> task)
         {
             if (task == null)
@@ -123,14 +138,17 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Returns an observable sequence that propagates the result of the task.
+        ///     Returns an observable sequence that propagates the result of the task.
         /// </summary>
         /// <typeparam name="TResult">The type of the result produced by the task.</typeparam>
         /// <param name="task">Task to convert to an observable sequence.</param>
         /// <param name="scheduler">Scheduler on which to notify observers about completion, cancellation or failure.</param>
         /// <returns>An observable sequence that produces the task's result, or propagates the exception produced by the task.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="task"/> is null or <paramref name="scheduler"/> is null.</exception>
-        /// <remarks>If the specified task object supports cancellation, consider using <see cref="Observable.FromAsync{TResult}(Func{CancellationToken, Task{TResult}})"/> instead.</remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="task" /> is null or <paramref name="scheduler" /> is null.</exception>
+        /// <remarks>
+        ///     If the specified task object supports cancellation, consider using
+        ///     <see cref="Observable.FromAsync{TResult}(Func{CancellationToken, Task{TResult}})" /> instead.
+        /// </remarks>
         public static IObservable<TResult> ToObservable<TResult>(this Task<TResult> task, IScheduler scheduler)
         {
             if (task == null)
@@ -152,7 +170,7 @@ namespace UniRx
                 switch (task.Status)
                 {
                     case TaskStatus.RanToCompletion:
-                        res = Observable.Return<TResult>(task.Result, scheduler);
+                        res = Observable.Return(task.Result, scheduler);
                         break;
                     case TaskStatus.Faulted:
                         res = Observable.Throw<TResult>(task.Exception.InnerException, scheduler);
@@ -206,7 +224,6 @@ namespace UniRx
             var options = TaskContinuationOptions.None;
 
             if (scheduler != null)
-            {
                 //
                 // We explicitly don't special-case the immediate scheduler here. If the user asks for a
                 // synchronous completion, we'll try our best. However, there's no guarantee due to the
@@ -218,30 +235,25 @@ namespace UniRx
                 // i.e. not necessarily where the task was completed from.
                 //
                 options |= TaskContinuationOptions.ExecuteSynchronously;
-            }
 
             return options;
         }
 
-        private static IObservable<TResult> ToObservableResult<TResult>(AsyncSubject<TResult> subject, IScheduler scheduler)
+        private static IObservable<TResult> ToObservableResult<TResult>(AsyncSubject<TResult> subject,
+            IScheduler scheduler)
         {
-            if (scheduler != null)
-            {
-                return subject.ObserveOn(scheduler);
-            }
-            else
-            {
-                return subject.AsObservable();
-            }
+            if (scheduler != null) return subject.ObserveOn(scheduler);
+
+            return subject.AsObservable();
         }
 
         /// <summary>
-        /// Returns a task that will receive the last value or the exception produced by the observable sequence.
+        ///     Returns a task that will receive the last value or the exception produced by the observable sequence.
         /// </summary>
         /// <typeparam name="TResult">The type of the elements in the source sequence.</typeparam>
         /// <param name="observable">Observable sequence to convert to a task.</param>
         /// <returns>A task that will receive the last element or the exception produced by the observable sequence.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="observable"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="observable" /> is null.</exception>
         public static Task<TResult> ToTask<TResult>(this IObservable<TResult> observable)
         {
             if (observable == null)
@@ -251,13 +263,13 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Returns a task that will receive the last value or the exception produced by the observable sequence.
+        ///     Returns a task that will receive the last value or the exception produced by the observable sequence.
         /// </summary>
         /// <typeparam name="TResult">The type of the elements in the source sequence.</typeparam>
         /// <param name="observable">Observable sequence to convert to a task.</param>
         /// <param name="state">The state to use as the underlying task's AsyncState.</param>
         /// <returns>A task that will receive the last element or the exception produced by the observable sequence.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="observable"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="observable" /> is null.</exception>
         public static Task<TResult> ToTask<TResult>(this IObservable<TResult> observable, object state)
         {
             if (observable == null)
@@ -267,14 +279,18 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Returns a task that will receive the last value or the exception produced by the observable sequence.
+        ///     Returns a task that will receive the last value or the exception produced by the observable sequence.
         /// </summary>
         /// <typeparam name="TResult">The type of the elements in the source sequence.</typeparam>
         /// <param name="observable">Observable sequence to convert to a task.</param>
-        /// <param name="cancellationToken">Cancellation token that can be used to cancel the task, causing unsubscription from the observable sequence.</param>
+        /// <param name="cancellationToken">
+        ///     Cancellation token that can be used to cancel the task, causing unsubscription from the
+        ///     observable sequence.
+        /// </param>
         /// <returns>A task that will receive the last element or the exception produced by the observable sequence.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="observable"/> is null.</exception>
-        public static Task<TResult> ToTask<TResult>(this IObservable<TResult> observable, CancellationToken cancellationToken)
+        /// <exception cref="ArgumentNullException"><paramref name="observable" /> is null.</exception>
+        public static Task<TResult> ToTask<TResult>(this IObservable<TResult> observable,
+            CancellationToken cancellationToken)
         {
             if (observable == null)
                 throw new ArgumentNullException("observable");
@@ -283,15 +299,19 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Returns a task that will receive the last value or the exception produced by the observable sequence.
+        ///     Returns a task that will receive the last value or the exception produced by the observable sequence.
         /// </summary>
         /// <typeparam name="TResult">The type of the elements in the source sequence.</typeparam>
         /// <param name="observable">Observable sequence to convert to a task.</param>
-        /// <param name="cancellationToken">Cancellation token that can be used to cancel the task, causing unsubscription from the observable sequence.</param>
+        /// <param name="cancellationToken">
+        ///     Cancellation token that can be used to cancel the task, causing unsubscription from the
+        ///     observable sequence.
+        /// </param>
         /// <param name="state">The state to use as the underlying task's AsyncState.</param>
         /// <returns>A task that will receive the last element or the exception produced by the observable sequence.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="observable"/> is null.</exception>
-        public static Task<TResult> ToTask<TResult>(this IObservable<TResult> observable, CancellationToken cancellationToken, object state)
+        /// <exception cref="ArgumentNullException"><paramref name="observable" /> is null.</exception>
+        public static Task<TResult> ToTask<TResult>(this IObservable<TResult> observable,
+            CancellationToken cancellationToken, object state)
         {
             if (observable == null)
                 throw new ArgumentNullException("observable");
@@ -306,13 +326,11 @@ namespace UniRx
             var ctr = default(CancellationTokenRegistration);
 
             if (cancellationToken.CanBeCanceled)
-            {
                 ctr = cancellationToken.Register(() =>
                 {
                     disposable.Dispose();
                     tcs.TrySetCanceled(cancellationToken);
                 });
-            }
 
             var taskCompletionObserver = Observer.Create<TResult>(
                 value =>
@@ -353,7 +371,7 @@ namespace UniRx
                 // exception handling logic here for the reason explained above. We cannot afford to throw here
                 // and as a result never set the TaskCompletionSource, so we tunnel everything through here.
                 //
-                disposable.Disposable = observable.Subscribe/*Unsafe*/(taskCompletionObserver);
+                disposable.Disposable = observable.Subscribe /*Unsafe*/(taskCompletionObserver);
             }
             catch (Exception ex)
             {

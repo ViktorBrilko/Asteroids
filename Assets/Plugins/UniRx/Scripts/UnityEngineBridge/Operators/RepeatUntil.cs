@@ -7,11 +7,12 @@ namespace UniRx.Operators
 {
     internal class RepeatUntilObservable<T> : OperatorObservableBase<T>
     {
-        readonly IEnumerable<IObservable<T>> sources;
-        readonly IObservable<Unit> trigger;
-        readonly GameObject lifeTimeChecker;
+        private readonly GameObject lifeTimeChecker;
+        private readonly IEnumerable<IObservable<T>> sources;
+        private readonly IObservable<Unit> trigger;
 
-        public RepeatUntilObservable(IEnumerable<IObservable<T>> sources, IObservable<Unit> trigger, GameObject lifeTimeChecker)
+        public RepeatUntilObservable(IEnumerable<IObservable<T>> sources, IObservable<Unit> trigger,
+            GameObject lifeTimeChecker)
             : base(true)
         {
             this.sources = sources;
@@ -24,21 +25,22 @@ namespace UniRx.Operators
             return new RepeatUntil(this, observer, cancel).Run();
         }
 
-        class RepeatUntil : OperatorObserverBase<T, T>
+        private class RepeatUntil : OperatorObserverBase<T, T>
         {
-            readonly RepeatUntilObservable<T> parent;
-            readonly object gate = new object();
+            private readonly object gate = new();
+            private readonly RepeatUntilObservable<T> parent;
 
-            IEnumerator<IObservable<T>> e;
-            SerialDisposable subscription;
-            SingleAssignmentDisposable schedule;
-            Action nextSelf;
-            bool isStopped;
-            bool isDisposed;
-            bool isFirstSubscribe;
-            IDisposable stopper;
+            private IEnumerator<IObservable<T>> e;
+            private bool isDisposed;
+            private bool isFirstSubscribe;
+            private bool isStopped;
+            private Action nextSelf;
+            private SingleAssignmentDisposable schedule;
+            private IDisposable stopper;
+            private SerialDisposable subscription;
 
-            public RepeatUntil(RepeatUntilObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public RepeatUntil(RepeatUntilObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
             }
@@ -76,11 +78,11 @@ namespace UniRx.Operators
                 }));
             }
 
-            void RecursiveRun(Action self)
+            private void RecursiveRun(Action self)
             {
                 lock (gate)
                 {
-                    this.nextSelf = self;
+                    nextSelf = self;
                     if (isDisposed) return;
                     if (isStopped) return;
 
@@ -132,45 +134,54 @@ namespace UniRx.Operators
                     }
                     else
                     {
-                        MainThreadDispatcher.SendStartCoroutine(SubscribeAfterEndOfFrame(d, source, this, parent.lifeTimeChecker));
+                        MainThreadDispatcher.SendStartCoroutine(SubscribeAfterEndOfFrame(d, source, this,
+                            parent.lifeTimeChecker));
                     }
                 }
             }
 
-            static IEnumerator SubscribeAfterEndOfFrame(SingleAssignmentDisposable d, IObservable<T> source, IObserver<T> observer, GameObject lifeTimeChecker)
+            private static IEnumerator SubscribeAfterEndOfFrame(SingleAssignmentDisposable d, IObservable<T> source,
+                IObserver<T> observer, GameObject lifeTimeChecker)
             {
                 yield return YieldInstructionCache.WaitForEndOfFrame;
-                if (!d.IsDisposed && lifeTimeChecker != null)
-                {
-                    d.Disposable = source.Subscribe(observer);
-                }
+                if (!d.IsDisposed && lifeTimeChecker != null) d.Disposable = source.Subscribe(observer);
             }
 
             public override void OnNext(T value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
                 if (!isDisposed)
                 {
-                    this.nextSelf();
+                    nextSelf();
                 }
                 else
                 {
                     e.Dispose();
                     if (!isDisposed)
-                    {
-                        try { observer.OnCompleted(); }
-                        finally { Dispose(); }
-                    }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                 }
             }
         }

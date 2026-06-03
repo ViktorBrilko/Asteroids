@@ -4,12 +4,12 @@ namespace UniRx.Operators
 {
     internal class TimeoutObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly TimeSpan? dueTime;
-        readonly DateTimeOffset? dueTimeDT;
-        readonly IScheduler scheduler;
+        private readonly TimeSpan? dueTime;
+        private readonly DateTimeOffset? dueTimeDT;
+        private readonly IScheduler scheduler;
+        private readonly IObservable<T> source;
 
-        public TimeoutObservable(IObservable<T> source, TimeSpan dueTime, IScheduler scheduler) 
+        public TimeoutObservable(IObservable<T> source, TimeSpan dueTime, IScheduler scheduler)
             : base(scheduler == Scheduler.CurrentThread || source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
@@ -17,36 +17,32 @@ namespace UniRx.Operators
             this.scheduler = scheduler;
         }
 
-        public TimeoutObservable(IObservable<T> source, DateTimeOffset dueTime, IScheduler scheduler) 
+        public TimeoutObservable(IObservable<T> source, DateTimeOffset dueTime, IScheduler scheduler)
             : base(scheduler == Scheduler.CurrentThread || source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
-            this.dueTimeDT = dueTime;
+            dueTimeDT = dueTime;
             this.scheduler = scheduler;
         }
 
         protected override IDisposable SubscribeCore(IObserver<T> observer, IDisposable cancel)
         {
-            if (dueTime != null)
-            {
-                return new Timeout(this, observer, cancel).Run();
-            }
-            else
-            {
-                return new Timeout_(this, observer, cancel).Run();
-            }
+            if (dueTime != null) return new Timeout(this, observer, cancel).Run();
+
+            return new Timeout_(this, observer, cancel).Run();
         }
 
-        class Timeout : OperatorObserverBase<T, T>
+        private class Timeout : OperatorObserverBase<T, T>
         {
-            readonly TimeoutObservable<T> parent;
-            readonly object gate = new object();
-            ulong objectId = 0ul;
-            bool isTimeout = false;
-            SingleAssignmentDisposable sourceSubscription;
-            SerialDisposable timerSubscription;
+            private readonly object gate = new();
+            private readonly TimeoutObservable<T> parent;
+            private bool isTimeout;
+            private ulong objectId;
+            private SingleAssignmentDisposable sourceSubscription;
+            private SerialDisposable timerSubscription;
 
-            public Timeout(TimeoutObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public Timeout(TimeoutObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer,
+                cancel)
             {
                 this.parent = parent;
             }
@@ -61,21 +57,24 @@ namespace UniRx.Operators
                 return StableCompositeDisposable.Create(timerSubscription, sourceSubscription);
             }
 
-            IDisposable RunTimer(ulong timerId)
+            private IDisposable RunTimer(ulong timerId)
             {
                 return parent.scheduler.Schedule(parent.dueTime.Value, () =>
                 {
                     lock (gate)
                     {
-                        if (objectId == timerId)
-                        {
-                            isTimeout = true;
-                        }
+                        if (objectId == timerId) isTimeout = true;
                     }
+
                     if (isTimeout)
-                    {
-                        try { observer.OnError(new TimeoutException()); } finally { Dispose(); }
-                    }
+                        try
+                        {
+                            observer.OnError(new TimeoutException());
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                 });
             }
 
@@ -89,6 +88,7 @@ namespace UniRx.Operators
                     objectId++;
                     useObjectId = objectId;
                 }
+
                 if (timeout) return;
 
                 timerSubscription.Disposable = Disposable.Empty; // cancel old timer
@@ -104,10 +104,18 @@ namespace UniRx.Operators
                     timeout = isTimeout;
                     objectId++;
                 }
+
                 if (timeout) return;
 
                 timerSubscription.Dispose();
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
@@ -118,22 +126,31 @@ namespace UniRx.Operators
                     timeout = isTimeout;
                     objectId++;
                 }
+
                 if (timeout) return;
 
                 timerSubscription.Dispose();
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
 
-        class Timeout_ : OperatorObserverBase<T, T>
+        private class Timeout_ : OperatorObserverBase<T, T>
         {
-            readonly TimeoutObservable<T> parent;
-            readonly object gate = new object();
-            bool isFinished = false;
-            SingleAssignmentDisposable sourceSubscription;
-            IDisposable timerSubscription;
+            private readonly object gate = new();
+            private readonly TimeoutObservable<T> parent;
+            private bool isFinished;
+            private SingleAssignmentDisposable sourceSubscription;
+            private IDisposable timerSubscription;
 
-            public Timeout_(TimeoutObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public Timeout_(TimeoutObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer,
+                cancel)
             {
                 this.parent = parent;
             }
@@ -149,7 +166,7 @@ namespace UniRx.Operators
             }
 
             // in timer
-            void OnNext()
+            private void OnNext()
             {
                 lock (gate)
                 {
@@ -158,7 +175,14 @@ namespace UniRx.Operators
                 }
 
                 sourceSubscription.Dispose();
-                try { observer.OnError(new TimeoutException()); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(new TimeoutException());
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnNext(T value)
@@ -177,12 +201,19 @@ namespace UniRx.Operators
                     isFinished = true;
                     timerSubscription.Dispose();
                 }
-                try { observer.OnError(error); } finally { Dispose(); }
+
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-
                 lock (gate)
                 {
                     if (!isFinished)
@@ -190,7 +221,15 @@ namespace UniRx.Operators
                         isFinished = true;
                         timerSubscription.Dispose();
                     }
-                    try { observer.OnCompleted(); } finally { Dispose(); }
+
+                    try
+                    {
+                        observer.OnCompleted();
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
             }
         }

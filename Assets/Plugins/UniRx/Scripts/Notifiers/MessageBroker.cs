@@ -7,7 +7,7 @@ namespace UniRx
     public interface IMessagePublisher
     {
         /// <summary>
-        /// Send Message to all receiver.
+        ///     Send Message to all receiver.
         /// </summary>
         void Publish<T>(T message);
     }
@@ -15,7 +15,7 @@ namespace UniRx
     public interface IMessageReceiver
     {
         /// <summary>
-        /// Subscribe typed message.
+        ///     Subscribe typed message.
         /// </summary>
         IObservable<T> Receive<T>();
     }
@@ -27,7 +27,7 @@ namespace UniRx
     public interface IAsyncMessagePublisher
     {
         /// <summary>
-        /// Send Message to all receiver and await complete.
+        ///     Send Message to all receiver and await complete.
         /// </summary>
         IObservable<Unit> PublishAsync<T>(T message);
     }
@@ -35,7 +35,7 @@ namespace UniRx
     public interface IAsyncMessageReceiver
     {
         /// <summary>
-        /// Subscribe typed message.
+        ///     Subscribe typed message.
         /// </summary>
         IDisposable Subscribe<T>(Func<T, IObservable<Unit>> asyncMessageReceiver);
     }
@@ -45,50 +45,18 @@ namespace UniRx
     }
 
     /// <summary>
-    /// In-Memory PubSub filtered by Type.
+    ///     In-Memory PubSub filtered by Type.
     /// </summary>
     public class MessageBroker : IMessageBroker, IDisposable
     {
         /// <summary>
-        /// MessageBroker in Global scope.
+        ///     MessageBroker in Global scope.
         /// </summary>
         public static readonly IMessageBroker Default = new MessageBroker();
 
-        bool isDisposed = false;
-        readonly Dictionary<Type, object> notifiers = new Dictionary<Type, object>();
+        private readonly Dictionary<Type, object> notifiers = new();
 
-        public void Publish<T>(T message)
-        {
-            object notifier;
-            lock (notifiers)
-            {
-                if (isDisposed) return;
-
-                if (!notifiers.TryGetValue(typeof(T), out notifier))
-                {
-                    return;
-                }
-            }
-            ((ISubject<T>)notifier).OnNext(message);
-        }
-
-        public IObservable<T> Receive<T>()
-        {
-            object notifier;
-            lock (notifiers)
-            {
-                if (isDisposed) throw new ObjectDisposedException("MessageBroker");
-
-                if (!notifiers.TryGetValue(typeof(T), out notifier))
-                {
-                    ISubject<T> n = new Subject<T>().Synchronize();
-                    notifier = n;
-                    notifiers.Add(typeof(T), notifier);
-                }
-            }
-
-            return ((IObservable<T>)notifier).AsObservable();
-        }
+        private bool isDisposed;
 
         public void Dispose()
         {
@@ -101,45 +69,70 @@ namespace UniRx
                 }
             }
         }
+
+        public void Publish<T>(T message)
+        {
+            object notifier;
+            lock (notifiers)
+            {
+                if (isDisposed) return;
+
+                if (!notifiers.TryGetValue(typeof(T), out notifier)) return;
+            }
+
+            ((ISubject<T>)notifier).OnNext(message);
+        }
+
+        public IObservable<T> Receive<T>()
+        {
+            object notifier;
+            lock (notifiers)
+            {
+                if (isDisposed) throw new ObjectDisposedException("MessageBroker");
+
+                if (!notifiers.TryGetValue(typeof(T), out notifier))
+                {
+                    var n = new Subject<T>().Synchronize();
+                    notifier = n;
+                    notifiers.Add(typeof(T), notifier);
+                }
+            }
+
+            return ((IObservable<T>)notifier).AsObservable();
+        }
     }
 
     /// <summary>
-    /// In-Memory PubSub filtered by Type.
+    ///     In-Memory PubSub filtered by Type.
     /// </summary>
     public class AsyncMessageBroker : IAsyncMessageBroker, IDisposable
     {
         /// <summary>
-        /// AsyncMessageBroker in Global scope.
+        ///     AsyncMessageBroker in Global scope.
         /// </summary>
         public static readonly IAsyncMessageBroker Default = new AsyncMessageBroker();
 
-        bool isDisposed = false;
-        readonly Dictionary<Type, object> notifiers = new Dictionary<Type, object>();
+        private readonly Dictionary<Type, object> notifiers = new();
+
+        private bool isDisposed;
 
         public IObservable<Unit> PublishAsync<T>(T message)
         {
-            UniRx.InternalUtil.ImmutableList<Func<T, IObservable<Unit>>> notifier;
+            ImmutableList<Func<T, IObservable<Unit>>> notifier;
             lock (notifiers)
             {
                 if (isDisposed) throw new ObjectDisposedException("AsyncMessageBroker");
 
                 object _notifier;
                 if (notifiers.TryGetValue(typeof(T), out _notifier))
-                {
-                    notifier = (UniRx.InternalUtil.ImmutableList<Func<T, IObservable<Unit>>>)_notifier;
-                }
+                    notifier = (ImmutableList<Func<T, IObservable<Unit>>>)_notifier;
                 else
-                {
                     return Observable.ReturnUnit();
-                }
             }
 
             var data = notifier.Data;
             var awaiter = new IObservable<Unit>[data.Length];
-            for (int i = 0; i < data.Length; i++)
-            {
-                awaiter[i] = data[i].Invoke(message);
-            }
+            for (var i = 0; i < data.Length; i++) awaiter[i] = data[i].Invoke(message);
             return Observable.WhenAll(awaiter);
         }
 
@@ -152,7 +145,7 @@ namespace UniRx
                 object _notifier;
                 if (!notifiers.TryGetValue(typeof(T), out _notifier))
                 {
-                    var notifier = UniRx.InternalUtil.ImmutableList<Func<T, IObservable<Unit>>>.Empty;
+                    var notifier = ImmutableList<Func<T, IObservable<Unit>>>.Empty;
                     notifier = notifier.Add(asyncMessageReceiver);
                     notifiers.Add(typeof(T), notifier);
                 }
@@ -179,10 +172,10 @@ namespace UniRx
             }
         }
 
-        class Subscription<T> : IDisposable
+        private class Subscription<T> : IDisposable
         {
-            readonly AsyncMessageBroker parent;
-            readonly Func<T, IObservable<Unit>> asyncMessageReceiver;
+            private readonly Func<T, IObservable<Unit>> asyncMessageReceiver;
+            private readonly AsyncMessageBroker parent;
 
             public Subscription(AsyncMessageBroker parent, Func<T, IObservable<Unit>> asyncMessageReceiver)
             {

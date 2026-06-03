@@ -4,6 +4,5 @@ using UnityEngine;
 
 public class LaserCountView : MonoBehaviour
 {
-    [Data("LaserCount")]
-    [SerializeField] public  TMP_Text LaserCountText;
+    [Data("LaserCount")] [SerializeField] public TMP_Text LaserCountText;
 }

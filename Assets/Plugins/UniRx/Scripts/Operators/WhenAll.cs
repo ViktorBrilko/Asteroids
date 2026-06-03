@@ -5,8 +5,8 @@ namespace UniRx.Operators
 {
     internal class WhenAllObservable<T> : OperatorObservableBase<T[]>
     {
-        readonly IObservable<T>[] sources;
-        readonly IEnumerable<IObservable<T>> sourcesEnumerable;
+        private readonly IObservable<T>[] sources;
+        private readonly IEnumerable<IObservable<T>> sourcesEnumerable;
 
         public WhenAllObservable(IObservable<T>[] sources)
             : base(false)
@@ -17,33 +17,25 @@ namespace UniRx.Operators
         public WhenAllObservable(IEnumerable<IObservable<T>> sources)
             : base(false)
         {
-            this.sourcesEnumerable = sources;
+            sourcesEnumerable = sources;
         }
 
         protected override IDisposable SubscribeCore(IObserver<T[]> observer, IDisposable cancel)
         {
-            if (sources != null)
-            {
-                return new WhenAll(this.sources, observer, cancel).Run();
-            }
-            else
-            {
-                var xs = sourcesEnumerable as IList<IObservable<T>>;
-                if (xs == null)
-                {
-                    xs = new List<IObservable<T>>(sourcesEnumerable); // materialize observables
-                }
-                return new WhenAll_(xs, observer, cancel).Run();
-            }
+            if (sources != null) return new WhenAll(sources, observer, cancel).Run();
+
+            var xs = sourcesEnumerable as IList<IObservable<T>>;
+            if (xs == null) xs = new List<IObservable<T>>(sourcesEnumerable); // materialize observables
+            return new WhenAll_(xs, observer, cancel).Run();
         }
 
-        class WhenAll : OperatorObserverBase<T[], T[]>
+        private class WhenAll : OperatorObserverBase<T[], T[]>
         {
-            readonly IObservable<T>[] sources;
-            readonly object gate = new object();
-            int completedCount;
-            int length;
-            T[] values;
+            private readonly object gate = new();
+            private readonly IObservable<T>[] sources;
+            private int completedCount;
+            private int length;
+            private T[] values;
 
             public WhenAll(IObservable<T>[] sources, IObserver<T[]> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -59,7 +51,15 @@ namespace UniRx.Operators
                 if (length == 0)
                 {
                     OnNext(new T[0]);
-                    try { observer.OnCompleted(); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnCompleted();
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return Disposable.Empty;
                 }
 
@@ -67,7 +67,7 @@ namespace UniRx.Operators
                 values = new T[length];
 
                 var subscriptions = new IDisposable[length];
-                for (int index = 0; index < length; index++)
+                for (var index = 0; index < length; index++)
                 {
                     var source = sources[index];
                     var observer = new WhenAllCollectionObserver(this, index);
@@ -79,24 +79,38 @@ namespace UniRx.Operators
 
             public override void OnNext(T[] value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
-            class WhenAllCollectionObserver : IObserver<T>
+            private class WhenAllCollectionObserver : IObserver<T>
             {
-                readonly WhenAll parent;
-                readonly int index;
-                bool isCompleted = false;
+                private readonly int index;
+                private readonly WhenAll parent;
+                private bool isCompleted;
 
                 public WhenAllCollectionObserver(WhenAll parent, int index)
                 {
@@ -108,10 +122,7 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        if (!isCompleted)
-                        {
-                            parent.values[index] = value;
-                        }
+                        if (!isCompleted) parent.values[index] = value;
                     }
                 }
 
@@ -119,10 +130,7 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        if (!isCompleted)
-                        {
-                            parent.OnError(error);
-                        }
+                        if (!isCompleted) parent.OnError(error);
                     }
                 }
 
@@ -145,13 +153,13 @@ namespace UniRx.Operators
             }
         }
 
-        class WhenAll_ : OperatorObserverBase<T[], T[]>
+        private class WhenAll_ : OperatorObserverBase<T[], T[]>
         {
-            readonly IList<IObservable<T>> sources;
-            readonly object gate = new object();
-            int completedCount;
-            int length;
-            T[] values;
+            private readonly object gate = new();
+            private readonly IList<IObservable<T>> sources;
+            private int completedCount;
+            private int length;
+            private T[] values;
 
             public WhenAll_(IList<IObservable<T>> sources, IObserver<T[]> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -167,7 +175,15 @@ namespace UniRx.Operators
                 if (length == 0)
                 {
                     OnNext(new T[0]);
-                    try { observer.OnCompleted(); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnCompleted();
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return Disposable.Empty;
                 }
 
@@ -175,7 +191,7 @@ namespace UniRx.Operators
                 values = new T[length];
 
                 var subscriptions = new IDisposable[length];
-                for (int index = 0; index < length; index++)
+                for (var index = 0; index < length; index++)
                 {
                     var source = sources[index];
                     var observer = new WhenAllCollectionObserver(this, index);
@@ -187,24 +203,38 @@ namespace UniRx.Operators
 
             public override void OnNext(T[] value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
-            class WhenAllCollectionObserver : IObserver<T>
+            private class WhenAllCollectionObserver : IObserver<T>
             {
-                readonly WhenAll_ parent;
-                readonly int index;
-                bool isCompleted = false;
+                private readonly int index;
+                private readonly WhenAll_ parent;
+                private bool isCompleted;
 
                 public WhenAllCollectionObserver(WhenAll_ parent, int index)
                 {
@@ -216,10 +246,7 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        if (!isCompleted)
-                        {
-                            parent.values[index] = value;
-                        }
+                        if (!isCompleted) parent.values[index] = value;
                     }
                 }
 
@@ -227,10 +254,7 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        if (!isCompleted)
-                        {
-                            parent.OnError(error);
-                        }
+                        if (!isCompleted) parent.OnError(error);
                     }
                 }
 
@@ -256,8 +280,8 @@ namespace UniRx.Operators
 
     internal class WhenAllObservable : OperatorObservableBase<Unit>
     {
-        readonly IObservable<Unit>[] sources;
-        readonly IEnumerable<IObservable<Unit>> sourcesEnumerable;
+        private readonly IObservable<Unit>[] sources;
+        private readonly IEnumerable<IObservable<Unit>> sourcesEnumerable;
 
         public WhenAllObservable(IObservable<Unit>[] sources)
             : base(false)
@@ -268,32 +292,24 @@ namespace UniRx.Operators
         public WhenAllObservable(IEnumerable<IObservable<Unit>> sources)
             : base(false)
         {
-            this.sourcesEnumerable = sources;
+            sourcesEnumerable = sources;
         }
 
         protected override IDisposable SubscribeCore(IObserver<Unit> observer, IDisposable cancel)
         {
-            if (sources != null)
-            {
-                return new WhenAll(this.sources, observer, cancel).Run();
-            }
-            else
-            {
-                var xs = sourcesEnumerable as IList<IObservable<Unit>>;
-                if (xs == null)
-                {
-                    xs = new List<IObservable<Unit>>(sourcesEnumerable); // materialize observables
-                }
-                return new WhenAll_(xs, observer, cancel).Run();
-            }
+            if (sources != null) return new WhenAll(sources, observer, cancel).Run();
+
+            var xs = sourcesEnumerable as IList<IObservable<Unit>>;
+            if (xs == null) xs = new List<IObservable<Unit>>(sourcesEnumerable); // materialize observables
+            return new WhenAll_(xs, observer, cancel).Run();
         }
 
-        class WhenAll : OperatorObserverBase<Unit, Unit>
+        private class WhenAll : OperatorObserverBase<Unit, Unit>
         {
-            readonly IObservable<Unit>[] sources;
-            readonly object gate = new object();
-            int completedCount;
-            int length;
+            private readonly object gate = new();
+            private readonly IObservable<Unit>[] sources;
+            private int completedCount;
+            private int length;
 
             public WhenAll(IObservable<Unit>[] sources, IObserver<Unit> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -309,14 +325,22 @@ namespace UniRx.Operators
                 if (length == 0)
                 {
                     OnNext(Unit.Default);
-                    try { observer.OnCompleted(); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnCompleted();
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return Disposable.Empty;
                 }
 
                 completedCount = 0;
 
                 var subscriptions = new IDisposable[length];
-                for (int index = 0; index < sources.Length; index++)
+                for (var index = 0; index < sources.Length; index++)
                 {
                     var source = sources[index];
                     var observer = new WhenAllCollectionObserver(this);
@@ -328,23 +352,37 @@ namespace UniRx.Operators
 
             public override void OnNext(Unit value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
-            class WhenAllCollectionObserver : IObserver<Unit>
+            private class WhenAllCollectionObserver : IObserver<Unit>
             {
-                readonly WhenAll parent;
-                bool isCompleted = false;
+                private readonly WhenAll parent;
+                private bool isCompleted;
 
                 public WhenAllCollectionObserver(WhenAll parent)
                 {
@@ -359,10 +397,7 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        if (!isCompleted)
-                        {
-                            parent.OnError(error);
-                        }
+                        if (!isCompleted) parent.OnError(error);
                     }
                 }
 
@@ -385,12 +420,12 @@ namespace UniRx.Operators
             }
         }
 
-        class WhenAll_ : OperatorObserverBase<Unit, Unit>
+        private class WhenAll_ : OperatorObserverBase<Unit, Unit>
         {
-            readonly IList<IObservable<Unit>> sources;
-            readonly object gate = new object();
-            int completedCount;
-            int length;
+            private readonly object gate = new();
+            private readonly IList<IObservable<Unit>> sources;
+            private int completedCount;
+            private int length;
 
             public WhenAll_(IList<IObservable<Unit>> sources, IObserver<Unit> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -406,14 +441,22 @@ namespace UniRx.Operators
                 if (length == 0)
                 {
                     OnNext(Unit.Default);
-                    try { observer.OnCompleted(); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnCompleted();
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return Disposable.Empty;
                 }
 
                 completedCount = 0;
 
                 var subscriptions = new IDisposable[length];
-                for (int index = 0; index < length; index++)
+                for (var index = 0; index < length; index++)
                 {
                     var source = sources[index];
                     var observer = new WhenAllCollectionObserver(this);
@@ -425,23 +468,37 @@ namespace UniRx.Operators
 
             public override void OnNext(Unit value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
-            class WhenAllCollectionObserver : IObserver<Unit>
+            private class WhenAllCollectionObserver : IObserver<Unit>
             {
-                readonly WhenAll_ parent;
-                bool isCompleted = false;
+                private readonly WhenAll_ parent;
+                private bool isCompleted;
 
                 public WhenAllCollectionObserver(WhenAll_ parent)
                 {
@@ -456,10 +513,7 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        if (!isCompleted)
-                        {
-                            parent.OnError(error);
-                        }
+                        if (!isCompleted) parent.OnError(error);
                     }
                 }
 

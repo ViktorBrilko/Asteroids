@@ -7,7 +7,6 @@ namespace UI.Views
 {
     public class HealthView : MonoBehaviour
     {
-        [Data("Health")]
-        [SerializeField] public List<Image> Hearts;
+        [Data("Health")] [SerializeField] public List<Image> Hearts;
     }
 }

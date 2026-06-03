@@ -6,18 +6,17 @@ namespace UniRx
 {
     public sealed class ReplaySubject<T> : ISubject<T>, IOptimizedObservable<T>, IDisposable
     {
-        object observerLock = new object();
+        private readonly int bufferSize;
+        private readonly IScheduler scheduler;
+        private readonly DateTimeOffset startTime;
+        private readonly TimeSpan window;
+        private bool isDisposed;
 
-        bool isStopped;
-        bool isDisposed;
-        Exception lastError;
-        IObserver<T> outObserver = EmptyObserver<T>.Instance;
-
-        readonly int bufferSize;
-        readonly TimeSpan window;
-        readonly DateTimeOffset startTime;
-        readonly IScheduler scheduler;
-        Queue<TimeInterval<T>> queue = new Queue<TimeInterval<T>>();
+        private bool isStopped;
+        private Exception lastError;
+        private readonly object observerLock = new();
+        private IObserver<T> outObserver = EmptyObserver<T>.Instance;
+        private Queue<TimeInterval<T>> queue = new();
 
 
         public ReplaySubject()
@@ -63,18 +62,20 @@ namespace UniRx
             startTime = scheduler.Now;
         }
 
-        void Trim()
+        public void Dispose()
         {
-            var elapsedTime = Scheduler.Normalize(scheduler.Now - startTime);
+            lock (observerLock)
+            {
+                isDisposed = true;
+                outObserver = DisposedObserver<T>.Instance;
+                lastError = null;
+                queue = null;
+            }
+        }
 
-            while (queue.Count > bufferSize)
-            {
-                queue.Dequeue();
-            }
-            while (queue.Count > 0 && elapsedTime.Subtract(queue.Peek().Interval).CompareTo(window) > 0)
-            {
-                queue.Dequeue();
-            }
+        public bool IsRequiredSubscribeOnCurrentThread()
+        {
+            return false;
         }
 
         public void OnCompleted()
@@ -153,13 +154,10 @@ namespace UniRx
                     {
                         var current = outObserver;
                         if (current is EmptyObserver<T>)
-                        {
                             outObserver = observer;
-                        }
                         else
-                        {
-                            outObserver = new ListObserver<T>(new ImmutableList<IObserver<T>>(new[] { current, observer }));
-                        }
+                            outObserver =
+                                new ListObserver<T>(new ImmutableList<IObserver<T>>(new[] { current, observer }));
                     }
 
                     subscription = new Subscription(this, observer);
@@ -167,54 +165,38 @@ namespace UniRx
 
                 ex = lastError;
                 Trim();
-                foreach (var item in queue)
-                {
-                    observer.OnNext(item.Value);
-                }
+                foreach (var item in queue) observer.OnNext(item.Value);
             }
 
-            if (subscription != null)
-            {
-                return subscription;
-            }
-            else if (ex != null)
-            {
+            if (subscription != null) return subscription;
+
+            if (ex != null)
                 observer.OnError(ex);
-            }
             else
-            {
                 observer.OnCompleted();
-            }
 
             return Disposable.Empty;
         }
 
-        public void Dispose()
+        private void Trim()
         {
-            lock (observerLock)
-            {
-                isDisposed = true;
-                outObserver = DisposedObserver<T>.Instance;
-                lastError = null;
-                queue = null;
-            }
+            var elapsedTime = Scheduler.Normalize(scheduler.Now - startTime);
+
+            while (queue.Count > bufferSize) queue.Dequeue();
+            while (queue.Count > 0 && elapsedTime.Subtract(queue.Peek().Interval).CompareTo(window) > 0)
+                queue.Dequeue();
         }
 
-        void ThrowIfDisposed()
+        private void ThrowIfDisposed()
         {
             if (isDisposed) throw new ObjectDisposedException("");
         }
 
-        public bool IsRequiredSubscribeOnCurrentThread()
+        private class Subscription : IDisposable
         {
-            return false;
-        }
-
-        class Subscription : IDisposable
-        {
-            readonly object gate = new object();
-            ReplaySubject<T> parent;
-            IObserver<T> unsubscribeTarget;
+            private readonly object gate = new();
+            private ReplaySubject<T> parent;
+            private IObserver<T> unsubscribeTarget;
 
             public Subscription(ReplaySubject<T> parent, IObserver<T> unsubscribeTarget)
             {
@@ -227,23 +209,17 @@ namespace UniRx
                 lock (gate)
                 {
                     if (parent != null)
-                    {
                         lock (parent.observerLock)
                         {
                             var listObserver = parent.outObserver as ListObserver<T>;
                             if (listObserver != null)
-                            {
                                 parent.outObserver = listObserver.Remove(unsubscribeTarget);
-                            }
                             else
-                            {
                                 parent.outObserver = EmptyObserver<T>.Instance;
-                            }
 
                             unsubscribeTarget = null;
                             parent = null;
                         }
-                    }
                 }
             }
         }

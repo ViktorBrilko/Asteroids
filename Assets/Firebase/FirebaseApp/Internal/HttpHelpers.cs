@@ -18,72 +18,67 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Firebase.Internal
 {
-  // Helper functions to help handling the Http calls.
-  internal static class HttpHelpers
-  {
-    internal static async Task SetRequestHeaders(HttpRequestMessage request, FirebaseApp firebaseApp, string authPrefix = "Firebase", bool limitedUseAppCheckTokens = false)
+    // Helper functions to help handling the Http calls.
+    internal static class HttpHelpers
     {
-      request.Headers.Add("x-goog-api-key", firebaseApp.Options.ApiKey);
-      string version = FirebaseInterops.GetVersionInfoSdkVersion();
-      request.Headers.Add("x-goog-api-client", $"gl-csharp/8.0 fire/{version}");
-      if (FirebaseInterops.GetIsDataCollectionDefaultEnabled(firebaseApp))
-      {
-        request.Headers.Add("X-Firebase-AppId", firebaseApp.Options.AppId);
-        request.Headers.Add("X-Firebase-AppVersion", UnityEngine.Application.version);
-      }
-      // Add additional Firebase tokens to the header.
-      await FirebaseInterops.AddFirebaseTokensAsync(request, firebaseApp, authPrefix, limitedUseAppCheckTokens);
-    }
-
-    // Helper function to throw an exception if the Http Response indicates failure.
-    // Useful as EnsureSuccessStatusCode can leave out relevant information.
-    internal static async Task ValidateHttpResponse(HttpResponseMessage response)
-    {
-      if (response.IsSuccessStatusCode)
-      {
-        return;
-      }
-
-      // Status code indicates failure, try to read the content for more details
-      string errorContent = "No error content available.";
-      if (response.Content != null)
-      {
-        try
+        internal static async Task SetRequestHeaders(HttpRequestMessage request, FirebaseApp firebaseApp,
+            string authPrefix = "Firebase", bool limitedUseAppCheckTokens = false)
         {
-          errorContent = await response.Content.ReadAsStringAsync();
+            request.Headers.Add("x-goog-api-key", firebaseApp.Options.ApiKey);
+            var version = FirebaseInterops.GetVersionInfoSdkVersion();
+            request.Headers.Add("x-goog-api-client", $"gl-csharp/8.0 fire/{version}");
+            if (FirebaseInterops.GetIsDataCollectionDefaultEnabled(firebaseApp))
+            {
+                request.Headers.Add("X-Firebase-AppId", firebaseApp.Options.AppId);
+                request.Headers.Add("X-Firebase-AppVersion", Application.version);
+            }
+
+            // Add additional Firebase tokens to the header.
+            await FirebaseInterops.AddFirebaseTokensAsync(request, firebaseApp, authPrefix, limitedUseAppCheckTokens);
         }
-        catch (Exception readEx)
+
+        // Helper function to throw an exception if the Http Response indicates failure.
+        // Useful as EnsureSuccessStatusCode can leave out relevant information.
+        internal static async Task ValidateHttpResponse(HttpResponseMessage response)
         {
-          // Handle being unable to read the content
-          errorContent = $"Failed to read error content: {readEx.Message}";
+            if (response.IsSuccessStatusCode) return;
+
+            // Status code indicates failure, try to read the content for more details
+            var errorContent = "No error content available.";
+            if (response.Content != null)
+                try
+                {
+                    errorContent = await response.Content.ReadAsStringAsync();
+                }
+                catch (Exception readEx)
+                {
+                    // Handle being unable to read the content
+                    errorContent = $"Failed to read error content: {readEx.Message}";
+                }
+
+            // Construct the exception with as much information as possible.
+            var ex = new HttpRequestException(
+                $"HTTP request failed with status code: {(int)response.StatusCode} ({response.ReasonPhrase}).\n" +
+                $"Error Content: {errorContent}",
+                null
+            );
+            ex.Data["StatusCode"] = response.StatusCode;
+
+            throw ex;
         }
-      }
-
-      // Construct the exception with as much information as possible.
-      var ex = new HttpRequestException(
-        $"HTTP request failed with status code: {(int)response.StatusCode} ({response.ReasonPhrase}).\n" +
-        $"Error Content: {errorContent}",
-        null
-      );
-      ex.Data["StatusCode"] = response.StatusCode;
-
-      throw ex;
     }
-  }
 
-  // Extension to get the StatusCode from the exception.
-  internal static class HttpRequestExceptionExtensions
-  {
-    internal static HttpStatusCode? GetStatusCode(this HttpRequestException exception)
+    // Extension to get the StatusCode from the exception.
+    internal static class HttpRequestExceptionExtensions
     {
-      if (exception.Data.Contains("StatusCode"))
-      {
-        return (HttpStatusCode)exception.Data["StatusCode"];
-      }
-      return null;
+        internal static HttpStatusCode? GetStatusCode(this HttpRequestException exception)
+        {
+            if (exception.Data.Contains("StatusCode")) return (HttpStatusCode)exception.Data["StatusCode"];
+            return null;
+        }
     }
-  }
 }

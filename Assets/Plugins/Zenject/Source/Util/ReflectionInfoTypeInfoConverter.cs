@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using ModestTree;
 #if !NOT_UNITY3D
@@ -20,10 +19,7 @@ namespace Zenject.Internal
             var methodInfo = injectMethod.MethodInfo;
             var action = TryCreateActionForMethod(methodInfo);
 
-            if (action == null)
-            {
-                action = (obj, args) => methodInfo.Invoke(obj, args);
-            }
+            if (action == null) action = (obj, args) => methodInfo.Invoke(obj, args);
 
             return new InjectTypeInfo.InjectMethodInfo(
                 action,
@@ -53,14 +49,11 @@ namespace Zenject.Internal
                 GetSetter(parentType, injectProperty.PropertyInfo), injectProperty.InjectableInfo);
         }
 
-        static ZenFactoryMethod TryCreateFactoryMethod(
+        private static ZenFactoryMethod TryCreateFactoryMethod(
             Type type, ReflectionTypeInfo.InjectConstructorInfo reflectionInfo)
         {
 #if !NOT_UNITY3D
-            if (type.DerivesFromOrEqual<Component>())
-            {
-                return null;
-            }
+            if (type.DerivesFromOrEqual<Component>()) return null;
 #endif
 
             if (type.IsAbstract())
@@ -76,7 +69,6 @@ namespace Zenject.Internal
             if (factoryMethod == null)
             {
                 if (constructor == null)
-                {
                     // No choice in this case except to use the slow Activator.CreateInstance
                     // as far as I know
                     // This should be rare though and only seems to occur when instantiating
@@ -87,21 +79,17 @@ namespace Zenject.Internal
                         Assert.That(args.Length == 0);
                         return Activator.CreateInstance(type, new object[0]);
                     };
-                }
                 else
-                {
                     factoryMethod = constructor.Invoke;
-                }
             }
 
             return factoryMethod;
         }
 
-        static ZenFactoryMethod TryCreateFactoryMethodCompiledLambdaExpression(
+        private static ZenFactoryMethod TryCreateFactoryMethodCompiledLambdaExpression(
             Type type, ConstructorInfo constructor)
         {
 #if NET_4_6 && !ENABLE_IL2CPP && !ZEN_DO_NOT_USE_COMPILED_EXPRESSIONS
-
             if (type.ContainsGenericParameters)
             {
                 return null;
@@ -134,10 +122,9 @@ namespace Zenject.Internal
 #endif
         }
 
-        static ZenInjectMethod TryCreateActionForMethod(MethodInfo methodInfo)
+        private static ZenInjectMethod TryCreateActionForMethod(MethodInfo methodInfo)
         {
 #if NET_4_6 && !ENABLE_IL2CPP && !ZEN_DO_NOT_USE_COMPILED_EXPRESSIONS
-
             if (methodInfo.DeclaringType.ContainsGenericParameters)
             {
                 return null;
@@ -170,75 +157,31 @@ namespace Zenject.Internal
 #endif
         }
 
-#if !(UNITY_WSA && ENABLE_DOTNET) || UNITY_EDITOR
-        static IEnumerable<FieldInfo> GetAllFields(Type t, BindingFlags flags)
-        {
-            if (t == null)
-            {
-                return Enumerable.Empty<FieldInfo>();
-            }
-
-            return t.GetFields(flags).Concat(GetAllFields(t.BaseType, flags)).Distinct();
-        }
-
-        static ZenMemberSetterMethod GetOnlyPropertySetter(
-            Type parentType,
-            string propertyName)
-        {
-            Assert.That(parentType != null);
-            Assert.That(!string.IsNullOrEmpty(propertyName));
-
-            var allFields = GetAllFields(
-                parentType, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy).ToList();
-
-            var writeableFields = allFields.Where(f => f.Name == string.Format("<" + propertyName + ">k__BackingField", propertyName)).ToList();
-
-            if (!writeableFields.Any())
-            {
-                throw new ZenjectException(string.Format(
-                    "Can't find backing field for get only property {0} on {1}.\r\n{2}",
-                    propertyName, parentType.FullName, string.Join(";", allFields.Select(f => f.Name).ToArray())));
-            }
-
-            return (injectable, value) => writeableFields.ForEach(f => f.SetValue(injectable, value));
-        }
-#endif
-
-        static ZenMemberSetterMethod GetSetter(Type parentType, MemberInfo memInfo)
+        private static ZenMemberSetterMethod GetSetter(Type parentType, MemberInfo memInfo)
         {
             var setterMethod = TryGetSetterAsCompiledExpression(parentType, memInfo);
 
-            if (setterMethod != null)
-            {
-                return setterMethod;
-            }
+            if (setterMethod != null) return setterMethod;
 
             var fieldInfo = memInfo as FieldInfo;
             var propInfo = memInfo as PropertyInfo;
 
-            if (fieldInfo != null)
-            {
-                return ((injectable, value) => fieldInfo.SetValue(injectable, value));
-            }
+            if (fieldInfo != null) return (injectable, value) => fieldInfo.SetValue(injectable, value);
 
             Assert.IsNotNull(propInfo);
 
 #if UNITY_WSA && ENABLE_DOTNET && !UNITY_EDITOR
             return ((object injectable, object value) => propInfo.SetValue(injectable, value, null));
 #else
-            if (propInfo.CanWrite)
-            {
-                return ((injectable, value) => propInfo.SetValue(injectable, value, null));
-            }
+            if (propInfo.CanWrite) return (injectable, value) => propInfo.SetValue(injectable, value, null);
 
             return GetOnlyPropertySetter(parentType, propInfo.Name);
 #endif
         }
 
-        static ZenMemberSetterMethod TryGetSetterAsCompiledExpression(Type parentType, MemberInfo memInfo)
+        private static ZenMemberSetterMethod TryGetSetterAsCompiledExpression(Type parentType, MemberInfo memInfo)
         {
 #if NET_4_6 && !ENABLE_IL2CPP && !ZEN_DO_NOT_USE_COMPILED_EXPRESSIONS
-
             if (parentType.ContainsGenericParameters)
             {
                 return null;
@@ -268,5 +211,38 @@ namespace Zenject.Internal
 
             return null;
         }
+
+#if !(UNITY_WSA && ENABLE_DOTNET) || UNITY_EDITOR
+        private static IEnumerable<FieldInfo> GetAllFields(Type t, BindingFlags flags)
+        {
+            if (t == null) return Enumerable.Empty<FieldInfo>();
+
+            return t.GetFields(flags).Concat(GetAllFields(t.BaseType, flags)).Distinct();
+        }
+
+        private static ZenMemberSetterMethod GetOnlyPropertySetter(
+            Type parentType,
+            string propertyName)
+        {
+            Assert.That(parentType != null);
+            Assert.That(!string.IsNullOrEmpty(propertyName));
+
+            var allFields = GetAllFields(
+                    parentType,
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic |
+                    BindingFlags.FlattenHierarchy)
+                .ToList();
+
+            var writeableFields = allFields
+                .Where(f => f.Name == string.Format("<" + propertyName + ">k__BackingField", propertyName)).ToList();
+
+            if (!writeableFields.Any())
+                throw new ZenjectException(string.Format(
+                    "Can't find backing field for get only property {0} on {1}.\r\n{2}",
+                    propertyName, parentType.FullName, string.Join(";", allFields.Select(f => f.Name).ToArray())));
+
+            return (injectable, value) => writeableFields.ForEach(f => f.SetValue(injectable, value));
+        }
+#endif
     }
 }

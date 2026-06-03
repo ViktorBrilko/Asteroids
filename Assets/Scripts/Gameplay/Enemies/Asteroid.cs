@@ -11,6 +11,28 @@ namespace Gameplay.Enemies
     {
         private AsteroidConfig _config;
 
+        public void OnEnable()
+        {
+            HealthService.OnDied += Die;
+        }
+
+        public void OnDisable()
+        {
+            HealthService.OnDied -= Die;
+        }
+
+        private void OnCollisionEnter2D(Collision2D other)
+        {
+            CollideWithPlayer(other, _config.Damage);
+        }
+
+        public void Die()
+        {
+            AudioService.PlaySfx(AudioService.Config.Explosion);
+            SignalBus.Fire(new ResetSignal<Asteroid>(this));
+            SignalBus.Fire(new EnemyDiedSignal(this, transform.position));
+        }
+
         [Inject]
         public void Construct(SignalBus signalBus, AsteroidConfig config, AudioService audioService)
         {
@@ -22,28 +44,6 @@ namespace Gameplay.Enemies
                 config.RotationSpeed);
 
             EnemyType = EnemyTypes.Asteroid;
-        }
-
-        private void OnCollisionEnter2D(Collision2D other)
-        {
-            CollideWithPlayer(other, _config.Damage);
-        }
-
-        public void OnEnable()
-        {
-            HealthService.OnDied += Die;
-        }
-
-        public void OnDisable()
-        {
-            HealthService.OnDied -= Die;
-        }
-
-        public void Die()
-        {
-            AudioService.PlaySfx(AudioService.Config.Explosion);
-            SignalBus.Fire(new ResetSignal<Asteroid>(this));
-            SignalBus.Fire(new EnemyDiedSignal(this, transform.position));
         }
     }
 }

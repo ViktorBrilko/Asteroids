@@ -1,13 +1,12 @@
 ﻿using System;
-using UniRx.Operators;
 
 namespace UniRx.Operators
 {
     internal class ForEachAsyncObservable<T> : OperatorObservableBase<Unit>
     {
-        readonly IObservable<T> source;
-        readonly Action<T> onNext;
-        readonly Action<T, int> onNextWithIndex;
+        private readonly Action<T> onNext;
+        private readonly Action<T, int> onNextWithIndex;
+        private readonly IObservable<T> source;
 
         public ForEachAsyncObservable(IObservable<T> source, Action<T> onNext)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -20,26 +19,22 @@ namespace UniRx.Operators
             : base(source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
-            this.onNextWithIndex = onNext;
+            onNextWithIndex = onNext;
         }
 
         protected override IDisposable SubscribeCore(IObserver<Unit> observer, IDisposable cancel)
         {
-            if (onNext != null)
-            {
-                return source.Subscribe(new ForEachAsync(this, observer, cancel));
-            }
-            else
-            {
-                return source.Subscribe(new ForEachAsync_(this, observer, cancel));
-            }
+            if (onNext != null) return source.Subscribe(new ForEachAsync(this, observer, cancel));
+
+            return source.Subscribe(new ForEachAsync_(this, observer, cancel));
         }
 
-        class ForEachAsync : OperatorObserverBase<T, Unit>
+        private class ForEachAsync : OperatorObserverBase<T, Unit>
         {
-            readonly ForEachAsyncObservable<T> parent;
+            private readonly ForEachAsyncObservable<T> parent;
 
-            public ForEachAsync(ForEachAsyncObservable<T> parent, IObserver<Unit> observer, IDisposable cancel) : base(observer, cancel)
+            public ForEachAsync(ForEachAsyncObservable<T> parent, IObserver<Unit> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
             }
@@ -52,34 +47,52 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); }
-                    finally { Dispose(); }
-                    return;
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
                 observer.OnNext(Unit.Default);
 
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
 
         // with index
-        class ForEachAsync_ : OperatorObserverBase<T, Unit>
+        private class ForEachAsync_ : OperatorObserverBase<T, Unit>
         {
-            readonly ForEachAsyncObservable<T> parent;
-            int index = 0;
+            private readonly ForEachAsyncObservable<T> parent;
+            private int index;
 
-            public ForEachAsync_(ForEachAsyncObservable<T> parent, IObserver<Unit> observer, IDisposable cancel) : base(observer, cancel)
+            public ForEachAsync_(ForEachAsyncObservable<T> parent, IObserver<Unit> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
             }
@@ -92,24 +105,41 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); }
-                    finally { Dispose(); }
-                    return;
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
                 observer.OnNext(Unit.Default);
 
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }

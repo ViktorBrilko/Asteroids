@@ -7,7 +7,8 @@ namespace UniRx
     public static partial class Observable
     {
         /// <summary>
-        /// Create anonymous observable. Observer has exception durability. This is recommended for make operator and event like generator. 
+        ///     Create anonymous observable. Observer has exception durability. This is recommended for make operator and event
+        ///     like generator.
         /// </summary>
         public static IObservable<T> Create<T>(Func<IObserver<T>, IDisposable> subscribe)
         {
@@ -17,9 +18,11 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Create anonymous observable. Observer has exception durability. This is recommended for make operator and event like generator(HotObservable). 
+        ///     Create anonymous observable. Observer has exception durability. This is recommended for make operator and event
+        ///     like generator(HotObservable).
         /// </summary>
-        public static IObservable<T> Create<T>(Func<IObserver<T>, IDisposable> subscribe, bool isRequiredSubscribeOnCurrentThread)
+        public static IObservable<T> Create<T>(Func<IObserver<T>, IDisposable> subscribe,
+            bool isRequiredSubscribeOnCurrentThread)
         {
             if (subscribe == null) throw new ArgumentNullException("subscribe");
 
@@ -27,9 +30,11 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Create anonymous observable. Observer has exception durability. This is recommended for make operator and event like generator. 
+        ///     Create anonymous observable. Observer has exception durability. This is recommended for make operator and event
+        ///     like generator.
         /// </summary>
-        public static IObservable<T> CreateWithState<T, TState>(TState state, Func<TState, IObserver<T>, IDisposable> subscribe)
+        public static IObservable<T> CreateWithState<T, TState>(TState state,
+            Func<TState, IObserver<T>, IDisposable> subscribe)
         {
             if (subscribe == null) throw new ArgumentNullException("subscribe");
 
@@ -37,9 +42,11 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Create anonymous observable. Observer has exception durability. This is recommended for make operator and event like generator(HotObservable). 
+        ///     Create anonymous observable. Observer has exception durability. This is recommended for make operator and event
+        ///     like generator(HotObservable).
         /// </summary>
-        public static IObservable<T> CreateWithState<T, TState>(TState state, Func<TState, IObserver<T>, IDisposable> subscribe, bool isRequiredSubscribeOnCurrentThread)
+        public static IObservable<T> CreateWithState<T, TState>(TState state,
+            Func<TState, IObserver<T>, IDisposable> subscribe, bool isRequiredSubscribeOnCurrentThread)
         {
             if (subscribe == null) throw new ArgumentNullException("subscribe");
 
@@ -47,7 +54,8 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Create anonymous observable. Safe means auto detach when error raised in onNext pipeline. This is recommended for make generator (ColdObservable).
+        ///     Create anonymous observable. Safe means auto detach when error raised in onNext pipeline. This is recommended for
+        ///     make generator (ColdObservable).
         /// </summary>
         public static IObservable<T> CreateSafe<T>(Func<IObserver<T>, IDisposable> subscribe)
         {
@@ -57,9 +65,11 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Create anonymous observable. Safe means auto detach when error raised in onNext pipeline. This is recommended for make generator (ColdObservable).
+        ///     Create anonymous observable. Safe means auto detach when error raised in onNext pipeline. This is recommended for
+        ///     make generator (ColdObservable).
         /// </summary>
-        public static IObservable<T> CreateSafe<T>(Func<IObserver<T>, IDisposable> subscribe, bool isRequiredSubscribeOnCurrentThread)
+        public static IObservable<T> CreateSafe<T>(Func<IObserver<T>, IDisposable> subscribe,
+            bool isRequiredSubscribeOnCurrentThread)
         {
             if (subscribe == null) throw new ArgumentNullException("subscribe");
 
@@ -67,7 +77,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Empty Observable. Returns only OnCompleted.
+        ///     Empty Observable. Returns only OnCompleted.
         /// </summary>
         public static IObservable<T> Empty<T>()
         {
@@ -75,22 +85,17 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Empty Observable. Returns only OnCompleted on specified scheduler.
+        ///     Empty Observable. Returns only OnCompleted on specified scheduler.
         /// </summary>
         public static IObservable<T> Empty<T>(IScheduler scheduler)
         {
-            if (scheduler == Scheduler.Immediate)
-            {
-                return ImmutableEmptyObservable<T>.Instance;
-            }
-            else
-            {
-                return new EmptyObservable<T>(scheduler);
-            }
+            if (scheduler == Scheduler.Immediate) return ImmutableEmptyObservable<T>.Instance;
+
+            return new EmptyObservable<T>(scheduler);
         }
 
         /// <summary>
-        /// Empty Observable. Returns only OnCompleted. witness is for type inference.
+        ///     Empty Observable. Returns only OnCompleted. witness is for type inference.
         /// </summary>
         public static IObservable<T> Empty<T>(T witness)
         {
@@ -98,7 +103,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Empty Observable. Returns only OnCompleted on specified scheduler. witness is for type inference.
+        ///     Empty Observable. Returns only OnCompleted on specified scheduler. witness is for type inference.
         /// </summary>
         public static IObservable<T> Empty<T>(IScheduler scheduler, T witness)
         {
@@ -106,7 +111,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Non-Terminating Observable. It's no returns, never finish.
+        ///     Non-Terminating Observable. It's no returns, never finish.
         /// </summary>
         public static IObservable<T> Never<T>()
         {
@@ -114,7 +119,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Non-Terminating Observable. It's no returns, never finish. witness is for type inference.
+        ///     Non-Terminating Observable. It's no returns, never finish. witness is for type inference.
         /// </summary>
         public static IObservable<T> Never<T>(T witness)
         {
@@ -122,30 +127,25 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Return single sequence Immediately.
+        ///     Return single sequence Immediately.
         /// </summary>
         public static IObservable<T> Return<T>(T value)
         {
-            return Return<T>(value, Scheduler.DefaultSchedulers.ConstantTimeOperations);
+            return Return(value, Scheduler.DefaultSchedulers.ConstantTimeOperations);
         }
 
         /// <summary>
-        /// Return single sequence on specified scheduler.
+        ///     Return single sequence on specified scheduler.
         /// </summary>
         public static IObservable<T> Return<T>(T value, IScheduler scheduler)
         {
-            if (scheduler == Scheduler.Immediate)
-            {
-                return new ImmediateReturnObservable<T>(value);
-            }
-            else
-            {
-                return new ReturnObservable<T>(value, scheduler);
-            }
+            if (scheduler == Scheduler.Immediate) return new ImmediateReturnObservable<T>(value);
+
+            return new ReturnObservable<T>(value, scheduler);
         }
 
         /// <summary>
-        /// Return single sequence Immediately, optimized for Unit(no allocate memory).
+        ///     Return single sequence Immediately, optimized for Unit(no allocate memory).
         /// </summary>
         public static IObservable<Unit> Return(Unit value)
         {
@@ -153,25 +153,25 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Return single sequence Immediately, optimized for Boolean(no allocate memory).
+        ///     Return single sequence Immediately, optimized for Boolean(no allocate memory).
         /// </summary>
         public static IObservable<bool> Return(bool value)
         {
-            return (value == true)
-                ? (IObservable<bool>)ImmutableReturnTrueObservable.Instance
-                : (IObservable<bool>)ImmutableReturnFalseObservable.Instance;
+            return value
+                ? ImmutableReturnTrueObservable.Instance
+                : ImmutableReturnFalseObservable.Instance;
         }
 
         /// <summary>
-        /// Return single sequence Immediately, optimized for Int32.
+        ///     Return single sequence Immediately, optimized for Int32.
         /// </summary>
-        public static IObservable<Int32> Return(int value)
+        public static IObservable<int> Return(int value)
         {
             return ImmutableReturnInt32Observable.GetInt32Observable(value);
         }
 
         /// <summary>
-        /// Same as Observable.Return(Unit.Default); but no allocate memory.
+        ///     Same as Observable.Return(Unit.Default); but no allocate memory.
         /// </summary>
         public static IObservable<Unit> ReturnUnit()
         {
@@ -179,7 +179,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Empty Observable. Returns only onError.
+        ///     Empty Observable. Returns only onError.
         /// </summary>
         public static IObservable<T> Throw<T>(Exception error)
         {
@@ -187,7 +187,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Empty Observable. Returns only onError. witness if for Type inference.
+        ///     Empty Observable. Returns only onError. witness if for Type inference.
         /// </summary>
         public static IObservable<T> Throw<T>(Exception error, T witness)
         {
@@ -195,7 +195,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Empty Observable. Returns only onError on specified scheduler.
+        ///     Empty Observable. Returns only onError on specified scheduler.
         /// </summary>
         public static IObservable<T> Throw<T>(Exception error, IScheduler scheduler)
         {
@@ -203,7 +203,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Empty Observable. Returns only onError on specified scheduler. witness if for Type inference.
+        ///     Empty Observable. Returns only onError on specified scheduler. witness if for Type inference.
         /// </summary>
         public static IObservable<T> Throw<T>(Exception error, IScheduler scheduler, T witness)
         {
@@ -250,16 +250,13 @@ namespace UniRx
             return RepeatInfinite(source).Concat();
         }
 
-        static IEnumerable<IObservable<T>> RepeatInfinite<T>(IObservable<T> source)
+        private static IEnumerable<IObservable<T>> RepeatInfinite<T>(IObservable<T> source)
         {
-            while (true)
-            {
-                yield return source;
-            }
+            while (true) yield return source;
         }
 
         /// <summary>
-        /// Same as Repeat() but if arriving contiguous "OnComplete" Repeat stops.
+        ///     Same as Repeat() but if arriving contiguous "OnComplete" Repeat stops.
         /// </summary>
         public static IObservable<T> RepeatSafe<T>(this IObservable<T> source)
         {
@@ -334,6 +331,7 @@ namespace UniRx
                         subject.OnError(exception);
                         return;
                     }
+
                     subject.OnNext(result);
                     subject.OnCompleted();
                 });
@@ -364,6 +362,7 @@ namespace UniRx
                         subject.OnError(exception);
                         return;
                     }
+
                     subject.OnNext(Unit.Default);
                     subject.OnCompleted();
                 });

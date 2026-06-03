@@ -12,11 +12,9 @@ namespace Zenject
     [NoReflectionBaking]
     public class AddToCurrentGameObjectComponentProvider : IProvider
     {
-        readonly Type _componentType;
-        readonly DiContainer _container;
-        readonly List<TypeValuePair> _extraArguments;
-        readonly object _concreteIdentifier;
-        readonly Action<InjectContext, object> _instantiateCallback;
+        private readonly object _concreteIdentifier;
+        private readonly List<TypeValuePair> _extraArguments;
+        private readonly Action<InjectContext, object> _instantiateCallback;
 
         public AddToCurrentGameObjectComponentProvider(
             DiContainer container, Type componentType,
@@ -26,35 +24,23 @@ namespace Zenject
             Assert.That(componentType.DerivesFrom<Component>());
 
             _extraArguments = extraArguments.ToList();
-            _componentType = componentType;
-            _container = container;
+            ComponentType = componentType;
+            Container = container;
             _concreteIdentifier = concreteIdentifier;
             _instantiateCallback = instantiateCallback;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        protected DiContainer Container { get; }
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        protected Type ComponentType { get; }
 
-        protected DiContainer Container
-        {
-            get { return _container; }
-        }
+        public bool IsCached => false;
 
-        protected Type ComponentType
-        {
-            get { return _componentType; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
-            return _componentType;
+            return ComponentType;
         }
 
         public void GetAllInstancesWithInjectSplit(
@@ -68,11 +54,11 @@ namespace Zenject
 
             object instance;
 
-            if (!_container.IsValidating || TypeAnalyzer.ShouldAllowDuringValidation(_componentType))
+            if (!Container.IsValidating || TypeAnalyzer.ShouldAllowDuringValidation(ComponentType))
             {
                 var gameObj = ((Component)context.ObjectInstance).gameObject;
 
-                var componentInstance = gameObj.GetComponent(_componentType);
+                var componentInstance = gameObj.GetComponent(ComponentType);
                 instance = componentInstance;
 
                 // Use componentInstance so that it triggers unity's overloaded comparison operator
@@ -85,11 +71,11 @@ namespace Zenject
                     return;
                 }
 
-                instance = gameObj.AddComponent(_componentType);
+                instance = gameObj.AddComponent(ComponentType);
             }
             else
             {
-                instance = new ValidationMarker(_componentType);
+                instance = new ValidationMarker(ComponentType);
             }
 
             // Note that we don't just use InstantiateComponentOnNewGameObjectExplicit here
@@ -102,15 +88,12 @@ namespace Zenject
                 extraArgs.AllocFreeAddRange(_extraArguments);
                 extraArgs.AllocFreeAddRange(args);
 
-                _container.InjectExplicit(instance, _componentType, extraArgs, context, _concreteIdentifier);
+                Container.InjectExplicit(instance, ComponentType, extraArgs, context, _concreteIdentifier);
 
                 Assert.That(extraArgs.IsEmpty());
                 ZenPools.DespawnList(extraArgs);
 
-                if (_instantiateCallback != null)
-                {
-                    _instantiateCallback(context, instance);
-                }
+                if (_instantiateCallback != null) _instantiateCallback(context, instance);
             };
 
             buffer.Add(instance);

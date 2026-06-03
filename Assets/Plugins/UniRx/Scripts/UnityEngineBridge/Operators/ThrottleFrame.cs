@@ -1,20 +1,20 @@
-﻿using System;
-
-#if UniRxLibrary
+﻿#if UniRxLibrary
 using UnityObservable = UniRx.ObservableUnity;
 #else
 using UnityObservable = UniRx.Observable;
 #endif
+using System;
 
 namespace UniRx.Operators
 {
     internal class ThrottleFrameObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly int frameCount;
-        readonly FrameCountType frameCountType;
+        private readonly int frameCount;
+        private readonly FrameCountType frameCountType;
+        private readonly IObservable<T> source;
 
-        public ThrottleFrameObservable(IObservable<T> source, int frameCount, FrameCountType frameCountType) : base(source.IsRequiredSubscribeOnCurrentThread())
+        public ThrottleFrameObservable(IObservable<T> source, int frameCount, FrameCountType frameCountType) : base(
+            source.IsRequiredSubscribeOnCurrentThread())
         {
             this.source = source;
             this.frameCount = frameCount;
@@ -26,16 +26,17 @@ namespace UniRx.Operators
             return new ThrottleFrame(this, observer, cancel).Run();
         }
 
-        class ThrottleFrame : OperatorObserverBase<T, T>
+        private class ThrottleFrame : OperatorObserverBase<T, T>
         {
-            readonly ThrottleFrameObservable<T> parent;
-            readonly object gate = new object();
-            T latestValue = default(T);
-            bool hasValue = false;
-            SerialDisposable cancelable;
-            ulong id = 0;
+            private readonly object gate = new();
+            private readonly ThrottleFrameObservable<T> parent;
+            private SerialDisposable cancelable;
+            private bool hasValue;
+            private ulong id;
+            private T latestValue;
 
-            public ThrottleFrame(ThrottleFrameObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public ThrottleFrame(ThrottleFrameObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(
+                observer, cancel)
             {
                 this.parent = parent;
             }
@@ -73,7 +74,14 @@ namespace UniRx.Operators
                 {
                     hasValue = false;
                     id = unchecked(id + 1);
-                    try { observer.OnError(error); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(error);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
             }
 
@@ -83,20 +91,24 @@ namespace UniRx.Operators
 
                 lock (gate)
                 {
-                    if (hasValue)
-                    {
-                        observer.OnNext(latestValue);
-                    }
+                    if (hasValue) observer.OnNext(latestValue);
                     hasValue = false;
                     id = unchecked(id + 1);
-                    try { observer.OnCompleted(); } finally { Dispose(); }
+                    try
+                    {
+                        observer.OnCompleted();
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
             }
 
-            class ThrottleFrameTick : IObserver<long>
+            private class ThrottleFrameTick : IObserver<long>
             {
-                readonly ThrottleFrame parent;
-                readonly ulong currentid;
+                private readonly ulong currentid;
+                private readonly ThrottleFrame parent;
 
                 public ThrottleFrameTick(ThrottleFrame parent, ulong currentid)
                 {
@@ -116,10 +128,7 @@ namespace UniRx.Operators
                 {
                     lock (parent.gate)
                     {
-                        if (parent.hasValue && parent.id == currentid)
-                        {
-                            parent.observer.OnNext(parent.latestValue);
-                        }
+                        if (parent.hasValue && parent.id == currentid) parent.observer.OnNext(parent.latestValue);
                         parent.hasValue = false;
                     }
                 }

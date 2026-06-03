@@ -13,13 +13,12 @@ namespace Zenject.Internal
     [NoReflectionBaking]
     public class DecoratorProvider<TContract> : IDecoratorProvider
     {
-        readonly Dictionary<IProvider, List<object>> _cachedInstances =
-            new Dictionary<IProvider, List<object>>();
+        private readonly Dictionary<IProvider, List<object>> _cachedInstances = new();
 
-        readonly DiContainer _container;
-        readonly List<Guid> _factoryBindIds = new List<Guid>();
+        private readonly DiContainer _container;
+        private readonly List<Guid> _factoryBindIds = new();
 
-        List<IFactory<TContract, TContract>> _decoratorFactories;
+        private List<IFactory<TContract, TContract>> _decoratorFactories;
 
 #if ZEN_MULTITHREADING
         readonly object _locker = new object();
@@ -35,13 +34,13 @@ namespace Zenject.Internal
             _factoryBindIds.Add(factoryBindId);
         }
 
-        void LazyInitializeDecoratorFactories()
+        private void LazyInitializeDecoratorFactories()
         {
             if (_decoratorFactories == null)
             {
                 _decoratorFactories = new List<IFactory<TContract, TContract>>();
 
-                for (int i = 0; i < _factoryBindIds.Count; i++)
+                for (var i = 0; i < _factoryBindIds.Count; i++)
                 {
                     var bindId = _factoryBindIds[i];
                     var factory = _container.ResolveId<IFactory<TContract, TContract>>(bindId);
@@ -77,25 +76,20 @@ namespace Zenject.Internal
             }
         }
 
-        void WrapProviderInstances(IProvider provider, InjectContext context, List<object> buffer)
+        private void WrapProviderInstances(IProvider provider, InjectContext context, List<object> buffer)
         {
             LazyInitializeDecoratorFactories();
 
             provider.GetAllInstances(context, buffer);
 
-            for (int i = 0; i < buffer.Count; i++)
-            {
-                buffer[i] = DecorateInstance(buffer[i], context);
-            }
+            for (var i = 0; i < buffer.Count; i++) buffer[i] = DecorateInstance(buffer[i], context);
         }
 
-        object DecorateInstance(object instance, InjectContext context)
+        private object DecorateInstance(object instance, InjectContext context)
         {
-            for (int i = 0; i < _decoratorFactories.Count; i++)
-            {
+            for (var i = 0; i < _decoratorFactories.Count; i++)
                 instance = _decoratorFactories[i].Create(
-                    context.Container.IsValidating ? default(TContract) : (TContract)instance);
-            }
+                    context.Container.IsValidating ? default : (TContract)instance);
 
             return instance;
         }

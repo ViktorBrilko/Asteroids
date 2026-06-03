@@ -1,14 +1,13 @@
 ﻿using System;
-using UniRx.Operators;
 
 namespace UniRx.Operators
 {
     internal class SkipObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly int count;
-        readonly TimeSpan duration;
+        private readonly int count;
+        private readonly TimeSpan duration;
         internal readonly IScheduler scheduler; // public for optimization check
+        private readonly IObservable<T> source;
 
         public SkipObservable(IObservable<T> source, int count)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -44,59 +43,64 @@ namespace UniRx.Operators
             // xs.Skip(2s) = 2s
             // xs.Skip(2s).Skip(3s) = 3s
 
-            return (duration <= this.duration)
+            return duration <= this.duration
                 ? this
                 : new SkipObservable<T>(source, duration, scheduler);
         }
 
         protected override IDisposable SubscribeCore(IObserver<T> observer, IDisposable cancel)
         {
-            if (scheduler == null)
-            {
-                return source.Subscribe(new Skip(this, observer, cancel));
-            }
-            else
-            {
-                return new Skip_(this, observer, cancel).Run();
-            }
+            if (scheduler == null) return source.Subscribe(new Skip(this, observer, cancel));
+
+            return new Skip_(this, observer, cancel).Run();
         }
 
-        class Skip : OperatorObserverBase<T, T>
+        private class Skip : OperatorObserverBase<T, T>
         {
-            int remaining;
+            private int remaining;
 
             public Skip(SkipObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
             {
-                this.remaining = parent.count;
+                remaining = parent.count;
             }
 
             public override void OnNext(T value)
             {
                 if (remaining <= 0)
-                {
-                    base.observer.OnNext(value);
-                }
+                    observer.OnNext(value);
                 else
-                {
                     remaining--;
-                }
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
 
-        class Skip_ : OperatorObserverBase<T, T>
+        private class Skip_ : OperatorObserverBase<T, T>
         {
-            readonly SkipObservable<T> parent;
-            volatile bool open;
+            private readonly SkipObservable<T> parent;
+            private volatile bool open;
 
             public Skip_(SkipObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
             {
@@ -111,27 +115,42 @@ namespace UniRx.Operators
                 return StableCompositeDisposable.Create(d1, d2);
             }
 
-            void Tick()
+            private void Tick()
             {
                 open = true;
             }
 
             public override void OnNext(T value)
             {
-                if (open)
-                {
-                    base.observer.OnNext(value);
-                }
+                if (open) observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); } finally { Dispose(); };
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); } finally { Dispose(); };
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
+
+                ;
             }
         }
     }

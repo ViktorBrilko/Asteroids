@@ -29,26 +29,26 @@ namespace MVVM
         {
             if (viewMember.IsDefined(typeof(DataAttribute)))
             {
-                FieldInfo viewField = viewMember as FieldInfo;
+                var viewField = viewMember as FieldInfo;
                 view = viewField!.GetValue(parentView);
 
                 if (modelMember.IsDefined(typeof(DataAttribute)))
                 {
-                    FieldInfo modelField = modelMember as FieldInfo;
+                    var modelField = modelMember as FieldInfo;
                     model = modelField!.GetValue(parentModel);
                     return true;
                 }
 
                 if (modelMember.IsDefined(typeof(MethodAttribute)))
                 {
-                    MethodInfo modelMethod = modelMember as MethodInfo;
+                    var modelMethod = modelMember as MethodInfo;
                     model = Utils.CreateActionDelegate(modelMethod, parentModel);
                     return true;
                 }
 
                 if (modelMember.IsDefined(typeof(SetterAttribute)))
                 {
-                    PropertyInfo modelProperty = modelMember as PropertyInfo;
+                    var modelProperty = modelMember as PropertyInfo;
                     model = Utils.CreateActionDelegate(modelProperty!.SetMethod, parentModel);
                     return true;
                 }
@@ -77,12 +77,12 @@ namespace MVVM
         {
             if (viewMember.IsDefined(typeof(SetterAttribute)))
             {
-                PropertyInfo viewProperty = viewMember as PropertyInfo;
+                var viewProperty = viewMember as PropertyInfo;
                 view = Utils.CreateActionDelegate(viewProperty!.SetMethod, parentView);
 
                 if (modelMember.IsDefined(typeof(DataAttribute)))
                 {
-                    FieldInfo modelField = modelMember as FieldInfo;
+                    var modelField = modelMember as FieldInfo;
                     model = modelField!.GetValue(parentModel);
                     return true;
                 }
@@ -111,12 +111,12 @@ namespace MVVM
         {
             if (viewMember.IsDefined(typeof(MethodAttribute)))
             {
-                MethodInfo viewMethod = viewMember as MethodInfo;
+                var viewMethod = viewMember as MethodInfo;
                 view = Utils.CreateActionDelegate(viewMethod, parentView);
 
                 if (modelMember.IsDefined(typeof(DataAttribute)))
                 {
-                    FieldInfo modelField = modelMember as FieldInfo;
+                    var modelField = modelMember as FieldInfo;
                     model = modelField!.GetValue(parentModel);
                     return true;
                 }

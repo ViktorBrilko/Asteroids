@@ -46,14 +46,11 @@ namespace Zenject
             BindInfo.ToTypes.AddRange(concreteTypes);
 
             if (BindInfo.ToTypes.Count > 1 && BindInfo.ContractTypes.Count > 1)
-            {
                 // Be more lenient in this case to behave similar to convention based bindings
                 BindInfo.InvalidBindResponse = InvalidBindResponses.Skip;
-            }
             else
-            {
-                BindingUtil.AssertIsDerivedFromTypes(concreteTypes, BindInfo.ContractTypes, BindInfo.InvalidBindResponse);
-            }
+                BindingUtil.AssertIsDerivedFromTypes(concreteTypes, BindInfo.ContractTypes,
+                    BindInfo.InvalidBindResponse);
 
             return this;
         }

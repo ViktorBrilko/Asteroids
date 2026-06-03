@@ -4,9 +4,9 @@ namespace UniRx.Operators
 {
     internal class SingleObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly bool useDefault;
-        readonly Func<T, bool> predicate;
+        private readonly Func<T, bool> predicate;
+        private readonly IObservable<T> source;
+        private readonly bool useDefault;
 
         public SingleObservable(IObservable<T> source, bool useDefault)
             : base(source.IsRequiredSubscribeOnCurrentThread())
@@ -25,34 +25,36 @@ namespace UniRx.Operators
 
         protected override IDisposable SubscribeCore(IObserver<T> observer, IDisposable cancel)
         {
-            if (predicate == null)
-            {
-                return source.Subscribe(new Single(this, observer, cancel));
-            }
-            else
-            {
-                return source.Subscribe(new Single_(this, observer, cancel));
-            }
+            if (predicate == null) return source.Subscribe(new Single(this, observer, cancel));
+
+            return source.Subscribe(new Single_(this, observer, cancel));
         }
 
-        class Single : OperatorObserverBase<T, T>
+        private class Single : OperatorObserverBase<T, T>
         {
-            readonly SingleObservable<T> parent;
-            bool seenValue;
-            T lastValue;
+            private readonly SingleObservable<T> parent;
+            private T lastValue;
+            private bool seenValue;
 
-            public Single(SingleObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public Single(SingleObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer,
+                cancel)
             {
                 this.parent = parent;
-                this.seenValue = false;
+                seenValue = false;
             }
 
             public override void OnNext(T value)
             {
                 if (seenValue)
                 {
-                    try { observer.OnError(new InvalidOperationException("sequence is not single")); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(new InvalidOperationException("sequence is not single"));
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
                 else
                 {
@@ -63,8 +65,14 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
@@ -72,43 +80,58 @@ namespace UniRx.Operators
                 if (parent.useDefault)
                 {
                     if (!seenValue)
-                    {
-                        observer.OnNext(default(T));
-                    }
+                        observer.OnNext(default);
                     else
-                    {
                         observer.OnNext(lastValue);
+                    try
+                    {
+                        observer.OnCompleted();
                     }
-                    try { observer.OnCompleted(); }
-                    finally { Dispose(); }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
                 else
                 {
                     if (!seenValue)
                     {
-                        try { observer.OnError(new InvalidOperationException("sequence is empty")); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnError(new InvalidOperationException("sequence is empty"));
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                     }
                     else
                     {
                         observer.OnNext(lastValue);
-                        try { observer.OnCompleted(); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                     }
                 }
             }
         }
 
-        class Single_ : OperatorObserverBase<T, T>
+        private class Single_ : OperatorObserverBase<T, T>
         {
-            readonly SingleObservable<T> parent;
-            bool seenValue;
-            T lastValue;
+            private readonly SingleObservable<T> parent;
+            private T lastValue;
+            private bool seenValue;
 
-            public Single_(SingleObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
+            public Single_(SingleObservable<T> parent, IObserver<T> observer, IDisposable cancel) : base(observer,
+                cancel)
             {
                 this.parent = parent;
-                this.seenValue = false;
+                seenValue = false;
             }
 
             public override void OnNext(T value)
@@ -120,8 +143,15 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
@@ -129,9 +159,14 @@ namespace UniRx.Operators
                 {
                     if (seenValue)
                     {
-                        try { observer.OnError(new InvalidOperationException("sequence is not single")); }
-                        finally { Dispose(); }
-                        return;
+                        try
+                        {
+                            observer.OnError(new InvalidOperationException("sequence is not single"));
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                     }
                     else
                     {
@@ -143,8 +178,14 @@ namespace UniRx.Operators
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
@@ -152,28 +193,42 @@ namespace UniRx.Operators
                 if (parent.useDefault)
                 {
                     if (!seenValue)
-                    {
-                        observer.OnNext(default(T));
-                    }
+                        observer.OnNext(default);
                     else
-                    {
                         observer.OnNext(lastValue);
+                    try
+                    {
+                        observer.OnCompleted();
                     }
-                    try { observer.OnCompleted(); }
-                    finally { Dispose(); }
+                    finally
+                    {
+                        Dispose();
+                    }
                 }
                 else
                 {
                     if (!seenValue)
                     {
-                        try { observer.OnError(new InvalidOperationException("sequence is empty")); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnError(new InvalidOperationException("sequence is empty"));
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                     }
                     else
                     {
                         observer.OnNext(lastValue);
-                        try { observer.OnCompleted(); }
-                        finally { Dispose(); }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
                     }
                 }
             }

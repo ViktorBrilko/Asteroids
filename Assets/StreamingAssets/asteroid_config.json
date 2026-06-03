@@ -1,10 +1,10 @@
 {
-  "MoveSpeed" : 5,
-  "Damage" : 1,
-  "RotationSpeed" : 70,
-  "Health" : 20, 
-  "AfterCollisionSpeed" : 7.5, 
-  "CollisionEffectTime" : 1000,
-  "MinChildren" : 1,
-  "MaxChildren" : 3
+  "MoveSpeed": 5,
+  "Damage": 1,
+  "RotationSpeed": 70,
+  "Health": 20,
+  "AfterCollisionSpeed": 7.5,
+  "CollisionEffectTime": 1000,
+  "MinChildren": 1,
+  "MaxChildren": 3
 }

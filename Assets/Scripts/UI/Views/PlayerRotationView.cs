@@ -6,7 +6,6 @@ namespace UI.Views
 {
     public class PlayerRotationView : MonoBehaviour
     {
-        [Data("Rotation")]
-        [SerializeField] public  TMP_Text _rotationText;
+        [Data("Rotation")] [SerializeField] public TMP_Text _rotationText;
     }
 }

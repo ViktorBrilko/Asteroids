@@ -11,17 +11,19 @@ using System.Threading;
 namespace UniRx
 {
     /// <summary>
-    /// Represents a disposable resource that has an associated <seealso cref="T:System.Threading.CancellationToken"/> that will be set to the cancellation requested state upon disposal.
+    ///     Represents a disposable resource that has an associated <seealso cref="T:System.Threading.CancellationToken" />
+    ///     that will be set to the cancellation requested state upon disposal.
     /// </summary>
     public sealed class CancellationDisposable : ICancelable
     {
         private readonly CancellationTokenSource _cts;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:System.Reactive.Disposables.CancellationDisposable"/> class that uses an existing <seealso cref="T:System.Threading.CancellationTokenSource"/>.
+        ///     Initializes a new instance of the <see cref="T:System.Reactive.Disposables.CancellationDisposable" /> class that
+        ///     uses an existing <seealso cref="T:System.Threading.CancellationTokenSource" />.
         /// </summary>
-        /// <param name="cts"><seealso cref="T:System.Threading.CancellationTokenSource"/> used for cancellation.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="cts"/> is null.</exception>
+        /// <param name="cts"><seealso cref="T:System.Threading.CancellationTokenSource" /> used for cancellation.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="cts" /> is null.</exception>
         public CancellationDisposable(CancellationTokenSource cts)
         {
             if (cts == null)
@@ -31,7 +33,8 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:System.Reactive.Disposables.CancellationDisposable"/> class that uses a new <seealso cref="T:System.Threading.CancellationTokenSource"/>.
+        ///     Initializes a new instance of the <see cref="T:System.Reactive.Disposables.CancellationDisposable" /> class that
+        ///     uses a new <seealso cref="T:System.Threading.CancellationTokenSource" />.
         /// </summary>
         public CancellationDisposable()
             : this(new CancellationTokenSource())
@@ -39,15 +42,12 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Gets the <see cref="T:System.Threading.CancellationToken"/> used by this CancellationDisposable.
+        ///     Gets the <see cref="T:System.Threading.CancellationToken" /> used by this CancellationDisposable.
         /// </summary>
-        public CancellationToken Token
-        {
-            get { return _cts.Token; }
-        }
+        public CancellationToken Token => _cts.Token;
 
         /// <summary>
-        /// Cancels the underlying <seealso cref="T:System.Threading.CancellationTokenSource"/>.
+        ///     Cancels the underlying <seealso cref="T:System.Threading.CancellationTokenSource" />.
         /// </summary>
         public void Dispose()
         {
@@ -55,12 +55,9 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Gets a value that indicates whether the object is disposed.
+        ///     Gets a value that indicates whether the object is disposed.
         /// </summary>
-        public bool IsDisposed
-        {
-            get { return _cts.IsCancellationRequested; }
-        }
+        public bool IsDisposed => _cts.IsCancellationRequested;
     }
 }
 

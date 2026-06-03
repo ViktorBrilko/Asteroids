@@ -9,22 +9,16 @@ namespace Zenject
     [NoReflectionBaking]
     public class MethodProviderWithContainer<TValue> : IProvider
     {
-        readonly Func<DiContainer, TValue> _method;
+        private readonly Func<DiContainer, TValue> _method;
 
         public MethodProviderWithContainer(Func<DiContainer, TValue> method)
         {
             _method = method;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -41,14 +35,10 @@ namespace Zenject
 
             injectAction = null;
             if (context.Container.IsValidating)
-            {
                 // Don't do anything when validating, we can't make any assumptions on the given method
                 buffer.Add(new ValidationMarker(typeof(TValue)));
-            }
             else
-            {
                 buffer.Add(_method(context.Container));
-            }
         }
     }
 
@@ -57,22 +47,16 @@ namespace Zenject
     [NoReflectionBaking]
     public class MethodProviderWithContainer<TParam1, TValue> : IProvider
     {
-        readonly Func<DiContainer, TParam1, TValue> _method;
+        private readonly Func<DiContainer, TParam1, TValue> _method;
 
         public MethodProviderWithContainer(Func<DiContainer, TParam1, TValue> method)
         {
             _method = method;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -90,17 +74,13 @@ namespace Zenject
 
             injectAction = null;
             if (context.Container.IsValidating)
-            {
                 // Don't do anything when validating, we can't make any assumptions on the given method
                 buffer.Add(new ValidationMarker(typeof(TValue)));
-            }
             else
-            {
                 buffer.Add(
                     _method(
                         context.Container,
                         (TParam1)args[0].Value));
-            }
         }
     }
 
@@ -109,22 +89,16 @@ namespace Zenject
     [NoReflectionBaking]
     public class MethodProviderWithContainer<TParam1, TParam2, TValue> : IProvider
     {
-        readonly Func<DiContainer, TParam1, TParam2, TValue> _method;
+        private readonly Func<DiContainer, TParam1, TParam2, TValue> _method;
 
         public MethodProviderWithContainer(Func<DiContainer, TParam1, TParam2, TValue> method)
         {
             _method = method;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -143,18 +117,14 @@ namespace Zenject
 
             injectAction = null;
             if (context.Container.IsValidating)
-            {
                 // Don't do anything when validating, we can't make any assumptions on the given method
                 buffer.Add(new ValidationMarker(typeof(TValue)));
-            }
             else
-            {
                 buffer.Add(
                     _method(
                         context.Container,
                         (TParam1)args[0].Value,
                         (TParam2)args[1].Value));
-            }
         }
     }
 
@@ -163,22 +133,16 @@ namespace Zenject
     [NoReflectionBaking]
     public class MethodProviderWithContainer<TParam1, TParam2, TParam3, TValue> : IProvider
     {
-        readonly Func<DiContainer, TParam1, TParam2, TParam3, TValue> _method;
+        private readonly Func<DiContainer, TParam1, TParam2, TParam3, TValue> _method;
 
         public MethodProviderWithContainer(Func<DiContainer, TParam1, TParam2, TParam3, TValue> method)
         {
             _method = method;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -198,19 +162,15 @@ namespace Zenject
 
             injectAction = null;
             if (context.Container.IsValidating)
-            {
                 // Don't do anything when validating, we can't make any assumptions on the given method
                 buffer.Add(new ValidationMarker(typeof(TValue)));
-            }
             else
-            {
                 buffer.Add(
                     _method(
                         context.Container,
                         (TParam1)args[0].Value,
                         (TParam2)args[1].Value,
                         (TParam3)args[2].Value));
-            }
         }
     }
 
@@ -219,7 +179,7 @@ namespace Zenject
     [NoReflectionBaking]
     public class MethodProviderWithContainer<TParam1, TParam2, TParam3, TParam4, TValue> : IProvider
     {
-        readonly
+        private readonly
 #if !NET_4_6
             ModestTree.Util.
 #endif
@@ -229,20 +189,14 @@ namespace Zenject
 #if !NET_4_6
             ModestTree.Util.
 #endif
-            Func<DiContainer, TParam1, TParam2, TParam3, TParam4, TValue> method)
+                Func<DiContainer, TParam1, TParam2, TParam3, TParam4, TValue> method)
         {
             _method = method;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -263,12 +217,9 @@ namespace Zenject
 
             injectAction = null;
             if (context.Container.IsValidating)
-            {
                 // Don't do anything when validating, we can't make any assumptions on the given method
                 buffer.Add(new ValidationMarker(typeof(TValue)));
-            }
             else
-            {
                 buffer.Add(
                     _method(
                         context.Container,
@@ -276,7 +227,6 @@ namespace Zenject
                         (TParam2)args[1].Value,
                         (TParam3)args[2].Value,
                         (TParam4)args[3].Value));
-            }
         }
     }
 
@@ -285,7 +235,7 @@ namespace Zenject
     [NoReflectionBaking]
     public class MethodProviderWithContainer<TParam1, TParam2, TParam3, TParam4, TParam5, TValue> : IProvider
     {
-        readonly
+        private readonly
 #if !NET_4_6
             ModestTree.Util.
 #endif
@@ -295,20 +245,14 @@ namespace Zenject
 #if !NET_4_6
             ModestTree.Util.
 #endif
-            Func<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TValue> method)
+                Func<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TValue> method)
         {
             _method = method;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -330,12 +274,9 @@ namespace Zenject
 
             injectAction = null;
             if (context.Container.IsValidating)
-            {
                 // Don't do anything when validating, we can't make any assumptions on the given method
                 buffer.Add(new ValidationMarker(typeof(TValue)));
-            }
             else
-            {
                 buffer.Add(
                     _method(
                         context.Container,
@@ -344,7 +285,6 @@ namespace Zenject
                         (TParam3)args[2].Value,
                         (TParam4)args[3].Value,
                         (TParam5)args[4].Value));
-            }
         }
     }
 
@@ -353,7 +293,7 @@ namespace Zenject
     [NoReflectionBaking]
     public class MethodProviderWithContainer<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TValue> : IProvider
     {
-        readonly
+        private readonly
 #if !NET_4_6
             ModestTree.Util.
 #endif
@@ -363,20 +303,14 @@ namespace Zenject
 #if !NET_4_6
             ModestTree.Util.
 #endif
-            Func<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TValue> method)
+                Func<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TValue> method)
         {
             _method = method;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -399,12 +333,9 @@ namespace Zenject
 
             injectAction = null;
             if (context.Container.IsValidating)
-            {
                 // Don't do anything when validating, we can't make any assumptions on the given method
                 buffer.Add(new ValidationMarker(typeof(TValue)));
-            }
             else
-            {
                 buffer.Add(
                     _method(
                         context.Container,
@@ -414,39 +345,35 @@ namespace Zenject
                         (TParam4)args[3].Value,
                         (TParam5)args[4].Value,
                         (TParam6)args[5].Value));
-            }
         }
     }
 
     // Ten params
 
     [NoReflectionBaking]
-    public class MethodProviderWithContainer<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9, TParam10, TValue> : IProvider
+    public class MethodProviderWithContainer<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8,
+        TParam9, TParam10, TValue> : IProvider
     {
-        readonly
+        private readonly
 #if !NET_4_6
             ModestTree.Util.
 #endif
-            Func<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9, TParam10, TValue> _method;
+            Func<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9, TParam10,
+                TValue> _method;
 
         public MethodProviderWithContainer(
 #if !NET_4_6
             ModestTree.Util.
 #endif
-            Func<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9, TParam10, TValue> method)
+                Func<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9,
+                    TParam10, TValue> method)
         {
             _method = method;
         }
 
-        public bool IsCached
-        {
-            get { return false; }
-        }
+        public bool IsCached => false;
 
-        public bool TypeVariesBasedOnMemberType
-        {
-            get { return false; }
-        }
+        public bool TypeVariesBasedOnMemberType => false;
 
         public Type GetInstanceType(InjectContext context)
         {
@@ -473,12 +400,9 @@ namespace Zenject
 
             injectAction = null;
             if (context.Container.IsValidating)
-            {
                 // Don't do anything when validating, we can't make any assumptions on the given method
                 buffer.Add(new ValidationMarker(typeof(TValue)));
-            }
             else
-            {
                 buffer.Add(
                     _method(
                         context.Container,
@@ -492,8 +416,6 @@ namespace Zenject
                         (TParam8)args[7].Value,
                         (TParam9)args[8].Value,
                         (TParam10)args[9].Value));
-            }
         }
     }
 }
-

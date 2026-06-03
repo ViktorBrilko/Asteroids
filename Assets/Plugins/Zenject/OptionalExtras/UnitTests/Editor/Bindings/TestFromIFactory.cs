@@ -29,10 +29,7 @@ namespace Zenject.Tests.Bindings
                 Value = value;
             }
 
-            public string Value
-            {
-                get; private set;
-            }
+            public string Value { get; }
 
             public class Factory : PlaceholderFactory<Foo>
             {
@@ -41,8 +38,8 @@ namespace Zenject.Tests.Bindings
 
         public class FooFactory : IFactory<Foo>
         {
-            readonly string _value;
-            readonly DiContainer _container;
+            private readonly DiContainer _container;
+            private readonly string _value;
 
             public FooFactory(
                 DiContainer container,
@@ -54,7 +51,7 @@ namespace Zenject.Tests.Bindings
 
             public Foo Create()
             {
-                return _container.Instantiate<Foo>(new [] { _value });
+                return _container.Instantiate<Foo>(new[] { _value });
             }
         }
     }

@@ -1,5 +1,4 @@
-﻿
-using System.Collections;
+﻿using System.Collections;
 using ModestTree;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -9,30 +8,15 @@ namespace Zenject.Tests.Bindings
 {
     public class TestFromPrefab : ZenjectIntegrationTestFixture
     {
-        GameObject FooPrefab
-        {
-            get { return GetPrefab("Foo"); }
-        }
+        private GameObject FooPrefab => GetPrefab("Foo");
 
-        GameObject GorpPrefab
-        {
-            get { return GetPrefab("Gorp"); }
-        }
+        private GameObject GorpPrefab => GetPrefab("Gorp");
 
-        GameObject GorpAndQuxPrefab
-        {
-            get { return GetPrefab("GorpAndQux"); }
-        }
+        private GameObject GorpAndQuxPrefab => GetPrefab("GorpAndQux");
 
-        GameObject NorfPrefab
-        {
-            get { return GetPrefab("Norf"); }
-        }
+        private GameObject NorfPrefab => GetPrefab("Norf");
 
-        GameObject JimAndBobPrefab
-        {
-            get { return GetPrefab("JimAndBob"); }
-        }
+        private GameObject JimAndBobPrefab => GetPrefab("JimAndBob");
 
         [UnityTest]
         public IEnumerator TestTransient()
@@ -51,7 +35,8 @@ namespace Zenject.Tests.Bindings
         public IEnumerator TestSingle()
         {
             PreInstall();
-            Container.Bind(typeof(IFoo), typeof(Foo)).To<Foo>().FromComponentInNewPrefab(FooPrefab).AsSingle().NonLazy();
+            Container.Bind(typeof(IFoo), typeof(Foo)).To<Foo>().FromComponentInNewPrefab(FooPrefab).AsSingle()
+                .NonLazy();
 
             PostInstall();
 
@@ -193,15 +178,15 @@ namespace Zenject.Tests.Bindings
             yield break;
         }
 
-        GameObject GetPrefab(string name)
+        private GameObject GetPrefab(string name)
         {
             return FixtureUtil.GetPrefab("TestFromPrefab/{0}".Fmt(name));
         }
 
         public class JimAndBobRunner : IInitializable
         {
-            readonly Bob _bob;
-            readonly Jim _jim;
+            private readonly Bob _bob;
+            private readonly Jim _jim;
 
             public JimAndBobRunner(Jim jim, Bob bob)
             {
@@ -219,4 +204,3 @@ namespace Zenject.Tests.Bindings
         }
     }
 }
-

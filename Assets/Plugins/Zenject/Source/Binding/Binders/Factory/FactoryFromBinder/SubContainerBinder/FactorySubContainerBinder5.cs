@@ -1,4 +1,5 @@
-using System;
+using ModestTree.Util;
+using UnityEngine;
 
 namespace Zenject
 {
@@ -14,14 +15,13 @@ namespace Zenject
 
         public ScopeConcreteIdArgConditionCopyNonLazyBinder ByMethod(
 #if !NET_4_6
-            ModestTree.Util.
-#endif
-            Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5> installerMethod)
+            #endif
+                Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5> installerMethod)
         {
             var subcontainerBindInfo = new SubContainerCreatorBindInfo();
 
             ProviderFunc =
-                (container) => new SubContainerDependencyProvider(
+                container => new SubContainerDependencyProvider(
                     ContractType, SubIdentifier,
                     new SubContainerCreatorByMethod<TParam1, TParam2, TParam3, TParam4, TParam5>(
                         container, subcontainerBindInfo, installerMethod), false);
@@ -32,14 +32,13 @@ namespace Zenject
 #if !NOT_UNITY3D
         public NameTransformScopeConcreteIdArgConditionCopyNonLazyBinder ByNewGameObjectMethod(
 #if !NET_4_6
-            ModestTree.Util.
-#endif
-            Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5> installerMethod)
+            #endif
+                Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5> installerMethod)
         {
             var gameObjectInfo = new GameObjectCreationParameters();
 
             ProviderFunc =
-                (container) => new SubContainerDependencyProvider(
+                container => new SubContainerDependencyProvider(
                     ContractType, SubIdentifier,
                     new SubContainerCreatorByNewGameObjectMethod<TParam1, TParam2, TParam3, TParam4, TParam5>(
                         container, gameObjectInfo, installerMethod), false);
@@ -48,16 +47,15 @@ namespace Zenject
         }
 
         public NameTransformScopeConcreteIdArgConditionCopyNonLazyBinder ByNewPrefabMethod(
-            Func<InjectContext, UnityEngine.Object> prefabGetter,
+            System.Func<InjectContext, Object> prefabGetter,
 #if !NET_4_6
-            ModestTree.Util.
-#endif
-            Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5> installerMethod)
+            #endif
+                Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5> installerMethod)
         {
             var gameObjectInfo = new GameObjectCreationParameters();
 
             ProviderFunc =
-                (container) => new SubContainerDependencyProvider(
+                container => new SubContainerDependencyProvider(
                     ContractType, SubIdentifier,
                     new SubContainerCreatorByNewPrefabMethod<TParam1, TParam2, TParam3, TParam4, TParam5>(
                         container,
@@ -68,18 +66,17 @@ namespace Zenject
         }
 
         public NameTransformScopeConcreteIdArgConditionCopyNonLazyBinder ByNewPrefabMethod(
-            UnityEngine.Object prefab,
+            Object prefab,
 #if !NET_4_6
-            ModestTree.Util.
-#endif
-            Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5> installerMethod)
+            #endif
+                Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5> installerMethod)
         {
             BindingUtil.AssertIsValidPrefab(prefab);
 
             var gameObjectInfo = new GameObjectCreationParameters();
 
             ProviderFunc =
-                (container) => new SubContainerDependencyProvider(
+                container => new SubContainerDependencyProvider(
                     ContractType, SubIdentifier,
                     new SubContainerCreatorByNewPrefabMethod<TParam1, TParam2, TParam3, TParam4, TParam5>(
                         container,
@@ -92,16 +89,15 @@ namespace Zenject
         public NameTransformScopeConcreteIdArgConditionCopyNonLazyBinder ByNewPrefabResourceMethod(
             string resourcePath,
 #if !NET_4_6
-            ModestTree.Util.
-#endif
-            Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5> installerMethod)
+            #endif
+                Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5> installerMethod)
         {
             BindingUtil.AssertIsValidResourcePath(resourcePath);
 
             var gameObjectInfo = new GameObjectCreationParameters();
 
             ProviderFunc =
-                (container) => new SubContainerDependencyProvider(
+                container => new SubContainerDependencyProvider(
                     ContractType, SubIdentifier,
                     new SubContainerCreatorByNewPrefabMethod<TParam1, TParam2, TParam3, TParam4, TParam5>(
                         container,

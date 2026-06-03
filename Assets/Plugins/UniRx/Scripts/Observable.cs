@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using UniRx.InternalUtil;
 using UniRx.Operators;
 
@@ -15,7 +13,7 @@ namespace UniRx
 
     public static partial class Observable
     {
-        static readonly TimeSpan InfiniteTimeSpan = new TimeSpan(0, 0, 0, 0, -1); // from .NET 4.5
+        private static readonly TimeSpan InfiniteTimeSpan = new(0, 0, 0, 0, -1); // from .NET 4.5
 
         public static IObservable<TR> Select<T, TR>(this IObservable<T> source, Func<T, TR> selector)
         {
@@ -28,11 +26,8 @@ namespace UniRx
             //}
 
             // optimized path
-            var whereObservable = source as UniRx.Operators.WhereObservable<T>;
-            if (whereObservable != null)
-            {
-                return whereObservable.CombineSelector<TR>(selector);
-            }
+            var whereObservable = source as WhereObservable<T>;
+            if (whereObservable != null) return whereObservable.CombineSelector(selector);
 
             return new SelectObservable<T, TR>(source, selector);
         }
@@ -45,17 +40,11 @@ namespace UniRx
         public static IObservable<T> Where<T>(this IObservable<T> source, Func<T, bool> predicate)
         {
             // optimized path
-            var whereObservable = source as UniRx.Operators.WhereObservable<T>;
-            if (whereObservable != null)
-            {
-                return whereObservable.CombinePredicate(predicate);
-            }
+            var whereObservable = source as WhereObservable<T>;
+            if (whereObservable != null) return whereObservable.CombinePredicate(predicate);
 
-            var selectObservable = source as UniRx.Operators.ISelect<T>;
-            if (selectObservable != null)
-            {
-                return selectObservable.CombinePredicate(predicate);
-            }
+            var selectObservable = source as ISelect<T>;
+            if (selectObservable != null) return selectObservable.CombinePredicate(predicate);
 
             return new WhereObservable<T>(source, predicate);
         }
@@ -66,7 +55,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Lightweight SelectMany for Single Async Operation.
+        ///     Lightweight SelectMany for Single Async Operation.
         /// </summary>
         public static IObservable<TR> ContinueWith<T, TR>(this IObservable<T> source, IObservable<TR> other)
         {
@@ -74,7 +63,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Lightweight SelectMany for Single Async Operation.
+        ///     Lightweight SelectMany for Single Async Operation.
         /// </summary>
         public static IObservable<TR> ContinueWith<T, TR>(this IObservable<T> source, Func<T, IObservable<TR>> selector)
         {
@@ -91,37 +80,47 @@ namespace UniRx
             return new SelectManyObservable<T, TR>(source, selector);
         }
 
-        public static IObservable<TResult> SelectMany<TSource, TResult>(this IObservable<TSource> source, Func<TSource, int, IObservable<TResult>> selector)
+        public static IObservable<TResult> SelectMany<TSource, TResult>(this IObservable<TSource> source,
+            Func<TSource, int, IObservable<TResult>> selector)
         {
             return new SelectManyObservable<TSource, TResult>(source, selector);
         }
 
-        public static IObservable<TR> SelectMany<T, TC, TR>(this IObservable<T> source, Func<T, IObservable<TC>> collectionSelector, Func<T, TC, TR> resultSelector)
+        public static IObservable<TR> SelectMany<T, TC, TR>(this IObservable<T> source,
+            Func<T, IObservable<TC>> collectionSelector, Func<T, TC, TR> resultSelector)
         {
             return new SelectManyObservable<T, TC, TR>(source, collectionSelector, resultSelector);
         }
 
-        public static IObservable<TResult> SelectMany<TSource, TCollection, TResult>(this IObservable<TSource> source, Func<TSource, int, IObservable<TCollection>> collectionSelector, Func<TSource, int, TCollection, int, TResult> resultSelector)
+        public static IObservable<TResult> SelectMany<TSource, TCollection, TResult>(this IObservable<TSource> source,
+            Func<TSource, int, IObservable<TCollection>> collectionSelector,
+            Func<TSource, int, TCollection, int, TResult> resultSelector)
         {
             return new SelectManyObservable<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
         }
 
-        public static IObservable<TResult> SelectMany<TSource, TResult>(this IObservable<TSource> source, Func<TSource, IEnumerable<TResult>> selector)
+        public static IObservable<TResult> SelectMany<TSource, TResult>(this IObservable<TSource> source,
+            Func<TSource, IEnumerable<TResult>> selector)
         {
             return new SelectManyObservable<TSource, TResult>(source, selector);
         }
 
-        public static IObservable<TResult> SelectMany<TSource, TResult>(this IObservable<TSource> source, Func<TSource, int, IEnumerable<TResult>> selector)
+        public static IObservable<TResult> SelectMany<TSource, TResult>(this IObservable<TSource> source,
+            Func<TSource, int, IEnumerable<TResult>> selector)
         {
             return new SelectManyObservable<TSource, TResult>(source, selector);
         }
 
-        public static IObservable<TResult> SelectMany<TSource, TCollection, TResult>(this IObservable<TSource> source, Func<TSource, IEnumerable<TCollection>> collectionSelector, Func<TSource, TCollection, TResult> resultSelector)
+        public static IObservable<TResult> SelectMany<TSource, TCollection, TResult>(this IObservable<TSource> source,
+            Func<TSource, IEnumerable<TCollection>> collectionSelector,
+            Func<TSource, TCollection, TResult> resultSelector)
         {
             return new SelectManyObservable<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
         }
 
-        public static IObservable<TResult> SelectMany<TSource, TCollection, TResult>(this IObservable<TSource> source, Func<TSource, int, IEnumerable<TCollection>> collectionSelector, Func<TSource, int, TCollection, int, TResult> resultSelector)
+        public static IObservable<TResult> SelectMany<TSource, TCollection, TResult>(this IObservable<TSource> source,
+            Func<TSource, int, IEnumerable<TCollection>> collectionSelector,
+            Func<TSource, int, TCollection, int, TResult> resultSelector)
         {
             return new SelectManyObservable<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
         }
@@ -156,7 +155,8 @@ namespace UniRx
             return new DoObservable<T>(source, onNext, Stubs.Throw, onCompleted);
         }
 
-        public static IObservable<T> Do<T>(this IObservable<T> source, Action<T> onNext, Action<Exception> onError, Action onCompleted)
+        public static IObservable<T> Do<T>(this IObservable<T> source, Action<T> onNext, Action<Exception> onError,
+            Action onCompleted)
         {
             return new DoObservable<T>(source, onNext, onError, onCompleted);
         }
@@ -198,7 +198,7 @@ namespace UniRx
 
         public static IObservable<T> DefaultIfEmpty<T>(this IObservable<T> source)
         {
-            return new DefaultIfEmptyObservable<T>(source, default(T));
+            return new DefaultIfEmptyObservable<T>(source, default);
         }
 
         public static IObservable<T> DefaultIfEmpty<T>(this IObservable<T> source, T defaultValue)
@@ -217,12 +217,14 @@ namespace UniRx
             return new DistinctObservable<TSource>(source, comparer);
         }
 
-        public static IObservable<TSource> Distinct<TSource>(this IObservable<TSource> source, IEqualityComparer<TSource> comparer)
+        public static IObservable<TSource> Distinct<TSource>(this IObservable<TSource> source,
+            IEqualityComparer<TSource> comparer)
         {
             return new DistinctObservable<TSource>(source, comparer);
         }
 
-        public static IObservable<TSource> Distinct<TSource, TKey>(this IObservable<TSource> source, Func<TSource, TKey> keySelector)
+        public static IObservable<TSource> Distinct<TSource, TKey>(this IObservable<TSource> source,
+            Func<TSource, TKey> keySelector)
         {
 #if !UniRxLibrary
             var comparer = UnityEqualityComparer.GetDefault<TKey>();
@@ -233,7 +235,8 @@ namespace UniRx
             return new DistinctObservable<TSource, TKey>(source, keySelector, comparer);
         }
 
-        public static IObservable<TSource> Distinct<TSource, TKey>(this IObservable<TSource> source, Func<TSource, TKey> keySelector, IEqualityComparer<TKey> comparer)
+        public static IObservable<TSource> Distinct<TSource, TKey>(this IObservable<TSource> source,
+            Func<TSource, TKey> keySelector, IEqualityComparer<TKey> comparer)
         {
             return new DistinctObservable<TSource, TKey>(source, keySelector, comparer);
         }
@@ -256,7 +259,8 @@ namespace UniRx
             return new DistinctUntilChangedObservable<T>(source, comparer);
         }
 
-        public static IObservable<T> DistinctUntilChanged<T, TKey>(this IObservable<T> source, Func<T, TKey> keySelector)
+        public static IObservable<T> DistinctUntilChanged<T, TKey>(this IObservable<T> source,
+            Func<T, TKey> keySelector)
         {
 #if !UniRxLibrary
             var comparer = UnityEqualityComparer.GetDefault<TKey>();
@@ -267,7 +271,8 @@ namespace UniRx
             return new DistinctUntilChangedObservable<T, TKey>(source, keySelector, comparer);
         }
 
-        public static IObservable<T> DistinctUntilChanged<T, TKey>(this IObservable<T> source, Func<T, TKey> keySelector, IEqualityComparer<TKey> comparer)
+        public static IObservable<T> DistinctUntilChanged<T, TKey>(this IObservable<T> source,
+            Func<T, TKey> keySelector, IEqualityComparer<TKey> comparer)
         {
             if (source == null) throw new ArgumentNullException("source");
 

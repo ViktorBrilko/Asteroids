@@ -17,17 +17,8 @@ namespace Zenject
         {
         }
 
-        public bool InstantiateFailed
-        {
-            get;
-            private set;
-        }
+        public bool InstantiateFailed { get; private set; }
 
-        public Type MarkedType
-        {
-            get;
-            private set;
-        }
+        public Type MarkedType { get; private set; }
     }
 }
-

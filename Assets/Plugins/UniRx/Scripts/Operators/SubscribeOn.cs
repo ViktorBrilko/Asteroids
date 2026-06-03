@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace UniRx.Operators
 {
     internal class SubscribeOnObservable<T> : OperatorObservableBase<T>
     {
-        readonly IObservable<T> source;
-        readonly IScheduler scheduler;
+        private readonly IScheduler scheduler;
+        private readonly IObservable<T> source;
 
         public SubscribeOnObservable(IObservable<T> source, IScheduler scheduler)
             : base(scheduler == Scheduler.CurrentThread || source.IsRequiredSubscribeOnCurrentThread())

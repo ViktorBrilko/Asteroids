@@ -9,30 +9,24 @@ namespace Zenject
     // should be children of StaticContext
     public static class StaticContext
     {
-        static DiContainer _container;
+        private static DiContainer _container;
 
-        // Useful sometimes to call from play mode tests
-        public static void Clear()
-        {
-            _container = null;
-        }
-
-        public static bool HasContainer
-        {
-            get { return _container != null; }
-        }
+        public static bool HasContainer => _container != null;
 
         public static DiContainer Container
         {
             get
             {
-                if (_container == null)
-                {
-                    _container = new DiContainer();
-                }
+                if (_container == null) _container = new DiContainer();
 
                 return _container;
             }
+        }
+
+        // Useful sometimes to call from play mode tests
+        public static void Clear()
+        {
+            _container = null;
         }
     }
 }

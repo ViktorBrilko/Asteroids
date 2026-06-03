@@ -6,8 +6,8 @@ namespace Gameplay.Players
 {
     public class PlayerCamera : MonoBehaviour
     {
-        private Player _player;
         private CinemachineVirtualCamera _camera;
+        private Player _player;
 
         [Inject]
         public void Construct(Player player)

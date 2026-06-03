@@ -1,20 +1,26 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace UniRx.Operators
 {
     public delegate TR ZipFunc<T1, T2, T3, TR>(T1 arg1, T2 arg2, T3 arg3);
+
     public delegate TR ZipFunc<T1, T2, T3, T4, TR>(T1 arg1, T2 arg2, T3 arg3, T4 arg4);
+
     public delegate TR ZipFunc<T1, T2, T3, T4, T5, TR>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5);
+
     public delegate TR ZipFunc<T1, T2, T3, T4, T5, T6, TR>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6);
-    public delegate TR ZipFunc<T1, T2, T3, T4, T5, T6, T7, TR>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7);
+
+    public delegate TR ZipFunc<T1, T2, T3, T4, T5, T6, T7, TR>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6,
+        T7 arg7);
 
     // binary
     internal class ZipObservable<TLeft, TRight, TResult> : OperatorObservableBase<TResult>
     {
-        readonly IObservable<TLeft> left;
-        readonly IObservable<TRight> right;
-        readonly Func<TLeft, TRight, TResult> selector;
+        private readonly IObservable<TLeft> left;
+        private readonly IObservable<TRight> right;
+        private readonly Func<TLeft, TRight, TResult> selector;
 
         public ZipObservable(IObservable<TLeft> left, IObservable<TRight> right, Func<TLeft, TRight, TResult> selector)
             : base(left.IsRequiredSubscribeOnCurrentThread() || right.IsRequiredSubscribeOnCurrentThread())
@@ -29,15 +35,14 @@ namespace UniRx.Operators
             return new Zip(this, observer, cancel).Run();
         }
 
-        class Zip : OperatorObserverBase<TResult, TResult>
+        private class Zip : OperatorObserverBase<TResult, TResult>
         {
-            readonly ZipObservable<TLeft, TRight, TResult> parent;
-
-            readonly object gate = new object();
-            readonly Queue<TLeft> leftQ = new Queue<TLeft>();
-            bool leftCompleted = false;
-            readonly Queue<TRight> rightQ = new Queue<TRight>();
-            bool rightCompleted = false;
+            private readonly object gate = new();
+            private readonly Queue<TLeft> leftQ = new();
+            private readonly ZipObservable<TLeft, TRight, TResult> parent;
+            private readonly Queue<TRight> rightQ = new();
+            private bool leftCompleted;
+            private bool rightCompleted;
 
             public Zip(ZipObservable<TLeft, TRight, TResult> parent, IObserver<TResult> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -61,7 +66,7 @@ namespace UniRx.Operators
             }
 
             // dequeue is in the lock
-            void Dequeue()
+            private void Dequeue()
             {
                 TLeft lv;
                 TRight rv;
@@ -74,8 +79,15 @@ namespace UniRx.Operators
                 }
                 else if (leftCompleted || rightCompleted)
                 {
-                    try { observer.OnCompleted(); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnCompleted();
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
                 else
@@ -89,8 +101,15 @@ namespace UniRx.Operators
                 }
                 catch (Exception ex)
                 {
-                    try { observer.OnError(ex); }
-                    finally { Dispose(); }
+                    try
+                    {
+                        observer.OnError(ex);
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
                     return;
                 }
 
@@ -99,24 +118,36 @@ namespace UniRx.Operators
 
             public override void OnNext(TResult value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
-            class LeftZipObserver : IObserver<TLeft>
+            private class LeftZipObserver : IObserver<TLeft>
             {
-                readonly Zip parent;
+                private readonly Zip parent;
 
                 public LeftZipObserver(Zip parent)
                 {
@@ -150,9 +181,9 @@ namespace UniRx.Operators
                 }
             }
 
-            class RightZipObserver : IObserver<TRight>
+            private class RightZipObserver : IObserver<TRight>
             {
-                readonly Zip parent;
+                private readonly Zip parent;
 
                 public RightZipObserver(Zip parent)
                 {
@@ -191,7 +222,7 @@ namespace UniRx.Operators
     // array
     internal class ZipObservable<T> : OperatorObservableBase<IList<T>>
     {
-        readonly IObservable<T>[] sources;
+        private readonly IObservable<T>[] sources;
 
         public ZipObservable(IObservable<T>[] sources)
             : base(true)
@@ -204,16 +235,17 @@ namespace UniRx.Operators
             return new Zip(this, observer, cancel).Run();
         }
 
-        class Zip : OperatorObserverBase<IList<T>, IList<T>>
+        private class Zip : OperatorObserverBase<IList<T>, IList<T>>
         {
-            readonly ZipObservable<T> parent;
-            readonly object gate = new object();
+            private readonly object gate = new();
+            private readonly ZipObservable<T> parent;
+            private bool[] isDone;
+            private int length;
 
-            Queue<T>[] queues;
-            bool[] isDone;
-            int length;
+            private Queue<T>[] queues;
 
-            public Zip(ZipObservable<T> parent, IObserver<IList<T>> observer, IDisposable cancel) : base(observer, cancel)
+            public Zip(ZipObservable<T> parent, IObserver<IList<T>> observer, IDisposable cancel) : base(observer,
+                cancel)
             {
                 this.parent = parent;
             }
@@ -224,13 +256,10 @@ namespace UniRx.Operators
                 queues = new Queue<T>[length];
                 isDone = new bool[length];
 
-                for (int i = 0; i < length; i++)
-                {
-                    queues[i] = new Queue<T>();
-                }
+                for (var i = 0; i < length; i++) queues[i] = new Queue<T>();
 
                 var disposables = new IDisposable[length + 1];
-                for (int i = 0; i < length; i++)
+                for (var i = 0; i < length; i++)
                 {
                     var source = parent.sources[i];
                     disposables[i] = source.Subscribe(new ZipObserver(this, i));
@@ -240,7 +269,7 @@ namespace UniRx.Operators
                 {
                     lock (gate)
                     {
-                        for (int i = 0; i < length; i++)
+                        for (var i = 0; i < length; i++)
                         {
                             var q = queues[i];
                             q.Clear();
@@ -252,22 +281,20 @@ namespace UniRx.Operators
             }
 
             // dequeue is in the lock
-            void Dequeue(int index)
+            private void Dequeue(int index)
             {
                 var allQueueHasValue = true;
-                for (int i = 0; i < length; i++)
-                {
+                for (var i = 0; i < length; i++)
                     if (queues[i].Count == 0)
                     {
                         allQueueHasValue = false;
                         break;
                     }
-                }
 
                 if (!allQueueHasValue)
                 {
                     var allCompletedWithoutSelf = true;
-                    for (int i = 0; i < length; i++)
+                    for (var i = 0; i < length; i++)
                     {
                         if (i == index) continue;
                         if (!isDone[i])
@@ -278,47 +305,57 @@ namespace UniRx.Operators
                     }
 
                     if (allCompletedWithoutSelf)
-                    {
-                        try { observer.OnCompleted(); }
-                        finally { Dispose(); }
-                        return;
-                    }
-                    else
-                    {
-                        return;
-                    }
+                        try
+                        {
+                            observer.OnCompleted();
+                        }
+                        finally
+                        {
+                            Dispose();
+                        }
+
+                    return;
                 }
 
                 var array = new T[length];
-                for (int i = 0; i < length; i++)
-                {
-                    array[i] = queues[i].Dequeue();
-                }
+                for (var i = 0; i < length; i++) array[i] = queues[i].Dequeue();
 
                 OnNext(array);
             }
 
             public override void OnNext(IList<T> value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
-            class ZipObserver : IObserver<T>
+            private class ZipObserver : IObserver<T>
             {
-                readonly Zip parent;
-                readonly int index;
+                private readonly int index;
+                private readonly Zip parent;
 
                 public ZipObserver(Zip parent, int index)
                 {
@@ -349,19 +386,14 @@ namespace UniRx.Operators
                     {
                         parent.isDone[index] = true;
                         var allTrue = true;
-                        for (int i = 0; i < parent.length; i++)
-                        {
+                        for (var i = 0; i < parent.length; i++)
                             if (!parent.isDone[i])
                             {
                                 allTrue = false;
                                 break;
                             }
-                        }
 
-                        if (allTrue)
-                        {
-                            parent.OnCompleted();
-                        }
+                        if (allTrue) parent.OnCompleted();
                     }
                 }
             }
@@ -369,20 +401,21 @@ namespace UniRx.Operators
     }
 
     // Generated from UniRx.Console.ZipGenerator.tt
+
     #region NTH
 
     internal class ZipObservable<T1, T2, T3, TR> : OperatorObservableBase<TR>
     {
-        IObservable<T1> source1;
-        IObservable<T2> source2;
-        IObservable<T3> source3;
-        ZipFunc<T1, T2, T3, TR> resultSelector;
+        private readonly ZipFunc<T1, T2, T3, TR> resultSelector;
+        private readonly IObservable<T1> source1;
+        private readonly IObservable<T2> source2;
+        private readonly IObservable<T3> source3;
 
         public ZipObservable(
             IObservable<T1> source1,
             IObservable<T2> source2,
             IObservable<T3> source3,
-              ZipFunc<T1, T2, T3, TR> resultSelector)
+            ZipFunc<T1, T2, T3, TR> resultSelector)
             : base(
                 source1.IsRequiredSubscribeOnCurrentThread() ||
                 source2.IsRequiredSubscribeOnCurrentThread() ||
@@ -400,13 +433,13 @@ namespace UniRx.Operators
             return new Zip(this, observer, cancel).Run();
         }
 
-        class Zip : NthZipObserverBase<TR>
+        private class Zip : NthZipObserverBase<TR>
         {
-            readonly ZipObservable<T1, T2, T3, TR> parent;
-            readonly object gate = new object();
-            readonly Queue<T1> q1 = new Queue<T1>();
-            readonly Queue<T2> q2 = new Queue<T2>();
-            readonly Queue<T3> q3 = new Queue<T3>();
+            private readonly object gate = new();
+            private readonly ZipObservable<T1, T2, T3, TR> parent;
+            private readonly Queue<T1> q1 = new();
+            private readonly Queue<T2> q2 = new();
+            private readonly Queue<T3> q3 = new();
 
             public Zip(ZipObservable<T1, T2, T3, TR> parent, IObserver<TR> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -416,7 +449,7 @@ namespace UniRx.Operators
 
             public IDisposable Run()
             {
-                base.SetQueue(new System.Collections.ICollection[] { q1, q2, q3 });
+                SetQueue(new ICollection[] { q1, q2, q3 });
                 var s1 = parent.source1.Subscribe(new ZipObserver<T1>(gate, this, 0, q1));
                 var s2 = parent.source2.Subscribe(new ZipObserver<T2>(gate, this, 1, q2));
                 var s3 = parent.source3.Subscribe(new ZipObserver<T3>(gate, this, 2, q3));
@@ -425,7 +458,9 @@ namespace UniRx.Operators
                 {
                     lock (gate)
                     {
-                        q1.Clear(); q2.Clear(); q3.Clear();
+                        q1.Clear();
+                        q2.Clear();
+                        q3.Clear();
                     }
                 }));
             }
@@ -437,19 +472,31 @@ namespace UniRx.Operators
 
             public override void OnNext(TR value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
@@ -457,18 +504,18 @@ namespace UniRx.Operators
 
     internal class ZipObservable<T1, T2, T3, T4, TR> : OperatorObservableBase<TR>
     {
-        IObservable<T1> source1;
-        IObservable<T2> source2;
-        IObservable<T3> source3;
-        IObservable<T4> source4;
-        ZipFunc<T1, T2, T3, T4, TR> resultSelector;
+        private readonly ZipFunc<T1, T2, T3, T4, TR> resultSelector;
+        private readonly IObservable<T1> source1;
+        private readonly IObservable<T2> source2;
+        private readonly IObservable<T3> source3;
+        private readonly IObservable<T4> source4;
 
         public ZipObservable(
             IObservable<T1> source1,
             IObservable<T2> source2,
             IObservable<T3> source3,
             IObservable<T4> source4,
-              ZipFunc<T1, T2, T3, T4, TR> resultSelector)
+            ZipFunc<T1, T2, T3, T4, TR> resultSelector)
             : base(
                 source1.IsRequiredSubscribeOnCurrentThread() ||
                 source2.IsRequiredSubscribeOnCurrentThread() ||
@@ -488,14 +535,14 @@ namespace UniRx.Operators
             return new Zip(this, observer, cancel).Run();
         }
 
-        class Zip : NthZipObserverBase<TR>
+        private class Zip : NthZipObserverBase<TR>
         {
-            readonly ZipObservable<T1, T2, T3, T4, TR> parent;
-            readonly object gate = new object();
-            readonly Queue<T1> q1 = new Queue<T1>();
-            readonly Queue<T2> q2 = new Queue<T2>();
-            readonly Queue<T3> q3 = new Queue<T3>();
-            readonly Queue<T4> q4 = new Queue<T4>();
+            private readonly object gate = new();
+            private readonly ZipObservable<T1, T2, T3, T4, TR> parent;
+            private readonly Queue<T1> q1 = new();
+            private readonly Queue<T2> q2 = new();
+            private readonly Queue<T3> q3 = new();
+            private readonly Queue<T4> q4 = new();
 
             public Zip(ZipObservable<T1, T2, T3, T4, TR> parent, IObserver<TR> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -505,7 +552,7 @@ namespace UniRx.Operators
 
             public IDisposable Run()
             {
-                base.SetQueue(new System.Collections.ICollection[] { q1, q2, q3, q4 });
+                SetQueue(new ICollection[] { q1, q2, q3, q4 });
                 var s1 = parent.source1.Subscribe(new ZipObserver<T1>(gate, this, 0, q1));
                 var s2 = parent.source2.Subscribe(new ZipObserver<T2>(gate, this, 1, q2));
                 var s3 = parent.source3.Subscribe(new ZipObserver<T3>(gate, this, 2, q3));
@@ -515,7 +562,10 @@ namespace UniRx.Operators
                 {
                     lock (gate)
                     {
-                        q1.Clear(); q2.Clear(); q3.Clear(); q4.Clear();
+                        q1.Clear();
+                        q2.Clear();
+                        q3.Clear();
+                        q4.Clear();
                     }
                 }));
             }
@@ -527,19 +577,31 @@ namespace UniRx.Operators
 
             public override void OnNext(TR value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
@@ -547,12 +609,12 @@ namespace UniRx.Operators
 
     internal class ZipObservable<T1, T2, T3, T4, T5, TR> : OperatorObservableBase<TR>
     {
-        IObservable<T1> source1;
-        IObservable<T2> source2;
-        IObservable<T3> source3;
-        IObservable<T4> source4;
-        IObservable<T5> source5;
-        ZipFunc<T1, T2, T3, T4, T5, TR> resultSelector;
+        private readonly ZipFunc<T1, T2, T3, T4, T5, TR> resultSelector;
+        private readonly IObservable<T1> source1;
+        private readonly IObservable<T2> source2;
+        private readonly IObservable<T3> source3;
+        private readonly IObservable<T4> source4;
+        private readonly IObservable<T5> source5;
 
         public ZipObservable(
             IObservable<T1> source1,
@@ -560,7 +622,7 @@ namespace UniRx.Operators
             IObservable<T3> source3,
             IObservable<T4> source4,
             IObservable<T5> source5,
-              ZipFunc<T1, T2, T3, T4, T5, TR> resultSelector)
+            ZipFunc<T1, T2, T3, T4, T5, TR> resultSelector)
             : base(
                 source1.IsRequiredSubscribeOnCurrentThread() ||
                 source2.IsRequiredSubscribeOnCurrentThread() ||
@@ -582,15 +644,15 @@ namespace UniRx.Operators
             return new Zip(this, observer, cancel).Run();
         }
 
-        class Zip : NthZipObserverBase<TR>
+        private class Zip : NthZipObserverBase<TR>
         {
-            readonly ZipObservable<T1, T2, T3, T4, T5, TR> parent;
-            readonly object gate = new object();
-            readonly Queue<T1> q1 = new Queue<T1>();
-            readonly Queue<T2> q2 = new Queue<T2>();
-            readonly Queue<T3> q3 = new Queue<T3>();
-            readonly Queue<T4> q4 = new Queue<T4>();
-            readonly Queue<T5> q5 = new Queue<T5>();
+            private readonly object gate = new();
+            private readonly ZipObservable<T1, T2, T3, T4, T5, TR> parent;
+            private readonly Queue<T1> q1 = new();
+            private readonly Queue<T2> q2 = new();
+            private readonly Queue<T3> q3 = new();
+            private readonly Queue<T4> q4 = new();
+            private readonly Queue<T5> q5 = new();
 
             public Zip(ZipObservable<T1, T2, T3, T4, T5, TR> parent, IObserver<TR> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -600,7 +662,7 @@ namespace UniRx.Operators
 
             public IDisposable Run()
             {
-                base.SetQueue(new System.Collections.ICollection[] { q1, q2, q3, q4, q5 });
+                SetQueue(new ICollection[] { q1, q2, q3, q4, q5 });
                 var s1 = parent.source1.Subscribe(new ZipObserver<T1>(gate, this, 0, q1));
                 var s2 = parent.source2.Subscribe(new ZipObserver<T2>(gate, this, 1, q2));
                 var s3 = parent.source3.Subscribe(new ZipObserver<T3>(gate, this, 2, q3));
@@ -611,7 +673,11 @@ namespace UniRx.Operators
                 {
                     lock (gate)
                     {
-                        q1.Clear(); q2.Clear(); q3.Clear(); q4.Clear(); q5.Clear();
+                        q1.Clear();
+                        q2.Clear();
+                        q3.Clear();
+                        q4.Clear();
+                        q5.Clear();
                     }
                 }));
             }
@@ -623,19 +689,31 @@ namespace UniRx.Operators
 
             public override void OnNext(TR value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
@@ -643,13 +721,13 @@ namespace UniRx.Operators
 
     internal class ZipObservable<T1, T2, T3, T4, T5, T6, TR> : OperatorObservableBase<TR>
     {
-        IObservable<T1> source1;
-        IObservable<T2> source2;
-        IObservable<T3> source3;
-        IObservable<T4> source4;
-        IObservable<T5> source5;
-        IObservable<T6> source6;
-        ZipFunc<T1, T2, T3, T4, T5, T6, TR> resultSelector;
+        private readonly ZipFunc<T1, T2, T3, T4, T5, T6, TR> resultSelector;
+        private readonly IObservable<T1> source1;
+        private readonly IObservable<T2> source2;
+        private readonly IObservable<T3> source3;
+        private readonly IObservable<T4> source4;
+        private readonly IObservable<T5> source5;
+        private readonly IObservable<T6> source6;
 
         public ZipObservable(
             IObservable<T1> source1,
@@ -658,7 +736,7 @@ namespace UniRx.Operators
             IObservable<T4> source4,
             IObservable<T5> source5,
             IObservable<T6> source6,
-              ZipFunc<T1, T2, T3, T4, T5, T6, TR> resultSelector)
+            ZipFunc<T1, T2, T3, T4, T5, T6, TR> resultSelector)
             : base(
                 source1.IsRequiredSubscribeOnCurrentThread() ||
                 source2.IsRequiredSubscribeOnCurrentThread() ||
@@ -682,16 +760,16 @@ namespace UniRx.Operators
             return new Zip(this, observer, cancel).Run();
         }
 
-        class Zip : NthZipObserverBase<TR>
+        private class Zip : NthZipObserverBase<TR>
         {
-            readonly ZipObservable<T1, T2, T3, T4, T5, T6, TR> parent;
-            readonly object gate = new object();
-            readonly Queue<T1> q1 = new Queue<T1>();
-            readonly Queue<T2> q2 = new Queue<T2>();
-            readonly Queue<T3> q3 = new Queue<T3>();
-            readonly Queue<T4> q4 = new Queue<T4>();
-            readonly Queue<T5> q5 = new Queue<T5>();
-            readonly Queue<T6> q6 = new Queue<T6>();
+            private readonly object gate = new();
+            private readonly ZipObservable<T1, T2, T3, T4, T5, T6, TR> parent;
+            private readonly Queue<T1> q1 = new();
+            private readonly Queue<T2> q2 = new();
+            private readonly Queue<T3> q3 = new();
+            private readonly Queue<T4> q4 = new();
+            private readonly Queue<T5> q5 = new();
+            private readonly Queue<T6> q6 = new();
 
             public Zip(ZipObservable<T1, T2, T3, T4, T5, T6, TR> parent, IObserver<TR> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -701,7 +779,7 @@ namespace UniRx.Operators
 
             public IDisposable Run()
             {
-                base.SetQueue(new System.Collections.ICollection[] { q1, q2, q3, q4, q5, q6 });
+                SetQueue(new ICollection[] { q1, q2, q3, q4, q5, q6 });
                 var s1 = parent.source1.Subscribe(new ZipObserver<T1>(gate, this, 0, q1));
                 var s2 = parent.source2.Subscribe(new ZipObserver<T2>(gate, this, 1, q2));
                 var s3 = parent.source3.Subscribe(new ZipObserver<T3>(gate, this, 2, q3));
@@ -713,31 +791,49 @@ namespace UniRx.Operators
                 {
                     lock (gate)
                     {
-                        q1.Clear(); q2.Clear(); q3.Clear(); q4.Clear(); q5.Clear(); q6.Clear();
+                        q1.Clear();
+                        q2.Clear();
+                        q3.Clear();
+                        q4.Clear();
+                        q5.Clear();
+                        q6.Clear();
                     }
                 }));
             }
 
             public override TR GetResult()
             {
-                return parent.resultSelector(q1.Dequeue(), q2.Dequeue(), q3.Dequeue(), q4.Dequeue(), q5.Dequeue(), q6.Dequeue());
+                return parent.resultSelector(q1.Dequeue(), q2.Dequeue(), q3.Dequeue(), q4.Dequeue(), q5.Dequeue(),
+                    q6.Dequeue());
             }
 
             public override void OnNext(TR value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
@@ -745,14 +841,14 @@ namespace UniRx.Operators
 
     internal class ZipObservable<T1, T2, T3, T4, T5, T6, T7, TR> : OperatorObservableBase<TR>
     {
-        IObservable<T1> source1;
-        IObservable<T2> source2;
-        IObservable<T3> source3;
-        IObservable<T4> source4;
-        IObservable<T5> source5;
-        IObservable<T6> source6;
-        IObservable<T7> source7;
-        ZipFunc<T1, T2, T3, T4, T5, T6, T7, TR> resultSelector;
+        private readonly ZipFunc<T1, T2, T3, T4, T5, T6, T7, TR> resultSelector;
+        private readonly IObservable<T1> source1;
+        private readonly IObservable<T2> source2;
+        private readonly IObservable<T3> source3;
+        private readonly IObservable<T4> source4;
+        private readonly IObservable<T5> source5;
+        private readonly IObservable<T6> source6;
+        private readonly IObservable<T7> source7;
 
         public ZipObservable(
             IObservable<T1> source1,
@@ -762,7 +858,7 @@ namespace UniRx.Operators
             IObservable<T5> source5,
             IObservable<T6> source6,
             IObservable<T7> source7,
-              ZipFunc<T1, T2, T3, T4, T5, T6, T7, TR> resultSelector)
+            ZipFunc<T1, T2, T3, T4, T5, T6, T7, TR> resultSelector)
             : base(
                 source1.IsRequiredSubscribeOnCurrentThread() ||
                 source2.IsRequiredSubscribeOnCurrentThread() ||
@@ -788,17 +884,17 @@ namespace UniRx.Operators
             return new Zip(this, observer, cancel).Run();
         }
 
-        class Zip : NthZipObserverBase<TR>
+        private class Zip : NthZipObserverBase<TR>
         {
-            readonly ZipObservable<T1, T2, T3, T4, T5, T6, T7, TR> parent;
-            readonly object gate = new object();
-            readonly Queue<T1> q1 = new Queue<T1>();
-            readonly Queue<T2> q2 = new Queue<T2>();
-            readonly Queue<T3> q3 = new Queue<T3>();
-            readonly Queue<T4> q4 = new Queue<T4>();
-            readonly Queue<T5> q5 = new Queue<T5>();
-            readonly Queue<T6> q6 = new Queue<T6>();
-            readonly Queue<T7> q7 = new Queue<T7>();
+            private readonly object gate = new();
+            private readonly ZipObservable<T1, T2, T3, T4, T5, T6, T7, TR> parent;
+            private readonly Queue<T1> q1 = new();
+            private readonly Queue<T2> q2 = new();
+            private readonly Queue<T3> q3 = new();
+            private readonly Queue<T4> q4 = new();
+            private readonly Queue<T5> q5 = new();
+            private readonly Queue<T6> q6 = new();
+            private readonly Queue<T7> q7 = new();
 
             public Zip(ZipObservable<T1, T2, T3, T4, T5, T6, T7, TR> parent, IObserver<TR> observer, IDisposable cancel)
                 : base(observer, cancel)
@@ -808,7 +904,7 @@ namespace UniRx.Operators
 
             public IDisposable Run()
             {
-                base.SetQueue(new System.Collections.ICollection[] { q1, q2, q3, q4, q5, q6, q7 });
+                SetQueue(new ICollection[] { q1, q2, q3, q4, q5, q6, q7 });
                 var s1 = parent.source1.Subscribe(new ZipObserver<T1>(gate, this, 0, q1));
                 var s2 = parent.source2.Subscribe(new ZipObserver<T2>(gate, this, 1, q2));
                 var s3 = parent.source3.Subscribe(new ZipObserver<T3>(gate, this, 2, q3));
@@ -821,31 +917,50 @@ namespace UniRx.Operators
                 {
                     lock (gate)
                     {
-                        q1.Clear(); q2.Clear(); q3.Clear(); q4.Clear(); q5.Clear(); q6.Clear(); q7.Clear();
+                        q1.Clear();
+                        q2.Clear();
+                        q3.Clear();
+                        q4.Clear();
+                        q5.Clear();
+                        q6.Clear();
+                        q7.Clear();
                     }
                 }));
             }
 
             public override TR GetResult()
             {
-                return parent.resultSelector(q1.Dequeue(), q2.Dequeue(), q3.Dequeue(), q4.Dequeue(), q5.Dequeue(), q6.Dequeue(), q7.Dequeue());
+                return parent.resultSelector(q1.Dequeue(), q2.Dequeue(), q3.Dequeue(), q4.Dequeue(), q5.Dequeue(),
+                    q6.Dequeue(), q7.Dequeue());
             }
 
             public override void OnNext(TR value)
             {
-                base.observer.OnNext(value);
+                observer.OnNext(value);
             }
 
             public override void OnError(Exception error)
             {
-                try { observer.OnError(error); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(error);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
 
             public override void OnCompleted()
             {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
     }
@@ -863,40 +978,29 @@ namespace UniRx.Operators
 
     internal abstract class NthZipObserverBase<T> : OperatorObserverBase<T, T>, IZipObservable
     {
-        System.Collections.ICollection[] queues;
-        bool[] isDone;
-        int length;
+        private bool[] isDone;
+        private int length;
+        private ICollection[] queues;
 
         public NthZipObserverBase(IObserver<T> observer, IDisposable cancel) : base(observer, cancel)
         {
         }
 
-        protected void SetQueue(System.Collections.ICollection[] queues)
-        {
-            this.queues = queues;
-            this.length = queues.Length;
-            this.isDone = new bool[length];
-        }
-
-        public abstract T GetResult();
-
         // operators in lock
         public void Dequeue(int index)
         {
             var allQueueHasValue = true;
-            for (int i = 0; i < length; i++)
-            {
+            for (var i = 0; i < length; i++)
                 if (queues[i].Count == 0)
                 {
                     allQueueHasValue = false;
                     break;
                 }
-            }
 
             if (!allQueueHasValue)
             {
                 var allCompletedWithoutSelf = true;
-                for (int i = 0; i < length; i++)
+                for (var i = 0; i < length; i++)
                 {
                     if (i == index) continue;
                     if (!isDone[i])
@@ -907,15 +1011,16 @@ namespace UniRx.Operators
                 }
 
                 if (allCompletedWithoutSelf)
-                {
-                    try { observer.OnCompleted(); }
-                    finally { Dispose(); }
-                    return;
-                }
-                else
-                {
-                    return;
-                }
+                    try
+                    {
+                        observer.OnCompleted();
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+
+                return;
             }
 
             var result = default(T);
@@ -925,10 +1030,18 @@ namespace UniRx.Operators
             }
             catch (Exception ex)
             {
-                try { observer.OnError(ex); }
-                finally { Dispose(); }
+                try
+                {
+                    observer.OnError(ex);
+                }
+                finally
+                {
+                    Dispose();
+                }
+
                 return;
             }
+
             OnNext(result);
         }
 
@@ -936,37 +1049,54 @@ namespace UniRx.Operators
         {
             isDone[index] = true;
             var allTrue = true;
-            for (int i = 0; i < length; i++)
-            {
+            for (var i = 0; i < length; i++)
                 if (!isDone[i])
                 {
                     allTrue = false;
                     break;
                 }
-            }
 
             if (allTrue)
-            {
-                try { observer.OnCompleted(); }
-                finally { Dispose(); }
-            }
+                try
+                {
+                    observer.OnCompleted();
+                }
+                finally
+                {
+                    Dispose();
+                }
         }
 
         public void Fail(Exception error)
         {
-            try { observer.OnError(error); }
-            finally { Dispose(); }
+            try
+            {
+                observer.OnError(error);
+            }
+            finally
+            {
+                Dispose();
+            }
         }
+
+        protected void SetQueue(ICollection[] queues)
+        {
+            this.queues = queues;
+            length = queues.Length;
+            isDone = new bool[length];
+        }
+
+        public abstract T GetResult();
     }
 
 
     // nth
     internal class ZipObserver<T> : IObserver<T>
     {
-        readonly object gate;
-        readonly IZipObservable parent;
-        readonly int index;
-        readonly Queue<T> queue;
+        private readonly object gate;
+        private readonly int index;
+        private readonly IZipObservable parent;
+        private readonly Queue<T> queue;
 
         public ZipObserver(object gate, IZipObservable parent, int index, Queue<T> queue)
         {
