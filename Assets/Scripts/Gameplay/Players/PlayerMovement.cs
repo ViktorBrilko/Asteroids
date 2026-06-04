@@ -19,7 +19,6 @@ namespace Gameplay.Players
         private float _currentSpeed;
         private float _inertialSpeed;
         private bool _stopCompensateInertion;
-        private float _lastYDirection;
         private float _inertionDirection;
         private PlayerInputHandler _playerInputHandler;
         private SignalBus _signalBus;
@@ -29,21 +28,19 @@ namespace Gameplay.Players
 
         private void Update()
         {
-            Debug.Log(_stopCompensateInertion);
-
             if (_player.IsUncontrollable) return;
 
             if (_playerInputHandler.XDirection != 0 || _playerInputHandler.YDirection != 0)
                 Move(new Vector3(_playerInputHandler.XDirection, _playerInputHandler.YDirection, 0));
 
             if (_playerInputHandler.Rotation != 0) Rotate(_playerInputHandler.Rotation);
+            
         }
 
         private void OnEnable()
         {
             _signalBus.Subscribe<PlayerCollidedSignal>(OnPlayerCollision);
             _playerInputHandler.ChangeSpeed += ChangeSpeed;
-            //_playerInputHandler.InertionCompensation += OnCompensateInertionAndSpeedUp;
             _playerInputHandler.StartMovement += OnStartMovement;
             _playerInputHandler.StopCompensateInertion += OnStopCompensationInertion;
             _playerInputHandler.InertialMovement += InertialMove;
@@ -53,7 +50,6 @@ namespace Gameplay.Players
         {
             _signalBus.Unsubscribe<PlayerCollidedSignal>(OnPlayerCollision);
             _playerInputHandler.ChangeSpeed -= ChangeSpeed;
-            //  _playerInputHandler.InertionCompensation -= OnCompensateInertionAndSpeedUp;
             _playerInputHandler.StartMovement -= OnStartMovement;
             _playerInputHandler.StopCompensateInertion -= OnStopCompensationInertion;
 
@@ -92,7 +88,7 @@ namespace Gameplay.Players
             _playerInputHandler = playerInputHandler;
         }
 
-        private async UniTask ChangeSpeed(bool increase, bool forward = true)
+        private async UniTask ChangeSpeed(bool increase)
         {
             if (_player.IsUncontrollable && increase) return;
 
@@ -112,20 +108,11 @@ namespace Gameplay.Players
 
                     if (increase)
                     {
-                        if (forward)
-                        {
-                            _currentSpeed = Mathf.MoveTowards(_currentSpeed, _config.MaxForwardSpeed,
-                                _config.SpeedChangeStep * Time.deltaTime);
-                        }
-                        else
-                        {
-                            _currentSpeed = Mathf.MoveTowards(_currentSpeed, _config.MaxReverseSpeed,
-                                _config.SpeedChangeStep * Time.deltaTime);
-                        }
+                        _currentSpeed = Mathf.MoveTowards(_currentSpeed, _config.MaxSpeed,
+                            _config.SpeedChangeStep * Time.deltaTime);
 
-                        if (_inertionCts != null && Mathf.Abs(_currentSpeed) >= Mathf.Abs(_inertialSpeed))
+                        if (_inertionCts != null && _currentSpeed >= _inertialSpeed)
                         {
-                            Debug.Log("рубим инерцию в ChangeSpeed " + _inertialSpeed);
                             _inertionCts.Cancel();
                             _inertialSpeed = 0;
                         }
@@ -137,8 +124,7 @@ namespace Gameplay.Players
 
                     OnSpeedChanged?.Invoke(_currentSpeed);
 
-                    if (Mathf.Approximately(_currentSpeed, _config.MaxForwardSpeed) ||
-                        Mathf.Approximately(_currentSpeed, _config.MaxReverseSpeed) ||
+                    if (Mathf.Approximately(_currentSpeed, _config.MaxSpeed) ||
                         Mathf.Approximately(_currentSpeed, 0f)) break;
                 }
             }
@@ -147,12 +133,12 @@ namespace Gameplay.Players
             }
         }
 
-        private async UniTask CompensateInertionAndSpeedUp(bool isIncrease, bool isForward)
+        private async UniTask CompensateInertionAndSpeedUp(bool isIncrease)
         {
             _stopCompensateInertion = false;
             await CompensationInertion();
             if (_stopCompensateInertion) return;
-            ChangeSpeed(isIncrease, isForward);
+            ChangeSpeed(isIncrease);
         }
 
         private void OnStopCompensationInertion()
@@ -168,24 +154,20 @@ namespace Gameplay.Players
 
             if (isSameDirection)
             {
-                Debug.Log("same direction " + currentDirection);
-                ChangeSpeed(true, isForward);
+                ChangeSpeed(true);
             }
             else
             {
-                Debug.Log("opposite direction " + currentDirection + ", isForward - " + isForward);
-                await CompensateInertionAndSpeedUp(true, isForward);
+                await CompensateInertionAndSpeedUp(true);
             }
         }
 
         private async UniTask CompensationInertion()
         {
-            Debug.Log("CompensationInertion - " + _inertialSpeed); 
             try
             {
                 while (!_stopCompensateInertion && _inertialSpeed != 0)
                 {
-                    Debug.Log("CompensationInertion цикл");  
                     await UniTask.Yield(PlayerLoopTiming.Update, _inertionCts.Token);
 
                     _inertialSpeed = Mathf.MoveTowards(_inertialSpeed, 0f, _config.SpeedChangeStep * Time.deltaTime);
@@ -198,7 +180,7 @@ namespace Gameplay.Players
 
         private async UniTaskVoid InertialMove()
         {
-            if (_inertionCts != null && Mathf.Abs(_inertialSpeed) > Mathf.Abs(_currentSpeed)) return;
+            if (_inertionCts != null && _inertialSpeed > _currentSpeed) return;
 
             _inertialSpeed = _currentSpeed;
 
@@ -217,7 +199,7 @@ namespace Gameplay.Players
                     await UniTask.Yield(PlayerLoopTiming.Update, _inertionCts.Token);
 
                     transform.Translate(new Vector3(0, _inertionDirection, 0) *
-                                        (Mathf.Abs(_inertialSpeed) * Time.deltaTime));
+                                        _inertialSpeed * Time.deltaTime);
 
                     OnPositionChanged?.Invoke(transform.position);
                 }
@@ -229,9 +211,9 @@ namespace Gameplay.Players
 
         private void Move(Vector3 direction)
         {
-            if (Mathf.Abs(_inertialSpeed) > Mathf.Abs(_currentSpeed)) return;
+            if (_inertialSpeed > _currentSpeed) return;
 
-            transform.Translate(direction.normalized * (Mathf.Abs(_currentSpeed) * Time.deltaTime));
+            transform.Translate(direction.normalized * (_currentSpeed * Time.deltaTime));
             OnPositionChanged?.Invoke(transform.position);
             _inertionDirection = direction.y;
         }

@@ -1,6 +1,5 @@
 {
-  "MaxForwardSpeed": 15,
-  "MaxReverseSpeed": -15,
+  "MaxSpeed": 15,
   "AfterCollisionSpeed": 15,
   "Health": 3,
   "RotationSpeed": 65,
