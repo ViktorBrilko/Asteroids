@@ -1,6 +1,6 @@
 ﻿{
   "BulletFireDelay": 200,
-  "LaserCooldown": 5,
-  "LaserShootingTime": 2000,
-  "LaserCount": 10
+  "LaserCooldown": 7,
+  "LaserShootingTime": 1500,
+  "LaserCount": 3
 }

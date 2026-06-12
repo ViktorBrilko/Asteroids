@@ -2,7 +2,10 @@ using MVVM;
 using TMPro;
 using UnityEngine;
 
-public class ScoreView : MonoBehaviour
+namespace UI.Views
 {
-    [Data("Score")] [SerializeField] public TMP_Text _scoreText;
+    public class ScoreView : MonoBehaviour
+    {
+        [Data("Score")] [SerializeField] public TMP_Text _scoreText;
+    }
 }

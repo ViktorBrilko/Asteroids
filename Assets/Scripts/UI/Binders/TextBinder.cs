@@ -7,9 +7,9 @@ namespace UI.Binders
 {
     public class TextBinder : IBinder, IObserver<string>
     {
-        private IDisposable _handle;
         private readonly ReactiveProperty<string> _property;
         private readonly TMP_Text _view;
+        private IDisposable _handle;
 
         public TextBinder(TMP_Text view, ReactiveProperty<string> property)
         {

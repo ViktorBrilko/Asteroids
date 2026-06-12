@@ -13,8 +13,8 @@ namespace UI.Views
 
         [SerializeField] public GameObject DeathPanel;
 
-        [Setter("Interactable")]
-        public bool Interactable
+        [Setter("DeathPanelState")]
+        public bool DeathPanelState
         {
             set => DeathPanel.SetActive(value);
         }

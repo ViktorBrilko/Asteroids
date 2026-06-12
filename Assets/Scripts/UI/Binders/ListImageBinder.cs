@@ -8,9 +8,9 @@ namespace UI.Binders
 {
     public class ListImageBinder : IBinder, IObserver<int>
     {
-        private IDisposable _handle;
         private readonly ReactiveProperty<int> _property;
         private readonly List<Image> _view;
+        private IDisposable _handle;
 
         public ListImageBinder(List<Image> view, ReactiveProperty<int> property)
         {

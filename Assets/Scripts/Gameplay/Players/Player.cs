@@ -66,7 +66,7 @@ public class PlayerEditor : Editor
 
         var player = (Player)target;
 
-        if (GUILayout.Button("Убить игрока")) player.Die();
+        if (GUILayout.Button("Kill player")) player.Die();
     }
 }
 #endif

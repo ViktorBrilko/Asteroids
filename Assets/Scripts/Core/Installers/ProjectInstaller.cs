@@ -21,6 +21,7 @@ namespace Core.Installers
             SignalBusInstaller.Install(Container);
 
             Container.DeclareSignal<PlayerDiedSignal>();
+            Container.DeclareSignal<PanelChangeStateSignal>();
 
             InstallConfigProvider();
             InstallSettings();

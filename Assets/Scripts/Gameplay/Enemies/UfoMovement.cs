@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using Zenject;
 
-namespace Gameplay.Base
+namespace Gameplay.Enemies
 {
     public class UfoMovement : EnemyMoveService
     {

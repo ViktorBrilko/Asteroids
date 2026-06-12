@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Core.Configs;
 using Cysharp.Threading.Tasks;
-using Gameplay.Enemies;
+using Gameplay.Base;
 using Gameplay.Gamefields;
 using Gameplay.Signals;
 using UnityEngine;
@@ -11,20 +11,20 @@ using Zenject;
 using Quaternion = UnityEngine.Quaternion;
 using Random = UnityEngine.Random;
 
-namespace Gameplay.Base
+namespace Gameplay.Enemies
 {
     public class EnemyGeneratorService : IInitializable, IDisposable
     {
-        private int _asteroidsCount;
         private readonly Spawner<Asteroid> _asteroidSpawner;
         private readonly GameFieldConfig _config;
-        private CancellationTokenSource _cts;
-        private List<IDieable> _enemies;
         private readonly GameField _gameField;
         private readonly SignalBus _signalBus;
         private readonly Spawner<SmallAsteroid> _smallAsteroidSpawner;
-        private int _ufosCount;
         private readonly Spawner<Ufo> _ufoSpawner;
+        private int _asteroidsCount;
+        private CancellationTokenSource _cts;
+        private List<IDieable> _enemies;
+        private int _ufosCount;
 
         public EnemyGeneratorService(Spawner<Asteroid> asteroidSpawner, GameField gameField, GameFieldConfig config,
             SignalBus signalBus, Spawner<SmallAsteroid> smallAsteroidSpawner, Spawner<Ufo> ufoSpawner)
@@ -56,8 +56,8 @@ namespace Gameplay.Base
 
             _signalBus.Subscribe<EnemyDiedSignal>(OnEnemyDeath);
 
-            //  SpawnUfos(_cts.Token).Forget();
-            //SpawnAsteroids(_cts.Token).Forget();
+            SpawnUfos(_cts.Token).Forget();
+            SpawnAsteroids(_cts.Token).Forget();
         }
 
         private async void OnEnemyDeath(EnemyDiedSignal signal)

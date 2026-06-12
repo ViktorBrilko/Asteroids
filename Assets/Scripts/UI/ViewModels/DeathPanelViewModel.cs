@@ -11,11 +11,11 @@ namespace UI.ViewModels
 {
     public class DeathPanelViewModel : IInitializable, IDisposable
     {
-        [Data("Interactable")] public readonly ReactiveProperty<bool> IsPlayerDead = new();
         public readonly LoadLevelService LoadLevel;
-
+        
         private readonly AudioService _audioService;
         private readonly SignalBus _signalBus;
+        [Data("DeathPanelState")] public readonly ReactiveProperty<bool> IsPlayerDead = new();
 
         public DeathPanelViewModel(LoadLevelService loadLevel, AudioService audioService,
             SignalBus signalBus)
@@ -39,6 +39,7 @@ namespace UI.ViewModels
         {
             Time.timeScale = 0;
             IsPlayerDead.Value = true;
+            _signalBus.Fire(new PanelChangeStateSignal(true));
         }
 
         [Method("OnMenuClick")]

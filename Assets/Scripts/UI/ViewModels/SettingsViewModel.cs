@@ -1,4 +1,3 @@
-using System;
 using Core;
 using Core.Audios;
 using MVVM;
@@ -7,7 +6,7 @@ using Zenject;
 
 namespace UI.ViewModels
 {
-    public class SettingsViewModel : IInitializable, IDisposable
+    public class SettingsViewModel : IInitializable
     {
         private readonly AudioService _audioService;
         private readonly Settings _settings;
@@ -21,12 +20,8 @@ namespace UI.ViewModels
         {
             _settings = settings;
             _windowsState = windowsState;
-            IsPanelOpen = _windowsState.IsSettingsOpen;
             _audioService = audioService;
-        }
-
-        public void Dispose()
-        {
+            IsPanelOpen = _windowsState.IsSettingsOpen;
         }
 
         public void Initialize()

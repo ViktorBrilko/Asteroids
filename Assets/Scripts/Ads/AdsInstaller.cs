@@ -17,6 +17,7 @@ namespace Ads
         {
             Container.Bind<AdsConfig>().FromInstance(_provider.AdsConfig).AsSingle();
             Container.BindInterfacesAndSelfTo<AdsManager>().AsSingle().NonLazy();
+            Container.BindExecutionOrder<AdsManager>(-10);
         }
     }
 }

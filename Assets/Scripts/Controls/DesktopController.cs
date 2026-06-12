@@ -23,7 +23,7 @@ namespace Controls
 
             if (Input.GetButtonDown("Vertical"))
             {
-                bool forward = _inputHandler.YDirection > 0;
+                var forward = _inputHandler.YDirection > 0;
 
                 _inputHandler.TriggerStartMovement(forward);
             }

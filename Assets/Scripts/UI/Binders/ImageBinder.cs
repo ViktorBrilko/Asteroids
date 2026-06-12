@@ -7,9 +7,9 @@ namespace UI.Binders
 {
     public class ImageBinder : IBinder, IObserver<float>
     {
-        private IDisposable _handle;
         private readonly ReactiveProperty<float> _property;
         private readonly Image _view;
+        private IDisposable _handle;
 
         public ImageBinder(Image view, ReactiveProperty<float> property)
         {

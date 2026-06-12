@@ -17,7 +17,6 @@ namespace Core
         public void Initialize()
         {
             OnLoadScene?.Invoke();
-
             SceneManager.sceneLoaded += OnAnySceneLoaded;
         }
 
@@ -35,8 +34,7 @@ namespace Core
 
         private void OnAnySceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (scene.name == GAME_SCENE_NAME)
-                OnLoadScene?.Invoke();
+            if (scene.name == MENU_SCENE_NAME) OnLoadScene?.Invoke();
         }
     }
 }

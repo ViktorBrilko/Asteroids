@@ -15,26 +15,25 @@ namespace Gameplay.Players
         private const string PLAYER_UNCONTROLLABLE_LAYER = "Uncontrollable Player";
         [SerializeField] private ParticleSystem _shield;
         [SerializeField] private Player _player;
+        private CancellationTokenSource _collisionCts;
         private PlayerConfig _config;
         private float _currentSpeed;
         private float _inertialSpeed;
-        private bool _stopCompensateInertion;
-        private float _inertionDirection;
+        private CancellationTokenSource _inertionCts;
+        private Vector2 _inertionDirection;
         private PlayerInputHandler _playerInputHandler;
         private SignalBus _signalBus;
-        private CancellationTokenSource _inertionCts;
         private CancellationTokenSource _speedCts;
-        private CancellationTokenSource _collisionCts;
+        private bool _stopCompensateInertion;
 
         private void Update()
         {
             if (_player.IsUncontrollable) return;
 
-            if (_playerInputHandler.XDirection != 0 || _playerInputHandler.YDirection != 0)
-                Move(new Vector3(_playerInputHandler.XDirection, _playerInputHandler.YDirection, 0));
+            if (_playerInputHandler.YDirection != 0)
+                Move(new Vector3(0, _playerInputHandler.YDirection, 0));
 
             if (_playerInputHandler.Rotation != 0) Rotate(_playerInputHandler.Rotation);
-            
         }
 
         private void OnEnable()
@@ -52,6 +51,7 @@ namespace Gameplay.Players
             _playerInputHandler.ChangeSpeed -= ChangeSpeed;
             _playerInputHandler.StartMovement -= OnStartMovement;
             _playerInputHandler.StopCompensateInertion -= OnStopCompensationInertion;
+            _playerInputHandler.InertialMovement -= InertialMove;
 
             if (_speedCts != null)
             {
@@ -76,6 +76,7 @@ namespace Gameplay.Players
         }
 
         public event Action<float> OnSpeedChanged;
+        public event Action<float> OnInertionSpeedChanged;
         public event Action<float> OnRotationChanged;
         public event Action<Vector2> OnPositionChanged;
 
@@ -138,6 +139,14 @@ namespace Gameplay.Players
             _stopCompensateInertion = false;
             await CompensationInertion();
             if (_stopCompensateInertion) return;
+
+            if (_inertionDirection.y < 0)
+                _inertionDirection.y = 1;
+            else
+                _inertionDirection.y = -1;
+
+            _inertionDirection.x = 0;
+
             ChangeSpeed(isIncrease);
         }
 
@@ -149,17 +158,13 @@ namespace Gameplay.Players
         private async UniTask OnStartMovement(bool isForward)
         {
             float currentDirection = isForward ? 1 : -1;
-            bool isSameDirection = Mathf.Approximately(currentDirection, _inertionDirection) ||
-                                   Mathf.Approximately(0, _inertionDirection);
+            var isSameDirection = Mathf.Approximately(currentDirection, _inertionDirection.y) ||
+                                  Mathf.Approximately(0, _inertionDirection.y);
 
             if (isSameDirection)
-            {
                 ChangeSpeed(true);
-            }
             else
-            {
                 await CompensateInertionAndSpeedUp(true);
-            }
         }
 
         private async UniTask CompensationInertion()
@@ -171,6 +176,7 @@ namespace Gameplay.Players
                     await UniTask.Yield(PlayerLoopTiming.Update, _inertionCts.Token);
 
                     _inertialSpeed = Mathf.MoveTowards(_inertialSpeed, 0f, _config.SpeedChangeStep * Time.deltaTime);
+                    OnInertionSpeedChanged?.Invoke(_inertialSpeed);
                 }
             }
             catch (OperationCanceledException e)
@@ -182,7 +188,10 @@ namespace Gameplay.Players
         {
             if (_inertionCts != null && _inertialSpeed > _currentSpeed) return;
 
-            _inertialSpeed = _currentSpeed;
+            if (!_player.IsUncontrollable)
+                _inertialSpeed = _currentSpeed;
+
+            OnInertionSpeedChanged?.Invoke(_inertialSpeed);
 
             if (_inertionCts != null)
             {
@@ -198,7 +207,7 @@ namespace Gameplay.Players
                 {
                     await UniTask.Yield(PlayerLoopTiming.Update, _inertionCts.Token);
 
-                    transform.Translate(new Vector3(0, _inertionDirection, 0) *
+                    transform.Translate(_inertionDirection *
                                         _inertialSpeed * Time.deltaTime);
 
                     OnPositionChanged?.Invoke(transform.position);
@@ -215,7 +224,7 @@ namespace Gameplay.Players
 
             transform.Translate(direction.normalized * (_currentSpeed * Time.deltaTime));
             OnPositionChanged?.Invoke(transform.position);
-            _inertionDirection = direction.y;
+            _inertionDirection.y = direction.y;
         }
 
         private void Rotate(float rotation)
@@ -238,15 +247,15 @@ namespace Gameplay.Players
             {
                 float elapsedTime = 0;
                 _player.IsUncontrollable = true;
-                var direction = (transform.position - signal.CollidedObject.transform.position).normalized;
+                _inertionDirection = (transform.position - signal.CollidedObject.transform.position).normalized;
                 gameObject.layer = LayerMask.NameToLayer(PLAYER_UNCONTROLLABLE_LAYER);
                 _shield.Play();
-                _currentSpeed = _config.AfterCollisionSpeed;
+                _inertialSpeed = _config.AfterCollisionSpeed;
                 ChangeSpeed(false);
+                InertialMove();
 
                 while (elapsedTime < _config.UncontrollableTime)
                 {
-                    Move(direction);
                     elapsedTime += Time.deltaTime;
                     await UniTask.NextFrame(_collisionCts.Token);
                 }
@@ -260,13 +269,6 @@ namespace Gameplay.Players
             catch (OperationCanceledException e)
             {
             }
-        }
-
-        private void OnGUI()
-        {
-            GUIStyle myStyle = new GUIStyle(GUI.skin.label);
-            myStyle.fontSize = 75;
-            GUI.Label(new Rect(20, 20, 400, 300), $"InertionSpeed: {_inertialSpeed}", myStyle);
         }
     }
 }

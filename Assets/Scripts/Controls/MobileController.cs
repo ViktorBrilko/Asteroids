@@ -35,11 +35,6 @@
                 _inputHandler.Rotation = 0;
         }
 
-        public void SetXDirection(float x)
-        {
-            _inputHandler.XDirection = x;
-        }
-
         public void SetYDirection(float y)
         {
             _inputHandler.YDirection = y;
@@ -49,12 +44,15 @@
         {
             if (state)
             {
-               // _inputHandler.ChangeSpeed?.Invoke(true);
+                var forward = _inputHandler.YDirection > 0;
+
+                _inputHandler.TriggerStartMovement(forward);
             }
             else
             {
-              //  _inputHandler.ChangeSpeed?.Invoke(false);
-                _inputHandler.InertialMovement?.Invoke();
+                _inputHandler.TriggerInertialMovement();
+                _inputHandler.TriggerStopCompensateInertion();
+                _inputHandler.TriggerChangeSpeed(false);
             }
         }
     }

@@ -21,6 +21,7 @@ namespace Gameplay.Players
         private Spawner<Bullet> _bulletSpawner;
 
         private bool _canShootBullets = true;
+        private bool _canShootLaser = true;
         private WeaponConfig _config;
         private PlayerInputHandler _inputHandler;
         private bool _isLaserCharging;
@@ -69,16 +70,19 @@ namespace Gameplay.Players
         private async void FireLaser()
         {
             if (LaserShootsCount <= 0 || _player.IsUncontrollable) return;
+            if (!_canShootLaser) return;
 
             _audioService.PlaySfx(_audioService.Config.LaserShoot);
 
             _canShootBullets = false;
+            _canShootLaser = false;
             _laser.gameObject.SetActive(true);
             _laserAnimator.SetBool(IsShooting, true);
             await UniTask.Delay(_config.LaserShootingTime);
             _laserAnimator.SetBool(IsShooting, false);
             _laser.gameObject.SetActive(false);
             _canShootBullets = true;
+            _canShootLaser = true;
             _audioService.StopSfx();
 
             LaserShootsCount--;

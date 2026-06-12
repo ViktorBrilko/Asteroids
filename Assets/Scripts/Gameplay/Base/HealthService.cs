@@ -45,7 +45,7 @@ public class PlayerHealthEditor : Editor
 
         var player = (HealthService)target;
 
-        if (GUILayout.Button("+100 HP игроку")) player.Heal();
+        if (GUILayout.Button("+100 HP")) player.Heal();
     }
 }
 #endif

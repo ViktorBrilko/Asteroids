@@ -8,11 +8,8 @@ namespace UI.ViewModels.Installers
         public override void InstallBindings()
         {
             Container.BindInterfacesAndSelfTo<ScoreViewModel>().AsSingle().NonLazy();
-            Container.BindInterfacesAndSelfTo<LaserCountViewModel>().AsSingle().NonLazy();
-            Container.BindInterfacesAndSelfTo<LaserChargeViewModel>().AsSingle().NonLazy();
-            Container.BindInterfacesAndSelfTo<PlayerRotationViewModel>().AsSingle().NonLazy();
-            Container.BindInterfacesAndSelfTo<PlayerPositionViewModel>().AsSingle().NonLazy();
-            Container.BindInterfacesAndSelfTo<SpeedViewModel>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<LaserViewModel>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<PlayerParametersViewModel>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<HealthViewModel>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<DeathPanelViewModel>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<GameMenuViewModel>().AsSingle().NonLazy();

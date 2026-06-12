@@ -3,7 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace Gameplay.Base
+namespace Gameplay.Enemies
 {
     public class EnemyMoveService : MonoBehaviour
     {

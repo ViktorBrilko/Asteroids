@@ -1,17 +1,22 @@
 ﻿using System;
 using Controls;
+using Core.Signals;
 using MVVM;
+using UniRx;
 using Zenject;
 
 namespace UI.ViewModels
 {
     public class MobileButtonsViewModel : IInitializable, IDisposable
     {
+        private readonly SignalBus _signalBus;
+        [Data("MobileButtonsPanelState")] public readonly ReactiveProperty<bool> IsPanelActive = new(true);
         public readonly MobileController MobileController;
 
-        public MobileButtonsViewModel(MobileController mobileController)
+        public MobileButtonsViewModel(MobileController mobileController, SignalBus signalBus)
         {
             MobileController = mobileController;
+            _signalBus = signalBus;
         }
 
         [Setter("RotatingLeft")]
@@ -32,12 +37,6 @@ namespace UI.ViewModels
             set => MobileController.ChangingMovingState(value);
         }
 
-        [Setter("XDirection")]
-        public float XDirection
-        {
-            set => MobileController.SetXDirection(value);
-        }
-
         [Setter("YDirection")]
         public float YDirection
         {
@@ -46,10 +45,20 @@ namespace UI.ViewModels
 
         public void Dispose()
         {
+            _signalBus.Unsubscribe<PanelChangeStateSignal>(OnPanelChangeStateSignal);
         }
 
         public void Initialize()
         {
+            _signalBus.Subscribe<PanelChangeStateSignal>(OnPanelChangeStateSignal);
+        }
+
+        private void OnPanelChangeStateSignal(PanelChangeStateSignal signal)
+        {
+            if (signal.State)
+                IsPanelActive.Value = false;
+            else
+                IsPanelActive.Value = true;
         }
 
         [Method("FireLaser")]

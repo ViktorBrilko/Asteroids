@@ -5054,8 +5054,8 @@ CapsuleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.020654917, y: 0.2581861}
-  m_Size: {x: 0.91738033, y: 1.9793448}
+  m_Offset: {x: -0.020654917, y: 0.5}
+  m_Size: {x: 1.71, y: 3.79}
   m_Direction: 0
 --- !u!114 &3586498247564469775
 MonoBehaviour:
@@ -5131,22 +5131,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3082364800639816598}
     m_Modifications:
-    - target: {fileID: 1958892724630720136, guid: 29ba248c4594cbf458b3f434013bc06a, type: 3}
-      propertyPath: m_SpriteTilingProperty.newSize.x
-      value: 5.12
-      objectReference: {fileID: 0}
-    - target: {fileID: 1958892724630720136, guid: 29ba248c4594cbf458b3f434013bc06a, type: 3}
-      propertyPath: m_SpriteTilingProperty.newSize.y
-      value: 6.826667
-      objectReference: {fileID: 0}
-    - target: {fileID: 4763921381046918558, guid: 29ba248c4594cbf458b3f434013bc06a, type: 3}
-      propertyPath: m_Size.x
-      value: 5.12
-      objectReference: {fileID: 0}
-    - target: {fileID: 4763921381046918558, guid: 29ba248c4594cbf458b3f434013bc06a, type: 3}
-      propertyPath: m_Size.y
-      value: 6.826667
-      objectReference: {fileID: 0}
     - target: {fileID: 7899378032927115617, guid: 29ba248c4594cbf458b3f434013bc06a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -5190,10 +5174,6 @@ PrefabInstance:
     - target: {fileID: 8114843499673881945, guid: 29ba248c4594cbf458b3f434013bc06a, type: 3}
       propertyPath: m_Name
       value: Laser
-      objectReference: {fileID: 0}
-    - target: {fileID: 8114843499673881945, guid: 29ba248c4594cbf458b3f434013bc06a, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

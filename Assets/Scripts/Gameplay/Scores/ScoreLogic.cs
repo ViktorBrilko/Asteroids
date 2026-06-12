@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Gameplay.Base;
 using Gameplay.Enemies;
 using Gameplay.Signals;
 using Zenject;

@@ -1,13 +1,11 @@
-﻿using System;
-using Core;
+﻿using Core;
 using Core.Audios;
 using MVVM;
 using UniRx;
-using Zenject;
 
 namespace UI.ViewModels
 {
-    public class MainMenuViewModel : IInitializable, IDisposable
+    public class MainMenuViewModel
     {
         private readonly AudioService _audioService;
         private readonly LoadLevelService _loadLevel;
@@ -21,14 +19,6 @@ namespace UI.ViewModels
             _loadLevel = loadLevel;
             _windowsState = windowsState;
             IsPanelOpen = _windowsState.IsMainMenuOpen;
-        }
-
-        public void Dispose()
-        {
-        }
-
-        public void Initialize()
-        {
         }
 
         [Method("OnPlayClick")]

@@ -11,11 +11,11 @@ namespace Ads
 {
     public class AdsManager : IInitializable, IDisposable
     {
-        private BannerView _bannerView;
         private readonly AdsConfig _config;
         private readonly LoadLevelService _loadLevelService;
-        private RewardedAd _rewardedAd;
         private readonly SignalBus _signalBus;
+        private BannerView _bannerView;
+        private RewardedAd _rewardedAd;
 
         public AdsManager(SignalBus signalBus, AdsConfig config, LoadLevelService loadLevelService)
         {

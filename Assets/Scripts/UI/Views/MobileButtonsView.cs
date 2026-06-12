@@ -1,5 +1,4 @@
 ﻿using Controls;
-using Controls.Joystick;
 using MVVM;
 using UniRx;
 using UnityEngine;
@@ -11,34 +10,37 @@ namespace UI.Views
     {
         [SerializeField] private MobileButton _rotateLeftButton;
         [SerializeField] private MobileButton _rotateRightButton;
-        [SerializeField] private Joystick _joystick;
+        [SerializeField] private MobileButton _moveForwardButton;
+        [SerializeField] private MobileButton _moveBackwardButton;
+        [SerializeField] public GameObject MobileButtonsPanel;
         [Data("FireLaser")] [SerializeField] public Button FireLaserButton;
         [Data("FireBullets")] [SerializeField] public Button FireBulletsButton;
         [Data("MovingState")] public readonly ReactiveProperty<bool> IsMoving = new();
 
         [Data("RotatingLeft")] public readonly ReactiveProperty<bool> IsRotatingLeft = new();
         [Data("RotatingRight")] public readonly ReactiveProperty<bool> IsRotatingRight = new();
-        [Data("XDirection")] public readonly ReactiveProperty<float> XDirection = new();
         [Data("YDirection")] public readonly ReactiveProperty<float> YDirection = new();
 
-        private void Update()
+        [Setter("MobileButtonsPanelState")]
+        public bool MobileButtonsPanelState
         {
-            XDirection.Value = _joystick.Horizontal;
-            YDirection.Value = _joystick.Vertical;
+            set => MobileButtonsPanel.SetActive(value);
         }
 
         private void OnEnable()
         {
+            _moveForwardButton.OnStateChanged += OnForwardMoving;
+            _moveBackwardButton.OnStateChanged += OnBackwardMoving;
             _rotateLeftButton.OnStateChanged += OnLeftRotation;
             _rotateRightButton.OnStateChanged += OnRightRotation;
-            _joystick.OnJoystickPressedDown += OnChangedMovingState;
         }
 
         private void OnDisable()
         {
+            _moveForwardButton.OnStateChanged -= OnForwardMoving;
+            _moveBackwardButton.OnStateChanged -= OnBackwardMoving;
             _rotateLeftButton.OnStateChanged -= OnLeftRotation;
             _rotateRightButton.OnStateChanged -= OnRightRotation;
-            _joystick.OnJoystickPressedDown -= OnChangedMovingState;
         }
 
         private void OnLeftRotation(bool isRotating)
@@ -51,8 +53,23 @@ namespace UI.Views
             IsRotatingRight.Value = isRotating;
         }
 
-        private void OnChangedMovingState(bool isMoving)
+        private void OnForwardMoving(bool isMoving)
         {
+            if (isMoving)
+                YDirection.Value = 1;
+            else
+                YDirection.Value = 0;
+
+            IsMoving.Value = isMoving;
+        }
+
+        private void OnBackwardMoving(bool isMoving)
+        {
+            if (isMoving)
+                YDirection.Value = -1;
+            else
+                YDirection.Value = 0;
+
             IsMoving.Value = isMoving;
         }
     }

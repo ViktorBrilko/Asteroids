@@ -8,11 +8,9 @@ namespace Controls
         public Func<bool, UniTask> ChangeSpeed;
         public Action FireBullet;
         public Action FireLaser;
-        public Action StopCompensateInertion;
-        public Func<bool, UniTask> StartMovement;
         public Func<UniTaskVoid> InertialMovement;
-
-        public float XDirection { get; set; }
+        public Func<bool, UniTask> StartMovement;
+        public Action StopCompensateInertion;
 
         public float YDirection { get; set; }
 
@@ -32,17 +30,17 @@ namespace Controls
         {
             InertialMovement?.Invoke();
         }
-        
+
         public void TriggerStartMovement(bool isForward)
         {
             StartMovement?.Invoke(isForward);
         }
 
-        public void TriggerChangeSpeed(bool increase, bool forward = true)
+        public void TriggerChangeSpeed(bool increase)
         {
             ChangeSpeed?.Invoke(increase);
         }
-       
+
         public void TriggerStopCompensateInertion()
         {
             StopCompensateInertion?.Invoke();
