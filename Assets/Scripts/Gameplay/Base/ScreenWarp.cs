@@ -7,6 +7,7 @@ namespace Gameplay.Base
     public class ScreenWarp : MonoBehaviour
     {
         private GameField _field;
+        private const int WarpThreshold = 1;
 
         [Inject]
         public void Construct(GameField field)
@@ -17,16 +18,16 @@ namespace Gameplay.Base
         public void Warp()
         {
             var position = transform.position;
-            var bounds = _field.GetComponent<Collider2D>().bounds;
+            var bounds = _field.Collider.bounds;
 
             if (position.x > bounds.max.x)
-                transform.position = new Vector3(-transform.position.x + 1, transform.position.y);
+                transform.position = new Vector3(-transform.position.x + WarpThreshold, transform.position.y);
             else if (position.x < bounds.min.x)
-                transform.position = new Vector3(-transform.position.x - 1, transform.position.y);
+                transform.position = new Vector3(-transform.position.x - WarpThreshold, transform.position.y);
             else if (position.y > bounds.max.y)
-                transform.position = new Vector3(transform.position.x, -transform.position.y + 1);
+                transform.position = new Vector3(transform.position.x, -transform.position.y + WarpThreshold);
             else if (position.y < bounds.min.y)
-                transform.position = new Vector3(transform.position.x, -transform.position.y - 1);
+                transform.position = new Vector3(transform.position.x, -transform.position.y - WarpThreshold);
         }
     }
 }

@@ -9,39 +9,10 @@ namespace UI.ViewModels
 {
     public class MobileButtonsViewModel : IInitializable, IDisposable
     {
-        private readonly SignalBus _signalBus;
         [Data("MobileButtonsPanelState")] public readonly ReactiveProperty<bool> IsPanelActive = new(true);
-        public readonly MobileController MobileController;
-
-        public MobileButtonsViewModel(MobileController mobileController, SignalBus signalBus)
-        {
-            MobileController = mobileController;
-            _signalBus = signalBus;
-        }
-
-        [Setter("RotatingLeft")]
-        public bool RotateLeft
-        {
-            set => MobileController.RotateLeft(value);
-        }
-
-        [Setter("RotatingRight")]
-        public bool RotateRight
-        {
-            set => MobileController.RotateRight(value);
-        }
-
-        [Setter("MovingState")]
-        public bool ChangeMovingState
-        {
-            set => MobileController.ChangingMovingState(value);
-        }
-
-        [Setter("YDirection")]
-        public float YDirection
-        {
-            set => MobileController.SetYDirection(value);
-        }
+        
+        private readonly MobileController _mobileController;
+        private readonly SignalBus _signalBus;
 
         public void Dispose()
         {
@@ -53,24 +24,64 @@ namespace UI.ViewModels
             _signalBus.Subscribe<PanelChangeStateSignal>(OnPanelChangeStateSignal);
         }
 
+        public MobileButtonsViewModel(MobileController mobileController, SignalBus signalBus)
+        {
+            _mobileController = mobileController;
+            _signalBus = signalBus;
+        }
+
+        [Method("RotatingLeft")]
+        public void OnLeftRotation(bool isRotating)
+        {
+            _mobileController.RotateLeft(isRotating);
+        }
+
+        [Method("RotatingRight")]
+        public void OnRightRotation(bool isRotating)
+        {
+            _mobileController.RotateRight(isRotating);
+        }
+
+        [Method("MoveForward")]
+        public void OnForwardMoving(bool isMoving)
+        {
+            if (isMoving)
+                _mobileController.SetYDirection(1);
+            else
+                _mobileController.SetYDirection(0);
+
+            _mobileController.ChangingMovingState(isMoving);
+        }
+
+        [Method("MoveBackward")]
+        public void OnBackwardMoving(bool isMoving)
+        {
+            if (isMoving)
+                _mobileController.SetYDirection(-1);
+            else
+                _mobileController.SetYDirection(0);
+
+            _mobileController.ChangingMovingState(isMoving);
+        }
+
+        [Method("FireLaser")]
+        public void FireLaser()
+        {
+            _mobileController.FireLaser();
+        }
+
+        [Method("FireBullets")]
+        public void FireBullets()
+        {
+            _mobileController.FireBullets();
+        }
+        
         private void OnPanelChangeStateSignal(PanelChangeStateSignal signal)
         {
             if (signal.State)
                 IsPanelActive.Value = false;
             else
                 IsPanelActive.Value = true;
-        }
-
-        [Method("FireLaser")]
-        public void FireLaser()
-        {
-            MobileController.FireLaser();
-        }
-
-        [Method("FireBullets")]
-        public void FireBullets()
-        {
-            MobileController.FireBullets();
         }
     }
 }

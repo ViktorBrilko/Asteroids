@@ -1,4 +1,6 @@
 ﻿using Core.Audios;
+using Core.Configs;
+using Cysharp.Threading.Tasks;
 using Gameplay.Base;
 using Gameplay.Players;
 using Gameplay.Signals;
@@ -7,37 +9,70 @@ using Zenject;
 
 namespace Gameplay.Enemies
 {
-    public abstract class Enemy : MonoBehaviour
+    [RequireComponent(typeof(HealthComponent), typeof(EnemyMovement))]
+    public abstract class Enemy : MonoBehaviour, IResettable, IKillable
     {
-        protected AudioService AudioService;
-        protected EnemyMoveService EnemyMove;
-        protected EnemyTypes EnemyType;
-        protected HealthService HealthService;
+        private AudioService _audioService;
+        private EnemyMovement _enemyMovement;
+        protected EnemyType EnemyType;
+        private HealthComponent _healthComponent;
         protected SignalBus SignalBus;
 
-        public EnemyTypes Type => EnemyType;
+        public abstract BaseEnemyConfig Config { get; }
 
+        public EnemyType Type => EnemyType;
+
+        [Inject]
         protected void Construct(SignalBus signalBus, AudioService audioService)
         {
             SignalBus = signalBus;
-            AudioService = audioService;
-
-            HealthService = GetComponent<HealthService>();
-            EnemyMove = GetComponent<EnemyMoveService>();
+            _audioService = audioService;
+        }
+        
+        public void OnEnable()
+        {
+            _healthComponent.OnDied += Die;
         }
 
-        protected void CollideWithPlayer(Collision2D other, int damage)
+        public void OnDisable()
         {
-            if (other.gameObject.TryGetComponent(out Player player))
-            {
-                AudioService.PlaySfx(AudioService.Config.Collision);
-                EnemyMove.ChangeMoveDirection((transform.position - other.transform.position).normalized);
-                EnemyMove.ChangeMoveSpeed().Forget();
-                EnemyMove.RotateAfterCollision().Forget();
+            _healthComponent.OnDied -= Die;
+        }
+        
+        public void Die()
+        {
+            _audioService.PlayExplosion();
+            FireResetSignal();
+            SignalBus.Fire(new EnemyDiedSignal(this, transform.position));
+        }
+        
+        protected void OnCollisionEnter2D(Collision2D other)
+        {
+            CollideWithPlayer(other, Config.Damage);
+        }
 
-                player.HealthService.TakeDamage(damage);
-                SignalBus.Fire(new PlayerCollidedSignal(gameObject));
-            }
+        protected abstract void FireResetSignal();
+
+        private void Awake()
+        {
+            _healthComponent = GetComponent<HealthComponent>();
+            _enemyMovement = GetComponent<EnemyMovement>();
+            
+            _healthComponent.Init(Config.Health);
+            _enemyMovement.Init(Config.MoveSpeed, Config.AfterCollisionSpeed, Config.CollisionEffectTime,
+                Config.RotationSpeed);
+        }
+
+        private void CollideWithPlayer(Collision2D other, int damage)
+        {
+            if (!other.gameObject.TryGetComponent(out Player player)) return;
+            
+            _audioService.PlayCollision();
+            _enemyMovement.ChangeMoveDirection((transform.position - other.transform.position).normalized);
+            _enemyMovement.ChangeMoveSpeed().Forget();
+            _enemyMovement.RotateAfterCollision().Forget();
+
+            SignalBus.Fire(new PlayerCollidedSignal(gameObject));
         }
     }
 }

@@ -5,45 +5,47 @@ namespace Controls
 {
     public class DesktopController : ITickable
     {
-        private readonly PlayerInputHandler _inputHandler;
+        private const string FireBulletButton = "Fire1";
+        private const string FireLaserButton = "Fire2";
+        private const string RotateAxis = "Rotate";
+        private const string VerticalMoveAxis = "Vertical";
+        
+        private readonly PlayerActionCommands _actionCommands;
 
-        public DesktopController(PlayerInputHandler inputHandler)
+        public DesktopController(PlayerActionCommands actionCommands)
         {
-            _inputHandler = inputHandler;
+            _actionCommands = actionCommands;
         }
 
         public void Tick()
         {
-            _inputHandler.YDirection = Input.GetAxisRaw("Vertical");
-            _inputHandler.Rotation = Input.GetAxisRaw("Rotate");
+            _actionCommands.YDirection = Input.GetAxisRaw(VerticalMoveAxis);
+            _actionCommands.Rotation = Input.GetAxisRaw(RotateAxis);
 
-            if (Input.GetButtonDown("Fire1")) _inputHandler.TriggerBullet();
+            if (Input.GetButtonDown(FireBulletButton)) _actionCommands.TriggerBullet();
 
-            if (Input.GetButtonDown("Fire2")) _inputHandler.TriggerLaser();
+            if (Input.GetButtonDown(FireLaserButton)) _actionCommands.TriggerLaser();
 
-            if (Input.GetButtonDown("Vertical"))
+            if (Input.GetButtonDown(VerticalMoveAxis))
             {
-                var forward = _inputHandler.YDirection > 0;
+                var forward = _actionCommands.YDirection > 0;
 
-                _inputHandler.TriggerStartMovement(forward);
+                _actionCommands.TriggerStartMovement(forward);
             }
 
-            if (Input.GetButtonUp("Vertical"))
+            if (Input.GetButtonUp(VerticalMoveAxis))
             {
                 if (IsMovingButtonsHold()) return;
 
-                _inputHandler.TriggerInertialMovement();
-                _inputHandler.TriggerStopCompensateInertion();
-                _inputHandler.TriggerChangeSpeed(false);
+                _actionCommands.TriggerInertialMovement();
+                _actionCommands.TriggerStopCompensateInertia();
+                _actionCommands.TriggerChangeSpeed(false);
             }
         }
 
         private bool IsMovingButtonsHold()
         {
-            if (Input.GetButton("Vertical"))
-                return true;
-
-            return false;
+            return Input.GetButton(VerticalMoveAxis);
         }
     }
 }

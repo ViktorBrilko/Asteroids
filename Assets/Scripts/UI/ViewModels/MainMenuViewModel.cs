@@ -7,11 +7,11 @@ namespace UI.ViewModels
 {
     public class MainMenuViewModel
     {
+        [Data("MainMenuPanelState")] public ReactiveProperty<bool> IsPanelOpen;
+        
         private readonly AudioService _audioService;
         private readonly LoadLevelService _loadLevel;
         private readonly WindowsState _windowsState;
-
-        [Data("MainMenuPanelState")] public ReactiveProperty<bool> IsPanelOpen;
 
         public MainMenuViewModel(LoadLevelService loadLevel, AudioService audioService, WindowsState windowsState)
         {
@@ -24,14 +24,14 @@ namespace UI.ViewModels
         [Method("OnPlayClick")]
         public void OnPlayClicked()
         {
-            _audioService.PlaySfx(_audioService.Config.UI_Click);
+            _audioService.PlayUiClick();
             _loadLevel.LoadLevel();
         }
 
         [Method("OnSettingsClick")]
         public void OnSettingsClicked()
         {
-            _audioService.PlaySfx(_audioService.Config.UI_Click);
+            _audioService.PlayUiClick();
             _windowsState.IsSettingsOpen.Value = true;
             _windowsState.IsMainMenuOpen.Value = false;
         }

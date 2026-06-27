@@ -10,22 +10,22 @@ namespace UI.ViewModels
     {
         [Data("Score")] public readonly ReactiveProperty<string> _currentScore = new();
 
-        public readonly ScoreLogic ScoreLogic;
+        private readonly ScoreLogic _scoreLogic;
 
         public ScoreViewModel(ScoreLogic scoreLogic)
         {
-            ScoreLogic = scoreLogic;
+            _scoreLogic = scoreLogic;
         }
 
         public void Dispose()
         {
-            ScoreLogic.OnScoreChanged -= OnScoreChanged;
+            _scoreLogic.OnScoreChanged -= OnScoreChanged;
         }
 
         public void Initialize()
         {
-            OnScoreChanged(ScoreLogic.Score);
-            ScoreLogic.OnScoreChanged += OnScoreChanged;
+            OnScoreChanged(_scoreLogic.Score);
+            _scoreLogic.OnScoreChanged += OnScoreChanged;
         }
 
         private void OnScoreChanged(int score)

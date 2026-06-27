@@ -30,7 +30,7 @@ namespace UI.Views
         }
 
         [Setter("SettingsPanelState")]
-        public bool Interactable
+        public bool IsOpen
         {
             set => SettingsPanel.SetActive(value);
         }

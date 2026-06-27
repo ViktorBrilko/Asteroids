@@ -1,6 +1,6 @@
 ﻿namespace Gameplay.Base
 {
-    public interface IDieable
+    public interface IKillable
     {
         public void Die();
     }

@@ -1,9 +1,22 @@
+using System.IO;
 using Newtonsoft.Json;
 
 namespace Core.Configs
 {
     public class ConfigProvider
     {
+        private const string PlayerConfigName = "player_config.json";
+        private const string BulletConfigName = "bullet_config.json";
+        private const string GameFieldConfigName = "gamefield_config.json";
+        private const string AsteroidConfigName = "asteroid_config.json";
+        private const string SmallAsteroidConfigName = "small_asteroid_config.json";
+        private const string UfoConfigName = "ufo_config.json";
+        private const string ScoreConfigName = "score_config.json";
+        private const string WeaponConfigName = "weapon_config.json";
+        private const string SettingsConfigName = "settings_config.json";
+        private const string AdsConfigName = "ads_config.json";
+        private const string CapacitiesConfigName = "scene_capacities_config.json";
+        
         public PlayerConfig PlayerConfig { get; private set; }
         public BulletConfig BulletConfig { get; private set; }
         public GameFieldConfig GameFieldConfig { get; private set; }
@@ -14,32 +27,37 @@ namespace Core.Configs
         public WeaponConfig WeaponConfig { get; private set; }
         public SettingsConfig SettingsConfig { get; private set; }
         public AdsConfig AdsConfig { get; private set; }
+        public CapacitiesConfig CapacitiesConfig { get; private set; }
+
+        public ConfigProvider()
+        {
+            BetterStreamingAssets.Initialize();
+        }
 
         public void LoadAll()
         {
-            BetterStreamingAssets.Initialize();
-
-            PlayerConfig = LoadFromFile<PlayerConfig>("player_config.json");
-            BulletConfig = LoadFromFile<BulletConfig>("bullet_config.json");
-            GameFieldConfig = LoadFromFile<GameFieldConfig>("gamefield_config.json");
-            AsteroidConfig = LoadFromFile<AsteroidConfig>("asteroid_config.json");
-            SmallAsteroidConfig = LoadFromFile<SmallAsteroidConfig>("small_asteroid_config.json");
-            UfoConfig = LoadFromFile<UfoConfig>("ufo_config.json");
-            ScoreConfig = LoadFromFile<ScoreConfig>("score_config.json");
-            WeaponConfig = LoadFromFile<WeaponConfig>("weapon_config.json");
-            SettingsConfig = LoadFromFile<SettingsConfig>("settings_config.json");
-            AdsConfig = LoadFromFile<AdsConfig>("ads_config.json");
+            PlayerConfig = LoadFromFile<PlayerConfig>(PlayerConfigName);
+            BulletConfig = LoadFromFile<BulletConfig>(BulletConfigName);
+            GameFieldConfig = LoadFromFile<GameFieldConfig>(GameFieldConfigName);
+            AsteroidConfig = LoadFromFile<AsteroidConfig>(AsteroidConfigName);
+            SmallAsteroidConfig = LoadFromFile<SmallAsteroidConfig>(SmallAsteroidConfigName);
+            UfoConfig = LoadFromFile<UfoConfig>(UfoConfigName);
+            ScoreConfig = LoadFromFile<ScoreConfig>(ScoreConfigName);
+            WeaponConfig = LoadFromFile<WeaponConfig>(WeaponConfigName);
+            SettingsConfig = LoadFromFile<SettingsConfig>(SettingsConfigName);
+            AdsConfig = LoadFromFile<AdsConfig>(AdsConfigName);
+            CapacitiesConfig = LoadFromFile<CapacitiesConfig>(CapacitiesConfigName);
         }
 
         private T LoadFromFile<T>(string fileName)
         {
-            if (BetterStreamingAssets.FileExists(fileName))
+            if (!BetterStreamingAssets.FileExists(fileName))
             {
-                var json = BetterStreamingAssets.ReadAllText(fileName);
-                return JsonConvert.DeserializeObject<T>(json);
+                throw new FileNotFoundException($"Failed to load config. File missing.: {fileName}", fileName);
             }
 
-            return default;
+            var json = BetterStreamingAssets.ReadAllText(fileName);
+            return JsonConvert.DeserializeObject<T>(json);
         }
     }
 }

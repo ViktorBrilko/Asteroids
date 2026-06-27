@@ -2,57 +2,57 @@
 {
     public class MobileController
     {
-        private readonly PlayerInputHandler _inputHandler;
+        private readonly PlayerActionCommands _actionCommands;
 
-        public MobileController(PlayerInputHandler inputHandler)
+        public MobileController(PlayerActionCommands actionCommands)
         {
-            _inputHandler = inputHandler;
+            _actionCommands = actionCommands;
         }
 
         public void FireLaser()
         {
-            _inputHandler.TriggerLaser();
+            _actionCommands.TriggerLaser();
         }
 
         public void FireBullets()
         {
-            _inputHandler.TriggerBullet();
+            _actionCommands.TriggerBullet();
         }
 
         public void RotateLeft(bool rotate)
         {
             if (rotate)
-                _inputHandler.Rotation = 1;
+                _actionCommands.Rotation = 1;
             else
-                _inputHandler.Rotation = 0;
+                _actionCommands.Rotation = 0;
         }
 
         public void RotateRight(bool rotate)
         {
             if (rotate)
-                _inputHandler.Rotation = -1;
+                _actionCommands.Rotation = -1;
             else
-                _inputHandler.Rotation = 0;
+                _actionCommands.Rotation = 0;
         }
 
         public void SetYDirection(float y)
         {
-            _inputHandler.YDirection = y;
+            _actionCommands.YDirection = y;
         }
 
         public void ChangingMovingState(bool state)
         {
             if (state)
             {
-                var forward = _inputHandler.YDirection > 0;
+                var forward = _actionCommands.YDirection > 0;
 
-                _inputHandler.TriggerStartMovement(forward);
+                _actionCommands.TriggerStartMovement(forward);
             }
             else
             {
-                _inputHandler.TriggerInertialMovement();
-                _inputHandler.TriggerStopCompensateInertion();
-                _inputHandler.TriggerChangeSpeed(false);
+                _actionCommands.TriggerInertialMovement();
+                _actionCommands.TriggerStopCompensateInertia();
+                _actionCommands.TriggerChangeSpeed(false);
             }
         }
     }

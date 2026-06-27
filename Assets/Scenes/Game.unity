@@ -729,6 +729,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 464221621}
   m_CullTransparentMesh: 1
+--- !u!1 &497698506
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 497698507}
+  m_Layer: 0
+  m_Name: Small Asteroids
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &497698507
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 497698506}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1038056896}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -766,7 +797,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0.050980397, g: 0.13333334, b: 0.18823531, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -1568,7 +1599,7 @@ Canvas:
   serializedVersion: 3
   m_RenderMode: 1
   m_Camera: {fileID: 519420031}
-  m_PlaneDistance: 100
+  m_PlaneDistance: 10
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
@@ -1683,6 +1714,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 951109393}
   m_CullTransparentMesh: 1
+--- !u!1 &957802953
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 957802954}
+  m_Layer: 0
+  m_Name: Asteroids
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &957802954
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 957802953}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1038056896}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &998927711
 GameObject:
   m_ObjectHideFlags: 0
@@ -1817,6 +1879,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 998927711}
   m_CullTransparentMesh: 1
+--- !u!1 &1013286640
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1013286641}
+  m_Layer: 0
+  m_Name: Ufos
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1013286641
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1013286640}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1038056896}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1026237761
 GameObject:
   m_ObjectHideFlags: 0
@@ -1886,6 +1979,41 @@ MonoBehaviour:
   viewModelTypeName: UI.ViewModels.ScoreViewModel, UI, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
   _viewModelScript: {fileID: 11500000, guid: f0bf5a90253d9d3418a3940a6b849518, type: 3}
+--- !u!1 &1038056895
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1038056896}
+  m_Layer: 0
+  m_Name: Instance Container
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1038056896
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1038056895}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 957802954}
+  - {fileID: 497698507}
+  - {fileID: 1746725447}
+  - {fileID: 1013286641}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1114053823
 GameObject:
   m_ObjectHideFlags: 0
@@ -1949,7 +2077,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 161.31938, y: 107.52}
+  m_Size: {x: 300, y: 300}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -1965,7 +2093,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 10}
-  m_LocalScale: {x: 1.8546298, y: 2.7545655, z: 1}
+  m_LocalScale: {x: 3, y: 4, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -2321,6 +2449,8 @@ GameObject:
   - component: {fileID: 1245306177}
   - component: {fileID: 1245306178}
   - component: {fileID: 1245306179}
+  - component: {fileID: 1245306181}
+  - component: {fileID: 1245306180}
   m_Layer: 5
   m_Name: Player Parameters
   m_TagString: Untagged
@@ -2384,7 +2514,6 @@ MonoBehaviour:
   PositionText: {fileID: 1344074891}
   RotationText: {fileID: 1115228185}
   SpeedText: {fileID: 1523333499}
-  InertionSpeed: {fileID: 1583100415}
 --- !u!114 &1245306179
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2409,6 +2538,37 @@ MonoBehaviour:
   m_Spacing: {x: 15, y: 0}
   m_Constraint: 1
   m_ConstraintCount: 2
+--- !u!114 &1245306180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1245306175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c17f70198e2498459d1c927330f0376, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewBinding: 0
+  view: {fileID: 1245306181}
+  viewModelBinding: 1
+  viewModelTypeName: UI.ViewModels.InertiaViewModel, UI, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  _viewModelScript: {fileID: 11500000, guid: b7daa9b0c4c7447390fc1c73fe2f15cf, type: 3}
+--- !u!114 &1245306181
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1245306175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fa47ece1158444dbdadad208a13436e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  InertiaSpeedText: {fileID: 1583100415}
 --- !u!1 &1321066453
 GameObject:
   m_ObjectHideFlags: 0
@@ -3052,7 +3212,7 @@ GameObject:
   - component: {fileID: 1583100416}
   - component: {fileID: 1583100415}
   m_Layer: 5
-  m_Name: Inertion Speed Text
+  m_Name: Inertia Speed Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3097,7 +3257,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Inertion Speed 10
+  m_text: Inertia Speed 10
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c97d03768506fc4468583134b3a7e48b, type: 2}
   m_sharedMaterial: {fileID: -1705300541164554680, guid: c97d03768506fc4468583134b3a7e48b, type: 2}
@@ -3559,6 +3719,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1740823762}
   m_CullTransparentMesh: 1
+--- !u!1 &1746725446
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1746725447}
+  m_Layer: 0
+  m_Name: Bullets
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1746725447
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1746725446}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1038056896}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1756391426
 GameObject:
   m_ObjectHideFlags: 0
@@ -3571,6 +3762,9 @@ GameObject:
   - component: {fileID: 1756391427}
   - component: {fileID: 1756391429}
   - component: {fileID: 1756391430}
+  - component: {fileID: 1756391433}
+  - component: {fileID: 1756391432}
+  - component: {fileID: 1756391431}
   m_Layer: 0
   m_Name: SceneContext
   m_TagString: Untagged
@@ -3594,6 +3788,9 @@ MonoBehaviour:
   _monoInstallers:
   - {fileID: 1756391429}
   - {fileID: 1756391430}
+  - {fileID: 1756391433}
+  - {fileID: 1756391432}
+  - {fileID: 1756391431}
   _installerPrefabs: []
   _autoRun: 1
   OnPreInstall:
@@ -3638,20 +3835,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8578d2d3cce7ea74a8d66bd38d5a96b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _bulletPrefab: {fileID: 358431341365235580, guid: 501dd970720b5bd4d97852d2133751f1, type: 3}
   _gameFieldPrefab: {fileID: 7006926220765692225, guid: 4340dc096ecf1e044bb1bc9a24a23279, type: 3}
-  _asteroidPrefab: {fileID: 8913670955098313175, guid: 143c3de0eb968424e9fb17ba06152862, type: 3}
-  _smallAsteroidPrefab: {fileID: 4603335125315155557, guid: 14a997375b3d8fd409a40cc1eecce418, type: 3}
-  _playerPrefab: {fileID: 8915094865332775943, guid: b87cb2fff5379ce488a79f854e28f036, type: 3}
-  _cameraPrefab: {fileID: 3142117575118425044, guid: 78ea5a41704a94a439981000e7cb0873, type: 3}
-  _ufoPrefab: {fileID: 8596934722968740097, guid: 89f1ea3e9ab465345a3dde70f0dffebc, type: 3}
-  _mobileButtonsPrefab: {fileID: 6977655895446895814, guid: 63947b5c021310a44ac71f9f92c7f5a8, type: 3}
-  _bulletPoolCapacity: 20
-  _asteroidPoolCapacity: 10
-  _smallAsteroidPoolCapacity: 50
-  _ufoPoolCapacity: 5
-  _playerSpawnPoint: {fileID: 1630376952}
-  _canvas: {fileID: 895842984}
 --- !u!114 &1756391430
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3664,6 +3848,55 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 164e16d8fa124f38adc0237e1333f403, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1756391431
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1756391426}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5093ce5cc74448e78c5a6960fbcb5149, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _bulletPrefab: {fileID: 358431341365235580, guid: 501dd970720b5bd4d97852d2133751f1, type: 3}
+  _bulletsContainer: {fileID: 1746725447}
+--- !u!114 &1756391432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1756391426}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d6d9ef9fd78482183f8ec7c73572662, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _playerPrefab: {fileID: 8915094865332775943, guid: b87cb2fff5379ce488a79f854e28f036, type: 3}
+  _cameraPrefab: {fileID: 3142117575118425044, guid: 78ea5a41704a94a439981000e7cb0873, type: 3}
+  _mobileButtonsPrefab: {fileID: 6977655895446895814, guid: 63947b5c021310a44ac71f9f92c7f5a8, type: 3}
+  _playerSpawnPoint: {fileID: 1630376952}
+  _canvas: {fileID: 895842984}
+--- !u!114 &1756391433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1756391426}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f278632b6a9b411b9e870429178213d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _asteroidPrefab: {fileID: 8913670955098313175, guid: 143c3de0eb968424e9fb17ba06152862, type: 3}
+  _smallAsteroidPrefab: {fileID: 4603335125315155557, guid: 14a997375b3d8fd409a40cc1eecce418, type: 3}
+  _ufoPrefab: {fileID: 8596934722968740097, guid: 89f1ea3e9ab465345a3dde70f0dffebc, type: 3}
+  _asteroidsContainer: {fileID: 957802954}
+  _smallAsteroidsContainer: {fileID: 497698507}
+  _ufosContainer: {fileID: 1013286641}
 --- !u!1 &1835556145
 GameObject:
   m_ObjectHideFlags: 0
@@ -4299,3 +4532,4 @@ SceneRoots:
   - {fileID: 895842985}
   - {fileID: 82912080}
   - {fileID: 1114053825}
+  - {fileID: 1038056896}

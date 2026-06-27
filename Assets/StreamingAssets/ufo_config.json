@@ -1,7 +1,7 @@
 {
   "MoveSpeed": 8,
-  "Damage": 1,
-  "Health": 5,
+  "Damage": 2,
+  "Health": 10,
   "RotationSpeed": 160,
   "AfterCollisionSpeed": 20,
   "CollisionEffectTime": 2

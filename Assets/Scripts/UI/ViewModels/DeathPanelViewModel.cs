@@ -4,7 +4,6 @@ using Core.Audios;
 using Core.Signals;
 using MVVM;
 using UniRx;
-using UnityEngine;
 using Zenject;
 
 namespace UI.ViewModels
@@ -12,10 +11,10 @@ namespace UI.ViewModels
     public class DeathPanelViewModel : IInitializable, IDisposable
     {
         public readonly LoadLevelService LoadLevel;
+        [Data("DeathPanelState")] public readonly ReactiveProperty<bool> IsPlayerDead = new();
         
         private readonly AudioService _audioService;
         private readonly SignalBus _signalBus;
-        [Data("DeathPanelState")] public readonly ReactiveProperty<bool> IsPlayerDead = new();
 
         public DeathPanelViewModel(LoadLevelService loadLevel, AudioService audioService,
             SignalBus signalBus)
@@ -35,27 +34,27 @@ namespace UI.ViewModels
             _signalBus.Subscribe<PlayerDiedSignal>(OnPlayerDied);
         }
 
-        private void OnPlayerDied()
-        {
-            Time.timeScale = 0;
-            IsPlayerDead.Value = true;
-            _signalBus.Fire(new PanelChangeStateSignal(true));
-        }
-
         [Method("OnMenuClick")]
         public void OnMenuClicked()
         {
-            Time.timeScale = 1;
-            _audioService.PlaySfx(_audioService.Config.UI_Click);
+            _audioService.PlayUiClick();
             LoadLevel.LoadMenu();
+            _signalBus.Fire(new PauseGameSignal(false));
         }
 
         [Method("OnTryAgainClick")]
         public void OnTryAgainClick()
         {
-            _audioService.PlaySfx(_audioService.Config.UI_Click);
+            _audioService.PlayUiClick();
             LoadLevel.LoadLevel();
-            Time.timeScale = 1;
+            _signalBus.Fire(new PauseGameSignal(false));
+        }
+        
+        private void OnPlayerDied()
+        {
+            IsPlayerDead.Value = true;
+            _signalBus.Fire(new PanelChangeStateSignal(true));
+            _signalBus.Fire(new PauseGameSignal(true));
         }
     }
 }

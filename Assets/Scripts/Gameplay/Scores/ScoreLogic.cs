@@ -9,15 +9,17 @@ namespace Gameplay.Scores
     public class ScoreLogic : IInitializable, IDisposable
     {
         private readonly SignalBus _signalBus;
-
-        public ScoreLogic(SignalBus signalBus)
-        {
-            _signalBus = signalBus;
-        }
+        private Dictionary<EnemyType, int> _enemyScoreRates;
 
         public int Score { get; private set; }
-
-        public Dictionary<EnemyTypes, int> EnemyScoreRates { get; set; } = new();
+        
+        public event Action<int> OnScoreChanged;
+        
+        public ScoreLogic(SignalBus signalBus, Dictionary<EnemyType, int> enemyScoreRates)
+        {
+            _signalBus = signalBus;
+            _enemyScoreRates = enemyScoreRates;
+        }
 
         public void Dispose()
         {
@@ -29,13 +31,11 @@ namespace Gameplay.Scores
             _signalBus.Subscribe<EnemyDiedSignal>(OnEnemyDeath);
         }
 
-        public event Action<int> OnScoreChanged;
-
         private void OnEnemyDeath(EnemyDiedSignal signal)
         {
             if (signal.Enemy is Enemy enemy)
             {
-                Score += EnemyScoreRates[enemy.Type];
+                Score += _enemyScoreRates[enemy.Type];
                 OnScoreChanged?.Invoke(Score);
             }
         }

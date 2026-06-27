@@ -1,11 +1,9 @@
 ﻿using System;
-using Gameplay.Base;
-using UnityEditor;
 using UnityEngine;
 
 namespace Gameplay.Base
 {
-    public class HealthService : MonoBehaviour
+    public class HealthComponent : MonoBehaviour
     {
         public int CurrentHealth { get; private set; }
 
@@ -17,12 +15,10 @@ namespace Gameplay.Base
             CurrentHealth = maxHealth;
         }
 
-#if UNITY_EDITOR
-        public void Heal()
+        public void Heal(int amount)
         {
-            CurrentHealth += 100;
+            CurrentHealth += amount;
         }
-#endif
 
         public void TakeDamage(int damage)
         {
@@ -33,19 +29,3 @@ namespace Gameplay.Base
         }
     }
 }
-
-
-#if UNITY_EDITOR
-[CustomEditor(typeof(HealthService))]
-public class PlayerHealthEditor : Editor
-{
-    public override void OnInspectorGUI()
-    {
-        DrawDefaultInspector();
-
-        var player = (HealthService)target;
-
-        if (GUILayout.Button("+100 HP")) player.Heal();
-    }
-}
-#endif

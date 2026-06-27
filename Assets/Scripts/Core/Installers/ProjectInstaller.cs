@@ -22,6 +22,7 @@ namespace Core.Installers
 
             Container.DeclareSignal<PlayerDiedSignal>();
             Container.DeclareSignal<PanelChangeStateSignal>();
+            Container.DeclareSignal<PauseGameSignal>();
 
             InstallConfigProvider();
             InstallSettings();
@@ -29,6 +30,7 @@ namespace Core.Installers
             InstallLoadLevelService();
             InstallAudio();
             InstallAnalytics();
+            InstallPause();
         }
 
         private void InstallAnalytics()
@@ -65,6 +67,11 @@ namespace Core.Installers
             _provider = new ConfigProvider();
             _provider.LoadAll();
             Container.Bind<ConfigProvider>().FromInstance(_provider).AsSingle();
+        }
+        
+        private void InstallPause()
+        {
+            Container.BindInterfacesAndSelfTo<PauseService>().AsSingle().NonLazy();
         }
     }
 }

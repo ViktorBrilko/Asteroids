@@ -563,7 +563,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 50}
+  m_AnchoredPosition: {x: 0, y: 100}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &8661712834163103204
@@ -586,7 +586,7 @@ MonoBehaviour:
   m_ChildAlignment: 0
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 100, y: 100}
+  m_CellSize: {x: 150, y: 150}
   m_Spacing: {x: 0, y: 0}
   m_Constraint: 1
   m_ConstraintCount: 2
@@ -1113,13 +1113,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f022551b5cad4eaa8c15878f12b050aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _rotateLeftButton: {fileID: 5183312393251665477}
-  _rotateRightButton: {fileID: 2385584804115759313}
-  _moveForwardButton: {fileID: 4135906587666118931}
-  _moveBackwardButton: {fileID: 3605127780710194024}
-  MobileButtonsPanel: {fileID: 7176405889493049225}
   FireLaserButton: {fileID: 7287443092995366523}
   FireBulletsButton: {fileID: 1183212921447045166}
+  RotateLeftButton: {fileID: 5183312393251665477}
+  RotateRightButton: {fileID: 2385584804115759313}
+  MoveForwardButton: {fileID: 4135906587666118931}
+  MoveBackwardButton: {fileID: 3605127780710194024}
+  MobileButtonsPanel: {fileID: 7176405889493049225}
 --- !u!114 &1378265674992054600
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,6 +1,6 @@
 ﻿using System;
 using Cysharp.Threading.Tasks;
-using Gameplay.Players;
+using Gameplay.Players.Weapons;
 using MVVM;
 using UniRx;
 using UnityEngine;
@@ -10,29 +10,29 @@ namespace UI.ViewModels
 {
     public class LaserViewModel : IInitializable, IDisposable
     {
-        [Data("LaserCharge")] public readonly ReactiveProperty<float> LaserChargeImage = new();
+        [Data("LaserCharge")] public readonly ReactiveProperty<float> LaserChargeProgress = new();
         [Data("LaserCount")] public readonly ReactiveProperty<string> LaserCountText = new();
+        
+        private readonly LaserWeapon _weapon;
 
-        public readonly PlayerWeapon Weapon;
-
-        public LaserViewModel(PlayerWeapon weapon)
+        public LaserViewModel(LaserWeapon weapon)
         {
-            Weapon = weapon;
+            _weapon = weapon;
         }
 
         public void Dispose()
         {
-            Weapon.OnLaserChargeStarted -= OnLaserChargeStarted;
-            Weapon.OnLaserCountChanged -= OnLaserCountChanged;
+            _weapon.OnLaserChargeStarted -= OnLaserChargeStarted;
+            _weapon.OnLaserCountChanged -= OnLaserCountChanged;
         }
 
         public void Initialize()
         {
-            LaserChargeImage.Value = 1;
-            Weapon.OnLaserChargeStarted += OnLaserChargeStarted;
+            LaserChargeProgress.Value = 1;
+            _weapon.OnLaserChargeStarted += OnLaserChargeStarted;
 
-            OnLaserCountChanged(Weapon.LaserShootsCount);
-            Weapon.OnLaserCountChanged += OnLaserCountChanged;
+            OnLaserCountChanged(_weapon.LaserShootsCount);
+            _weapon.OnLaserCountChanged += OnLaserCountChanged;
         }
 
         private async void OnLaserChargeStarted(float laserCooldown)
@@ -41,7 +41,7 @@ namespace UI.ViewModels
 
             while (elapsedTime < laserCooldown)
             {
-                LaserChargeImage.Value = elapsedTime / laserCooldown;
+                LaserChargeProgress.Value = elapsedTime / laserCooldown;
                 elapsedTime += Time.deltaTime;
                 await UniTask.Yield();
             }

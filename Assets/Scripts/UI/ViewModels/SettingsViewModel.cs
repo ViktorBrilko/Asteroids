@@ -8,13 +8,13 @@ namespace UI.ViewModels
 {
     public class SettingsViewModel : IInitializable
     {
-        private readonly AudioService _audioService;
-        private readonly Settings _settings;
-        private readonly WindowsState _windowsState;
-
         [Data("SettingsPanelState")] public ReactiveProperty<bool> IsPanelOpen;
         [Data("MusicVolume")] public ReactiveProperty<float> MusicVolume = new();
         [Data("SfxVolume")] public ReactiveProperty<float> SfxVolume = new();
+        
+        private readonly AudioService _audioService;
+        private readonly Settings _settings;
+        private readonly WindowsState _windowsState;
 
         public SettingsViewModel(Settings settings, WindowsState windowsState, AudioService audioService)
         {
@@ -36,7 +36,7 @@ namespace UI.ViewModels
         [Method("OnCloseClick")]
         public void OnCloseClicked()
         {
-            _audioService.PlaySfx(_audioService.Config.UI_Click);
+            _audioService.PlayUiClick();
             _windowsState.IsSettingsOpen.Value = false;
             _windowsState.IsMainMenuOpen.Value = true;
             _windowsState.IsGameMenuOpen.Value = true;

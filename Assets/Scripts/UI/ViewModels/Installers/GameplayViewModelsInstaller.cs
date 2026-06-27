@@ -10,6 +10,7 @@ namespace UI.ViewModels.Installers
             Container.BindInterfacesAndSelfTo<ScoreViewModel>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<LaserViewModel>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<PlayerParametersViewModel>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<InertiaViewModel>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<HealthViewModel>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<DeathPanelViewModel>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<GameMenuViewModel>().AsSingle().NonLazy();

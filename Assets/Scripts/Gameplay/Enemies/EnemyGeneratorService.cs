@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using Core.Configs;
 using Cysharp.Threading.Tasks;
@@ -23,16 +22,17 @@ namespace Gameplay.Enemies
         private readonly Spawner<Ufo> _ufoSpawner;
         private int _asteroidsCount;
         private CancellationTokenSource _cts;
-        private List<IDieable> _enemies;
         private int _ufosCount;
+        private Camera _camera;
 
         public EnemyGeneratorService(Spawner<Asteroid> asteroidSpawner, GameField gameField, GameFieldConfig config,
-            SignalBus signalBus, Spawner<SmallAsteroid> smallAsteroidSpawner, Spawner<Ufo> ufoSpawner)
+            SignalBus signalBus, Spawner<SmallAsteroid> smallAsteroidSpawner, Spawner<Ufo> ufoSpawner, Camera camera)
         {
             _asteroidSpawner = asteroidSpawner;
             _smallAsteroidSpawner = smallAsteroidSpawner;
             _ufoSpawner = ufoSpawner;
             _gameField = gameField;
+            _camera = camera;
 
             _config = config;
             _signalBus = signalBus;
@@ -130,7 +130,7 @@ namespace Gameplay.Enemies
                     Random.Range(_gameField.Collider.bounds.min.x, _gameField.Collider.bounds.max.x),
                     Random.Range(_gameField.Collider.bounds.min.y, _gameField.Collider.bounds.max.y), 0);
 
-                var viewportPosition = Camera.main.WorldToViewportPoint(candidatePosition);
+                var viewportPosition = _camera.WorldToViewportPoint(candidatePosition);
 
                 var isXOnScreen = viewportPosition.x is < 1 and > 0;
                 var isYOnScreen = viewportPosition.y is < 1 and > 0;

@@ -4,17 +4,17 @@ using Core.Audios;
 using Core.Signals;
 using MVVM;
 using UniRx;
-using UnityEngine;
 using Zenject;
 
 namespace UI.ViewModels
 {
     public class GameMenuButtonViewModel : IInitializable, IDisposable
     {
+        [Data("GameButtonState")] public readonly ReactiveProperty<bool> GameButtonState = new(true);
+        
         private readonly AudioService _audioService;
         private readonly SignalBus _signalBus;
         private readonly WindowsState _windowsState;
-        [Data("GameButtonState")] public readonly ReactiveProperty<bool> GameButtonState = new(true);
 
         public GameMenuButtonViewModel(AudioService audioService, WindowsState windowsState, SignalBus signalBus)
         {
@@ -36,10 +36,10 @@ namespace UI.ViewModels
         [Method("OpenMenuButtonClick")]
         public void OnMenuOpenClicked()
         {
-            _audioService.PlaySfx(_audioService.Config.UI_Click);
+            _audioService.PlayUiClick();
             _windowsState.IsGameMenuOpen.Value = true;
             _signalBus.Fire(new PanelChangeStateSignal(true));
-            Time.timeScale = 0;
+            _signalBus.Fire(new PauseGameSignal(true));
         }
 
         private void OnPlayerDied()

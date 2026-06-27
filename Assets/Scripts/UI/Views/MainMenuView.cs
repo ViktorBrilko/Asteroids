@@ -14,7 +14,7 @@ namespace UI.Views
         [SerializeField] public GameObject MenuPanel;
 
         [Setter("MainMenuPanelState")]
-        public bool Interactable
+        public bool IsOpen
         {
             set => MenuPanel.SetActive(value);
         }

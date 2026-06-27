@@ -1,6 +1,6 @@
 ﻿namespace Gameplay.Base
 {
-    public interface IResetable
+    public interface IResettable
     {
     }
 }

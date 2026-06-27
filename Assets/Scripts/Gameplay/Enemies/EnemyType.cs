@@ -1,6 +1,6 @@
 ﻿namespace Gameplay.Enemies
 {
-    public enum EnemyTypes
+    public enum EnemyType
     {
         Asteroid,
         SmallAsteroid,

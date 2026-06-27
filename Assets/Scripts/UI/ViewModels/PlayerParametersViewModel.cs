@@ -9,59 +9,49 @@ namespace UI.ViewModels
 {
     public class PlayerParametersViewModel : IInitializable, IDisposable
     {
-        [Data("Position")] public readonly ReactiveProperty<string> _currentPosition = new();
-        [Data("Rotation")] public readonly ReactiveProperty<string> _currentRotation = new();
-        [Data("Speed")] public readonly ReactiveProperty<string> _currentSpeed = new();
-        [Data("InertionSpeed")] public readonly ReactiveProperty<string> _inertionSpeed = new();
+        [Data("Position")] public readonly ReactiveProperty<string> CurrentPosition = new();
+        [Data("Rotation")] public readonly ReactiveProperty<string> CurrentRotation = new();
+        [Data("Speed")] public readonly ReactiveProperty<string> CurrentSpeed = new();
 
-        public readonly PlayerMovement PlayerMovementLogic;
+        private readonly PlayerMovement _playerMovementLogic;
 
         public PlayerParametersViewModel(PlayerMovement playerMovementLogic)
         {
-            PlayerMovementLogic = playerMovementLogic;
+            _playerMovementLogic = playerMovementLogic;
         }
 
         public void Dispose()
         {
-            PlayerMovementLogic.OnPositionChanged -= OnPositionChanged;
-            PlayerMovementLogic.OnRotationChanged -= OnRotationChanged;
-            PlayerMovementLogic.OnSpeedChanged -= OnSpeedChanged;
-            PlayerMovementLogic.OnInertionSpeedChanged -= OnInertionSpeedChanged;
+            _playerMovementLogic.OnPositionChanged -= OnPositionChanged;
+            _playerMovementLogic.OnRotationChanged -= OnRotationChanged;
+            _playerMovementLogic.OnSpeedChanged -= OnSpeedChanged;
         }
 
         public void Initialize()
         {
             OnPositionChanged();
-            PlayerMovementLogic.OnPositionChanged += OnPositionChanged;
+            _playerMovementLogic.OnPositionChanged += OnPositionChanged;
 
             OnRotationChanged();
-            PlayerMovementLogic.OnRotationChanged += OnRotationChanged;
+            _playerMovementLogic.OnRotationChanged += OnRotationChanged;
 
             OnSpeedChanged();
-            PlayerMovementLogic.OnSpeedChanged += OnSpeedChanged;
-
-            OnInertionSpeedChanged();
-            PlayerMovementLogic.OnInertionSpeedChanged += OnInertionSpeedChanged;
+            _playerMovementLogic.OnSpeedChanged += OnSpeedChanged;
         }
 
         private void OnRotationChanged(float zRotation = 0)
         {
-            _currentRotation.Value = "Rotation " + zRotation.ToString("F1");
+            CurrentRotation.Value = "Rotation " + zRotation.ToString("F1");
         }
 
         private void OnPositionChanged(Vector2 position = new())
         {
-            _currentPosition.Value = "Position " + position.x.ToString("F1") + ", " + position.y.ToString("F1");
+            CurrentPosition.Value = "Position " + position.x.ToString("F0") + ", " + position.y.ToString("F0");
         }
 
         private void OnSpeedChanged(float speed = 0)
         {
-            _currentSpeed.Value = "Speed " + speed.ToString("F1");
-        }
-
-        private void OnInertionSpeedChanged(float speed = 0)
-        {
-            _inertionSpeed.Value = "Inertion Speed " + speed.ToString("F1");
+            CurrentSpeed.Value = "Speed " + speed.ToString("F1");
         }
     }
 }

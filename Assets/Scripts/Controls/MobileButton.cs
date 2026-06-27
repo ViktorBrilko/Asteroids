@@ -6,6 +6,8 @@ namespace Controls
 {
     public class MobileButton : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
     {
+        public event Action<bool> OnStateChanged;
+        
         public void OnPointerDown(PointerEventData eventData)
         {
             OnStateChanged?.Invoke(true);
@@ -15,7 +17,5 @@ namespace Controls
         {
             OnStateChanged?.Invoke(false);
         }
-
-        public event Action<bool> OnStateChanged;
     }
 }

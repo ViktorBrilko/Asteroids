@@ -6,7 +6,7 @@ using Zenject;
 namespace Gameplay.Base
 {
     public class Spawner<T> : IInitializable, IDisposable
-        where T : Component, IResetable
+        where T : Component, IResettable
     {
         private readonly ObjectPool<T> _pool;
         private readonly SignalBus _signalBus;
@@ -19,12 +19,12 @@ namespace Gameplay.Base
 
         public void Dispose()
         {
-            _signalBus.Unsubscribe<ResetSignal<T>>(OnItemDestroy);
+            _signalBus.Unsubscribe<ResetSignal<T>>(ReturnToPool);
         }
 
         public void Initialize()
         {
-            _signalBus.Subscribe<ResetSignal<T>>(OnItemDestroy);
+            _signalBus.Subscribe<ResetSignal<T>>(ReturnToPool);
         }
 
         public T SpawnItem(Vector3 spawnPoint, Quaternion rotation)
@@ -48,7 +48,7 @@ namespace Gameplay.Base
             item.transform.rotation = rotation;
         }
 
-        private void OnItemDestroy(ResetSignal<T> signal)
+        private void ReturnToPool(ResetSignal<T> signal)
         {
             var item = signal.Resetable;
             item.gameObject.SetActive(false);

@@ -1,0 +1,6 @@
+﻿{
+  "BulletPoolCapacity": 20,
+  "AsteroidPoolCapacity": 10,
+  "SmallAsteroidPoolCapacity": 50,
+  "UfoPoolCapacity": 5
+}

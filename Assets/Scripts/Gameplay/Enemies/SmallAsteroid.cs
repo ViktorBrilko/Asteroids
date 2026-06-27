@@ -1,49 +1,25 @@
-﻿using Core.Audios;
-using Core.Configs;
-using Gameplay.Base;
+﻿using Core.Configs;
 using Gameplay.Signals;
-using UnityEngine;
 using Zenject;
 
 namespace Gameplay.Enemies
 {
-    public class SmallAsteroid : Enemy, IDieable, IResetable
+    public class SmallAsteroid : Enemy
     {
         private SmallAsteroidConfig _config;
 
-        public void OnEnable()
-        {
-            HealthService.OnDied += Die;
-        }
-
-        public void OnDisable()
-        {
-            HealthService.OnDied -= Die;
-        }
-
-        private void OnCollisionEnter2D(Collision2D other)
-        {
-            CollideWithPlayer(other, _config.Damage);
-        }
-
-        public void Die()
-        {
-            AudioService.PlaySfx(AudioService.Config.Explosion);
-            SignalBus.Fire(new ResetSignal<SmallAsteroid>(this));
-            SignalBus.Fire(new EnemyDiedSignal(this, transform.position));
-        }
+        public override BaseEnemyConfig Config =>  _config;
 
         [Inject]
-        public void Construct(SignalBus signalBus, SmallAsteroidConfig config, AudioService audioService)
+        public void Construct( SmallAsteroidConfig config)
         {
-            base.Construct(signalBus, audioService);
             _config = config;
+            EnemyType = EnemyType.SmallAsteroid;
+        }
 
-            HealthService.Init(_config.Health);
-            EnemyMove.Init(config.MoveSpeed, config.AfterCollisionSpeed, config.CollisionEffectTime,
-                config.RotationSpeed);
-
-            EnemyType = EnemyTypes.SmallAsteroid;
+        protected override void FireResetSignal()
+        {
+            SignalBus.Fire(new ResetSignal<SmallAsteroid>(this));
         }
     }
 }

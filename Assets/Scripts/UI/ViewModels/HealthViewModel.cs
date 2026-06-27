@@ -10,22 +10,22 @@ namespace UI.ViewModels
     {
         [Data("Health")] public readonly ReactiveProperty<int> Health = new();
 
-        public readonly HealthService HealthService;
+        public readonly HealthComponent HealthComponent;
 
-        public HealthViewModel(HealthService playerHealth)
+        public HealthViewModel(HealthComponent playerHealth)
         {
-            HealthService = playerHealth;
+            HealthComponent = playerHealth;
         }
 
         public void Dispose()
         {
-            HealthService.OnHealthChanged -= OnHealthChanged;
+            HealthComponent.OnHealthChanged -= OnHealthChanged;
         }
 
         public void Initialize()
         {
-            Health.Value = HealthService.CurrentHealth;
-            HealthService.OnHealthChanged += OnHealthChanged;
+            Health.Value = HealthComponent.CurrentHealth;
+            HealthComponent.OnHealthChanged += OnHealthChanged;
         }
 
         private void OnHealthChanged(int currentHealth)

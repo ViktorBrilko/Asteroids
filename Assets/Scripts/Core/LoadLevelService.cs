@@ -6,8 +6,10 @@ namespace Core
 {
     public class LoadLevelService : IInitializable, IDisposable
     {
-        private const string MENU_SCENE_NAME = "Menu";
-        private const string GAME_SCENE_NAME = "Game";
+        private const string MenuSceneName = "Menu";
+        private const string GameSceneName = "Game";
+        
+        public event Action OnLoadScene;
 
         public void Dispose()
         {
@@ -20,21 +22,19 @@ namespace Core
             SceneManager.sceneLoaded += OnAnySceneLoaded;
         }
 
-        public event Action OnLoadScene;
-
         public void LoadMenu()
         {
-            SceneManager.LoadScene(MENU_SCENE_NAME);
+            SceneManager.LoadScene(MenuSceneName);
         }
 
         public void LoadLevel()
         {
-            SceneManager.LoadScene(GAME_SCENE_NAME);
+            SceneManager.LoadScene(GameSceneName);
         }
 
         private void OnAnySceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (scene.name == MENU_SCENE_NAME) OnLoadScene?.Invoke();
+            if (scene.name == MenuSceneName) OnLoadScene?.Invoke();
         }
     }
 }

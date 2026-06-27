@@ -15,7 +15,7 @@ MonoBehaviour:
   LaserShoot: {fileID: 8300000, guid: 72bf4e3c5b0a1714eb8687f6617a4a70, type: 3}
   BulletShoot: {fileID: 8300000, guid: dcd14c80cac5dcf4cb2574a424742002, type: 3}
   Explosion: {fileID: 8300000, guid: bd0d075c194641445a96735d2ca0e3fc, type: 3}
-  UI_Click: {fileID: 8300000, guid: 0f7757020788a234795f0e0026dd6155, type: 3}
+  UiClick: {fileID: 8300000, guid: 0f7757020788a234795f0e0026dd6155, type: 3}
   Collision: {fileID: 8300000, guid: 05f4390a9ddeba34b807ca984d7c7d6f, type: 3}
   PlayerDeath: {fileID: 8300000, guid: d70856ea5ea41824a96786b0575cd6c9, type: 3}
   Music: {fileID: 8300000, guid: e124be74ae634bb4c85c4492285c4a7a, type: 3}

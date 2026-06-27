@@ -2,11 +2,11 @@
 {
     public class PanelChangeStateSignal
     {
+        public bool State { get; }
+        
         public PanelChangeStateSignal(bool state)
         {
             State = state;
         }
-
-        public bool State { get; }
     }
 }

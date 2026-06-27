@@ -1,72 +1,29 @@
-using Analytics;
-using Core.Audios;
 using Core.Configs;
-using Core.Signals;
 using Gameplay.Base;
-using Gameplay.Players;
 using UnityEngine;
 using Zenject;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace Gameplay.Players
 {
+    [RequireComponent(typeof(HealthComponent))]
     public class Player : MonoBehaviour
     {
-        private IAnalyticsService _analyticsService;
-        private AudioService _audioService;
         private PlayerConfig _config;
-        private SignalBus _signalBus;
 
         public bool IsUncontrollable { get; set; }
 
-        public HealthService HealthService { get; private set; }
-
-        public void OnEnable()
-        {
-            HealthService.OnDied += Die;
-        }
-
-        public void OnDisable()
-        {
-            HealthService.OnDied -= Die;
-        }
-
+        public HealthComponent HealthComponent { get; private set; }
+        
         [Inject]
-        public void Construct(PlayerConfig config, AudioService audioService, IAnalyticsService analyticsService,
-            SignalBus signalBus)
+        public void Construct(PlayerConfig config, HealthComponent healthComponent)
         {
-            transform.SetParent(null);
             _config = config;
-            _audioService = audioService;
-            _analyticsService = analyticsService;
-            _signalBus = signalBus;
-
-            HealthService = GetComponent<HealthService>();
-            HealthService.Init(_config.Health);
         }
-
-        public void Die()
+        
+        private void Awake()
         {
-            _audioService.PlaySfx(_audioService.Config.PlayerDeath);
-            _analyticsService.LogEvent("player_died");
-            _signalBus.Fire<PlayerDiedSignal>();
+            HealthComponent = GetComponent<HealthComponent>();
+            HealthComponent.Init(_config.Health);
         }
     }
 }
-
-#if UNITY_EDITOR
-[CustomEditor(typeof(Player))]
-public class PlayerEditor : Editor
-{
-    public override void OnInspectorGUI()
-    {
-        DrawDefaultInspector();
-
-        var player = (Player)target;
-
-        if (GUILayout.Button("Kill player")) player.Die();
-    }
-}
-#endif

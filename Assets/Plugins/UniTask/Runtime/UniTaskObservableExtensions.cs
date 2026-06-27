@@ -70,7 +70,7 @@ namespace Cysharp.Threading.Tasks
             return subject;
         }
 
-        private static async UniTaskVoid Fire<T>(AsyncSubject<T> subject, UniTask<T> task)
+        private static async UniTask Fire<T>(AsyncSubject<T> subject, UniTask<T> task)
         {
             T value;
             try

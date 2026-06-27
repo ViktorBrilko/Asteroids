@@ -1,8 +1,8 @@
 using System;
-using System.Threading.Tasks;
 using Core;
 using Core.Configs;
 using Core.Signals;
+using Cysharp.Threading.Tasks;
 using GoogleMobileAds.Api;
 using UnityEngine;
 using Zenject;
@@ -78,8 +78,8 @@ namespace Ads
                 Debug.Log("Rewarded ad full screen content closed.");
 
                 LoadRewardedAd();
-                await Task.Delay(100);
-                Time.timeScale = 0;
+                await UniTask.Delay(100);
+               _signalBus.Fire(new PauseGameSignal(true));
             };
             ad.OnAdFullScreenContentFailed += error =>
             {
@@ -98,7 +98,7 @@ namespace Ads
                 AdSize.GetCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(deviceWidth);
 
             var adRequest = new AdRequest();
-            _bannerView = new BannerView(_config.ADUnitIDBanner, adaptiveSize, AdPosition.Bottom);
+            _bannerView = new BannerView(_config.AdUnitIdBanner, adaptiveSize, AdPosition.Bottom);
             _bannerView.LoadAd(adRequest);
         }
 
@@ -106,7 +106,7 @@ namespace Ads
         {
             var adRequest = new AdRequest();
 
-            RewardedAd.Load(_config.ADUnitIDRewarded, adRequest, (ad, error) =>
+            RewardedAd.Load(_config.AdUnitIdRewarded, adRequest, (ad, error) =>
             {
                 if (error != null || ad == null) return;
 

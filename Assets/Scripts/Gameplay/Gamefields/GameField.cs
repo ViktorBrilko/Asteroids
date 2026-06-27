@@ -11,6 +11,12 @@ namespace Gameplay.Gamefields
         private Vector3 _startPosition;
 
         public BoxCollider2D Collider { get; private set; }
+        
+        [Inject]
+        public void Construct(GameFieldConfig config)
+        {
+            _config = config;
+        }
 
         private void Awake()
         {
@@ -29,12 +35,6 @@ namespace Gameplay.Gamefields
         private void OnTriggerExit2D(Collider2D other)
         {
             if (other.TryGetComponent(out ScreenWarp screenWarp)) screenWarp.Warp();
-        }
-
-        [Inject]
-        public void Construct(GameFieldConfig config)
-        {
-            _config = config;
         }
     }
 }

@@ -3,19 +3,18 @@ using Core.Audios;
 using Core.Signals;
 using MVVM;
 using UniRx;
-using UnityEngine;
 using Zenject;
 
 namespace UI.ViewModels
 {
     public class GameMenuViewModel : IInitializable
     {
+        [Data("GameMenuPanelState")] public ReactiveProperty<bool> IsPanelOpen;
+        
         private readonly AudioService _audioService;
         private readonly LoadLevelService _loadLevel;
         private readonly SignalBus _signalBus;
         private readonly WindowsState _windowsState;
-
-        [Data("GameMenuPanelState")] public ReactiveProperty<bool> IsPanelOpen;
 
         public GameMenuViewModel(LoadLevelService loadLevel, AudioService audioService, WindowsState windowsState,
             SignalBus signalBus)
@@ -35,25 +34,25 @@ namespace UI.ViewModels
         [Method("OnCloseClick")]
         public void OnCloseClicked()
         {
-            _audioService.PlaySfx(_audioService.Config.UI_Click);
+            _audioService.PlayUiClick();
             _windowsState.IsGameMenuOpen.Value = false;
             _signalBus.Fire(new PanelChangeStateSignal(false));
-            Time.timeScale = 1;
+            _signalBus.Fire(new PauseGameSignal(false));
         }
 
         [Method("OpenMenuSceneClick")]
         public void OnMenuClicked()
         {
-            _audioService.PlaySfx(_audioService.Config.UI_Click);
+            _audioService.PlayUiClick();
             _loadLevel.LoadMenu();
-            Time.timeScale = 1;
+            _signalBus.Fire(new PauseGameSignal(false));
             _windowsState.IsGameMenuOpen.Value = false;
         }
 
         [Method("OpenSettingsPanelClick")]
         public void OnSettingsClicked()
         {
-            _audioService.PlaySfx(_audioService.Config.UI_Click);
+            _audioService.PlayUiClick();
             _windowsState.IsSettingsOpen.Value = true;
             _windowsState.IsGameMenuOpen.Value = false;
         }

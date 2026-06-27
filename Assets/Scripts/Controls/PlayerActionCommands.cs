@@ -3,14 +3,14 @@ using Cysharp.Threading.Tasks;
 
 namespace Controls
 {
-    public class PlayerInputHandler
+    public class PlayerActionCommands
     {
-        public Func<bool, UniTask> ChangeSpeed;
-        public Action FireBullet;
-        public Action FireLaser;
-        public Func<UniTaskVoid> InertialMovement;
-        public Func<bool, UniTask> StartMovement;
-        public Action StopCompensateInertion;
+        public event Func<bool, UniTask> ChangeSpeed;
+        public event Action FireBullet;
+        public event Action FireLaser;
+        public event Action InertialMovement;
+        public event Func<bool, UniTask> StartMovement;
+        public event Action StopCompensateInertia;
 
         public float YDirection { get; set; }
 
@@ -41,9 +41,9 @@ namespace Controls
             ChangeSpeed?.Invoke(increase);
         }
 
-        public void TriggerStopCompensateInertion()
+        public void TriggerStopCompensateInertia()
         {
-            StopCompensateInertion?.Invoke();
+            StopCompensateInertia?.Invoke();
         }
     }
 }
