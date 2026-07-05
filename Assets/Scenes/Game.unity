@@ -3877,6 +3877,7 @@ MonoBehaviour:
   _playerPrefab: {fileID: 8915094865332775943, guid: b87cb2fff5379ce488a79f854e28f036, type: 3}
   _cameraPrefab: {fileID: 3142117575118425044, guid: 78ea5a41704a94a439981000e7cb0873, type: 3}
   _mobileButtonsPrefab: {fileID: 6977655895446895814, guid: 63947b5c021310a44ac71f9f92c7f5a8, type: 3}
+  _camera: {fileID: 519420031}
   _playerSpawnPoint: {fileID: 1630376952}
   _canvas: {fileID: 895842984}
 --- !u!114 &1756391433

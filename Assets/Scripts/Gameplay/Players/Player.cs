@@ -15,7 +15,7 @@ namespace Gameplay.Players
         public HealthComponent HealthComponent { get; private set; }
         
         [Inject]
-        public void Construct(PlayerConfig config, HealthComponent healthComponent)
+        public void Construct(PlayerConfig config)
         {
             _config = config;
         }

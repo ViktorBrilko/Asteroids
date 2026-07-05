@@ -16,8 +16,8 @@ namespace Ads
         public override void InstallBindings()
         {
           Container.Bind<AdsConfig>().FromInstance(_provider.AdsConfig).AsSingle();
-          Container.BindInterfacesAndSelfTo<AdsManager>().AsSingle().NonLazy();
-          Container.BindExecutionOrder<AdsManager>(-10);
+          Container.BindInterfacesAndSelfTo<AdsController>().AsSingle().NonLazy();
+          Container.BindExecutionOrder<AdsController>(-10);
         }
     }
 }

@@ -12,6 +12,7 @@ namespace Gameplay.Base.Installers
         [SerializeField] private GameObject _playerPrefab;
         [SerializeField] private GameObject _cameraPrefab;
         [SerializeField] private GameObject _mobileButtonsPrefab;
+        [SerializeField] private Camera _camera;
         [SerializeField] private Transform _playerSpawnPoint;
         [SerializeField] private Canvas _canvas;
 
@@ -52,7 +53,7 @@ namespace Gameplay.Base.Installers
 
         private void InstallCamera()
         {
-            Container.Bind<Camera>().FromInstance(Camera.main).AsSingle();
+            Container.Bind<Camera>().FromInstance(_camera).AsSingle();
             Container.Bind<CinemachineVirtualCamera>().FromComponentInNewPrefab(_cameraPrefab).AsSingle().NonLazy();
         }
 

@@ -37,6 +37,8 @@ namespace Gameplay.Base.Installers
             Container.Bind<LaserWeapon>()
                 .FromResolveGetter<Player>(playerInstance => playerInstance.GetComponent<LaserWeapon>())
                 .AsSingle();
+
+            Container.Bind<WeaponCoordinator>().AsSingle();
         }
     }
 }

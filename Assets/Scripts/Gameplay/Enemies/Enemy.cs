@@ -1,8 +1,6 @@
 ﻿using Core.Audios;
 using Core.Configs;
-using Cysharp.Threading.Tasks;
 using Gameplay.Base;
-using Gameplay.Players;
 using Gameplay.Signals;
 using UnityEngine;
 using Zenject;
@@ -23,12 +21,15 @@ namespace Gameplay.Enemies
         public EnemyType Type => EnemyType;
 
         [Inject]
-        protected void Construct(SignalBus signalBus, AudioService audioService)
+        protected void Construct(SignalBus signalBus, AudioService audioService, HealthComponent healthComponent,
+            EnemyMovement enemyMovement)
         {
             SignalBus = signalBus;
             _audioService = audioService;
+            _healthComponent = healthComponent;
+            _enemyMovement = enemyMovement;
         }
-        
+
         public void OnEnable()
         {
             _healthComponent.OnDied += Die;
@@ -38,41 +39,21 @@ namespace Gameplay.Enemies
         {
             _healthComponent.OnDied -= Die;
         }
-        
+
         public void Die()
         {
             _audioService.PlayExplosion();
             FireResetSignal();
             SignalBus.Fire(new EnemyDiedSignal(this, transform.position));
         }
-        
-        protected void OnCollisionEnter2D(Collision2D other)
-        {
-            CollideWithPlayer(other, Config.Damage);
-        }
 
         protected abstract void FireResetSignal();
 
         private void Awake()
         {
-            _healthComponent = GetComponent<HealthComponent>();
-            _enemyMovement = GetComponent<EnemyMovement>();
-            
             _healthComponent.Init(Config.Health);
             _enemyMovement.Init(Config.MoveSpeed, Config.AfterCollisionSpeed, Config.CollisionEffectTime,
                 Config.RotationSpeed);
-        }
-
-        private void CollideWithPlayer(Collision2D other, int damage)
-        {
-            if (!other.gameObject.TryGetComponent(out Player player)) return;
-            
-            _audioService.PlayCollision();
-            _enemyMovement.ChangeMoveDirection((transform.position - other.transform.position).normalized);
-            _enemyMovement.ChangeMoveSpeed().Forget();
-            _enemyMovement.RotateAfterCollision().Forget();
-
-            SignalBus.Fire(new PlayerCollidedSignal(gameObject));
         }
     }
 }

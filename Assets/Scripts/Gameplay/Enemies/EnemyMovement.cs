@@ -28,7 +28,7 @@ namespace Gameplay.Enemies
             StartRegularMovement();
         }
         
-        public async void ChangeMoveDirection(Vector3 direction)
+        public async UniTaskVoid ChangeMoveDirection(Vector3 direction)
         {
             try
             {
@@ -36,9 +36,9 @@ namespace Gameplay.Enemies
                 await UniTask.Delay(TimeSpan.FromSeconds(_collisionEffectTime), cancellationToken: _cts.Token);
                 StartRegularMovement();
             }
-            catch (OperationCanceledException ex)
+            catch (OperationCanceledException e)
             {
-                Debug.Log(ex.Message);
+                Debug.Log(e.Message);
             }
         }
 
@@ -58,9 +58,9 @@ namespace Gameplay.Enemies
 
                 _modelTransform.transform.localEulerAngles = Vector3.zero;
             }
-            catch (OperationCanceledException ex)
+            catch (OperationCanceledException e)
             {
-                Debug.Log(ex.Message);
+                Debug.Log(e.Message);
             }
         }
 
@@ -72,9 +72,9 @@ namespace Gameplay.Enemies
                 await UniTask.Delay(TimeSpan.FromSeconds(_collisionEffectTime), cancellationToken: _cts.Token);
                 _currentSpeed = _regularSpeed;
             }
-            catch (OperationCanceledException ex)
+            catch (OperationCanceledException e)
             {
-                Debug.Log(ex.Message);
+                Debug.Log(e.Message);
             }
         }
 

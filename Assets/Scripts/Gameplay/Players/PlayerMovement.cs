@@ -21,7 +21,7 @@ namespace Gameplay.Players
         public event Action<float> OnSpeedChanged;
         public event Action<float> OnRotationChanged;
         public event Action<Vector2> OnPositionChanged;
-        
+
         [Inject]
         public void Construct(PlayerConfig config, PlayerActionCommands playerActionCommands)
         {
@@ -43,7 +43,8 @@ namespace Gameplay.Players
 
             try
             {
-                while (true)
+                while (!Mathf.Approximately(_currentSpeed, _config.MaxSpeed) ||
+                       !Mathf.Approximately(_currentSpeed, 0f))
                 {
                     await UniTask.Yield(PlayerLoopTiming.Update, _speedCts.Token);
 
@@ -65,9 +66,6 @@ namespace Gameplay.Players
                     }
 
                     OnSpeedChanged?.Invoke(_currentSpeed);
-
-                    if (Mathf.Approximately(_currentSpeed, _config.MaxSpeed) ||
-                        Mathf.Approximately(_currentSpeed, 0f)) break;
                 }
             }
             catch (OperationCanceledException e)
@@ -78,7 +76,14 @@ namespace Gameplay.Players
 
         public void StartInertialMove()
         {
-            _playerInertia.InertialMove(_currentSpeed);
+            try
+            {
+                _playerInertia.InertialMove(_currentSpeed).Forget();
+            }
+            catch (OperationCanceledException e)
+            {
+                Debug.Log(e.Message);
+            }
         }
 
         private void Update()
@@ -127,11 +132,31 @@ namespace Gameplay.Players
                                   Mathf.Approximately(0, _playerInertia.InertialDirection.y);
 
             if (isSameDirection)
-                ChangeSpeed(true);
+            {
+                try
+                {
+                    ChangeSpeed(true).Forget();
+                }
+                catch (OperationCanceledException e)
+                {
+                    Debug.Log(e.Message);
+                }
+            }
             else
             {
                 bool wasFinished = await _playerInertia.CompensateInertia();
-                if (wasFinished) ChangeSpeed(true);
+
+                if (wasFinished)
+                {
+                    try
+                    {
+                        ChangeSpeed(true).Forget();
+                    }
+                    catch (OperationCanceledException e)
+                    {
+                        Debug.Log(e.Message);
+                    }
+                }
             }
         }
 

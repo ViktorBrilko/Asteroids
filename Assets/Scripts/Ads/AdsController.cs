@@ -9,7 +9,7 @@ using Zenject;
 
 namespace Ads
 {
-    public class AdsManager : IInitializable, IDisposable
+    public class AdsController : IInitializable, IDisposable
     {
         private readonly AdsConfig _config;
         private readonly LoadLevelService _loadLevelService;
@@ -17,7 +17,7 @@ namespace Ads
         private BannerView _bannerView;
         private RewardedAd _rewardedAd;
 
-        public AdsManager(SignalBus signalBus, AdsConfig config, LoadLevelService loadLevelService)
+        public AdsController(SignalBus signalBus, AdsConfig config, LoadLevelService loadLevelService)
         {
             _signalBus = signalBus;
             _config = config;
@@ -79,7 +79,7 @@ namespace Ads
 
                 LoadRewardedAd();
                 await UniTask.Delay(100);
-               _signalBus.Fire(new PauseGameSignal(true));
+               _signalBus.Fire(new AdClosedSignal());
             };
             ad.OnAdFullScreenContentFailed += error =>
             {

@@ -5,7 +5,6 @@ using Zenject;
 
 namespace Gameplay.Players.Weapons
 {
-    [RequireComponent(typeof(Player))]
     public class LaserWeapon : Weapon
     {
         private static readonly int IsShooting = Animator.StringToHash("IsShooting");
@@ -13,35 +12,45 @@ namespace Gameplay.Players.Weapons
         [SerializeField] private Animator _laserAnimator;
         private bool _isLaserCharging;
         private int _laserCooldown;
-        private bool _canShootLaser = true;
 
         public int LaserShootsCount { get; private set; }
 
         public event Action<int> OnLaserCountChanged;
         public event Action<float> OnLaserChargeStarted;
-        
+
         [Inject]
         public void Construct()
         {
             LaserShootsCount = Config.LaserCount;
         }
 
-        protected override async void Fire()
+        protected override async UniTask Fire()
         {
             if (LaserShootsCount <= 0 || Player.IsUncontrollable) return;
-            if (!_canShootLaser) return;
+            if (!Coordinator.CanShootLaser) return;
 
             AudioService.PlayLaserShot();
 
-            CanShootBullets = false;
-            _canShootLaser = false;
+            Coordinator.CanShootBullets = false;
+            Coordinator.CanShootLaser = false;
             laserProjectile.gameObject.SetActive(true);
             _laserAnimator.SetBool(IsShooting, true);
-            await UniTask.Delay(Config.LaserShootingTime);
+
+            try
+            {
+                await UniTask.Delay(Config.LaserShootingTime, cancellationToken: this.GetCancellationTokenOnDestroy());
+            }
+            catch (OperationCanceledException e)
+            {
+                Debug.Log(e.Message);
+                return;
+            }
+
             _laserAnimator.SetBool(IsShooting, false);
             laserProjectile.gameObject.SetActive(false);
-            CanShootBullets = true;
-            _canShootLaser = true;
+            Coordinator.CanShootBullets = true;
+
+            Coordinator.CanShootLaser = true;
             AudioService.StopSfx();
 
             LaserShootsCount--;
@@ -66,7 +75,17 @@ namespace Gameplay.Players.Weapons
 
             _isLaserCharging = true;
             OnLaserChargeStarted?.Invoke(Config.LaserCooldown);
-            await UniTask.Delay(TimeSpan.FromSeconds(Config.LaserCooldown));
+
+            try
+            {
+                await UniTask.Delay(TimeSpan.FromSeconds(Config.LaserCooldown),
+                    cancellationToken: this.GetCancellationTokenOnDestroy());
+            }
+            catch (OperationCanceledException e)
+            {
+                Debug.Log(e.Message);
+            }
+
             LaserShootsCount++;
             OnLaserCountChanged?.Invoke(LaserShootsCount);
             _isLaserCharging = false;

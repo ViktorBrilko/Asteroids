@@ -1,4 +1,5 @@
 ﻿using Analytics;
+using Core;
 using Core.Audios;
 using Core.Signals;
 using Gameplay.Base;
@@ -25,15 +26,17 @@ namespace Gameplay.Players
             _analyticsService = analyticsService;
             _signalBus = signalBus;
         }
-        
+
         public void OnEnable()
         {
             HealthComponent.OnDied += Die;
+            _signalBus.Subscribe<AdClosedSignal>(TurnOnPauseAfterAdClosed);
         }
 
         public void OnDisable()
         {
             HealthComponent.OnDied -= Die;
+            _signalBus.Unsubscribe<AdClosedSignal>(TurnOnPauseAfterAdClosed);
         }
 
         public void Die()
@@ -46,6 +49,11 @@ namespace Gameplay.Players
         private void Awake()
         {
             HealthComponent = GetComponent<HealthComponent>();
+        }
+
+        private void TurnOnPauseAfterAdClosed()
+        {
+            _signalBus.Fire(new PauseGameSignal(true));
         }
     }
 }

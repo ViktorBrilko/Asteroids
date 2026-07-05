@@ -6,8 +6,8 @@ namespace Controls
     public class PlayerActionCommands
     {
         public event Func<bool, UniTask> ChangeSpeed;
-        public event Action FireBullet;
-        public event Action FireLaser;
+        public event Func<UniTask> FireBullet;
+        public event Func<UniTask> FireLaser;
         public event Action InertialMovement;
         public event Func<bool, UniTask> StartMovement;
         public event Action StopCompensateInertia;
@@ -31,14 +31,16 @@ namespace Controls
             InertialMovement?.Invoke();
         }
 
-        public void TriggerStartMovement(bool isForward)
+        public async UniTask TriggerStartMovement(bool isForward)
         {
-            StartMovement?.Invoke(isForward);
+            if (StartMovement != null)
+                await StartMovement.Invoke(isForward);
         }
 
-        public void TriggerChangeSpeed(bool increase)
+        public async UniTask TriggerChangeSpeed(bool increase)
         {
-            ChangeSpeed?.Invoke(increase);
+            if (ChangeSpeed != null)
+                await ChangeSpeed.Invoke(increase);
         }
 
         public void TriggerStopCompensateInertia()

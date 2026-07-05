@@ -96,8 +96,9 @@ namespace Gameplay.Enemies
                     _asteroidsCount++;
                 }
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException e)
             {
+                Debug.Log(e.Message);
             }
         }
 
@@ -113,8 +114,9 @@ namespace Gameplay.Enemies
                     _ufosCount++;
                 }
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException e)
             {
+                Debug.Log(e.Message);
             }
         }
 

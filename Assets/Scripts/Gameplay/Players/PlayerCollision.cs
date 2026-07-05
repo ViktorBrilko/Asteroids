@@ -8,7 +8,7 @@ using Zenject;
 
 namespace Gameplay.Players
 {
-    [RequireComponent(typeof(Player),  typeof(PlayerInertia), typeof(PlayerMovement))]
+    [RequireComponent(typeof(Player), typeof(PlayerInertia), typeof(PlayerMovement))]
     public class PlayerCollision : MonoBehaviour
     {
         private const string PlayerLayerName = "Player";
@@ -38,13 +38,13 @@ namespace Gameplay.Players
 
         private void OnEnable()
         {
-            _signalBus.Subscribe<PlayerCollidedSignal>(OnPlayerCollision);
+            _signalBus.Subscribe<PlayerCollidedSignal>(HandlePlayerCollision);
         }
 
         private void OnDisable()
         {
-            _signalBus.Unsubscribe<PlayerCollidedSignal>(OnPlayerCollision);
-            
+            _signalBus.Unsubscribe<PlayerCollidedSignal>(HandlePlayerCollision);
+
             if (_collisionCts != null)
             {
                 _collisionCts.Cancel();
@@ -53,7 +53,19 @@ namespace Gameplay.Players
             }
         }
 
-        private async void OnPlayerCollision(PlayerCollidedSignal signal)
+        private void HandlePlayerCollision(PlayerCollidedSignal signal)
+        {
+            try
+            {
+                OnPlayerCollision(signal).Forget();
+            }
+            catch (OperationCanceledException e)
+            {
+                Debug.Log(e.Message);
+            }
+        }
+
+        private async UniTask OnPlayerCollision(PlayerCollidedSignal signal)
         {
             if (_collisionCts != null)
             {
@@ -63,34 +75,45 @@ namespace Gameplay.Players
 
             _collisionCts = new CancellationTokenSource();
 
+            float elapsedTime = 0;
+            _player.IsUncontrollable = true;
+            _playerInertia.InertialDirection =
+                (transform.position - signal.CollidedObject.transform.position).normalized;
+            gameObject.layer = LayerMask.NameToLayer(UncontrollablePlayerLayerName);
+            _shield.Play();
+            _playerInertia.InertialSpeed = _config.AfterCollisionSpeed;
+
             try
             {
-                float elapsedTime = 0;
-                _player.IsUncontrollable = true;
-                _playerInertia.InertialDirection =
-                    (transform.position - signal.CollidedObject.transform.position).normalized;
-                gameObject.layer = LayerMask.NameToLayer(UncontrollablePlayerLayerName);
-                _shield.Play();
-                _playerInertia.InertialSpeed = _config.AfterCollisionSpeed;
-                _playerMovement.ChangeSpeed(false);
-                _playerMovement.StartInertialMove();
-
-                while (elapsedTime < _config.UncontrollableTime)
-                {
-                    elapsedTime += Time.deltaTime;
-                    await UniTask.NextFrame(_collisionCts.Token);
-                }
-
-                _player.IsUncontrollable = false;
-
-                await UniTask.Delay(_config.BeforeShieldStopDelay, cancellationToken: _collisionCts.Token);
-                gameObject.layer = LayerMask.NameToLayer(PlayerLayerName);
-                _shield.Stop();
+                _playerMovement.ChangeSpeed(false).Forget();
             }
             catch (OperationCanceledException e)
             {
                 Debug.Log(e.Message);
             }
+
+            _playerMovement.StartInertialMove();
+
+            while (elapsedTime < _config.UncontrollableTime)
+            {
+                elapsedTime += Time.deltaTime;
+                await UniTask.NextFrame(_collisionCts.Token);
+            }
+
+            _player.IsUncontrollable = false;
+
+            try
+            {
+                await UniTask.Delay(_config.BeforeShieldStopDelay, cancellationToken: _collisionCts.Token);
+            }
+            catch (OperationCanceledException e)
+            {
+                Debug.Log(e.Message);
+                return;
+            }
+
+            gameObject.layer = LayerMask.NameToLayer(PlayerLayerName);
+            _shield.Stop();
         }
     }
 }

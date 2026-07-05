@@ -33,14 +33,14 @@ namespace Gameplay.Players
         public CancellationTokenSource InertialCts => _inertialCts;
 
         public event Action<float> OnInertiaSpeedChanged;
-        
+
         [Inject]
         public void Construct(PlayerActionCommands playerActionCommands, PlayerConfig config)
         {
             _playerActionCommands = playerActionCommands;
             _config = config;
         }
-        
+
         public async UniTask InertialMove(float currentSpeed)
         {
             if (_inertialCts != null && _inertialSpeed > currentSpeed) return;
@@ -58,19 +58,12 @@ namespace Gameplay.Players
 
             _inertialCts = new CancellationTokenSource();
 
-            try
+            while (true)
             {
-                while (true)
-                {
-                    await UniTask.Yield(PlayerLoopTiming.Update, _inertialCts.Token);
+                await UniTask.Yield(PlayerLoopTiming.Update, _inertialCts.Token);
 
-                    transform.Translate(_inertialDirection *
-                                        _inertialSpeed * Time.deltaTime);
-                }
-            }
-            catch (OperationCanceledException e)
-            {
-                Debug.Log(e.Message);
+                transform.Translate(_inertialDirection *
+                                    _inertialSpeed * Time.deltaTime);
             }
         }
 
@@ -78,7 +71,7 @@ namespace Gameplay.Players
         {
             OnInertiaSpeedChanged?.Invoke(newSpeed);
         }
-        
+
         public async UniTask<bool> CompensateInertia()
         {
             _stopCompensateInertia = false;
@@ -94,7 +87,7 @@ namespace Gameplay.Players
 
             return true;
         }
-        
+
         private void Awake()
         {
             _player = GetComponent<Player>();
@@ -108,7 +101,7 @@ namespace Gameplay.Players
         private void OnDisable()
         {
             _playerActionCommands.StopCompensateInertia -= OnStopCompensationInertia;
-            
+
             if (_inertialCts != null)
             {
                 _inertialCts.Cancel();
@@ -116,12 +109,12 @@ namespace Gameplay.Players
                 _inertialCts = null;
             }
         }
-        
+
         private void OnStopCompensationInertia()
         {
             _stopCompensateInertia = true;
         }
-        
+
         private async UniTask CompensationInertia()
         {
             try

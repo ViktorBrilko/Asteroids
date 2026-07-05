@@ -6,8 +6,8 @@ namespace Core
 {
     public class Settings
     {
-        private const string MUSIC_MIXER_PARAMETER = "Music_Volume";
-        private const string SFX_MIXER_PARAMETER = "SFX_Volume";
+        private const string MusicMixerParameter = "Music_Volume";
+        private const string SfxMixerParameter = "SFX_Volume";
         
         private readonly AudioMixer _audioMixer;
         private readonly SettingsConfig _settingsConfig;
@@ -28,13 +28,13 @@ namespace Core
         public void SetMusicVolume(float volume)
         {
             MusicVolume = Mathf.Log10(Mathf.Clamp(volume, 0.0001f, 1f)) * 20f;
-            _audioMixer.SetFloat(MUSIC_MIXER_PARAMETER, MusicVolume);
+            _audioMixer.SetFloat(MusicMixerParameter, MusicVolume);
         }
 
         public void SetSfxVolume(float volume)
         {
             SfxVolume = Mathf.Log10(Mathf.Clamp(volume, 0.0001f, 1f)) * 20f;
-            _audioMixer.SetFloat(SFX_MIXER_PARAMETER, SfxVolume);
+            _audioMixer.SetFloat(SfxMixerParameter, SfxVolume);
         }
     }
 }

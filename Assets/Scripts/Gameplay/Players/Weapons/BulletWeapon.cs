@@ -1,32 +1,42 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System;
+using Cysharp.Threading.Tasks;
 using Gameplay.Base;
 using UnityEngine;
 using Zenject;
 
 namespace Gameplay.Players.Weapons
 {
-    [RequireComponent(typeof(Player))]
     public class BulletWeapon : Weapon
     {
         [SerializeField] private Transform _projectileSpawnPoint;
 
         private Spawner<BulletProjectile> _bulletSpawner;
-        
+
         [Inject]
         public void Construct(Spawner<BulletProjectile> bulletSpawner)
         {
             _bulletSpawner = bulletSpawner;
         }
-        
-        protected override async void Fire()
+
+        protected override async UniTask Fire()
         {
-            if (CanShootBullets && !Player.IsUncontrollable)
+            if (Coordinator.CanShootBullets && !Player.IsUncontrollable)
             {
                 AudioService.PlayBulletShot();
-                CanShootBullets = false;
+                Coordinator.CanShootBullets = false;
                 _bulletSpawner.SpawnItem(_projectileSpawnPoint.position, transform.rotation);
-                await UniTask.Delay(Config.BulletFireDelay);
-                CanShootBullets = true;
+
+                try
+                {
+                    await UniTask.Delay(Config.BulletFireDelay,
+                        cancellationToken: this.GetCancellationTokenOnDestroy());
+                }
+                catch (OperationCanceledException e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+
+                Coordinator.CanShootBullets = true;
             }
         }
 
