@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
 using Zenject;
 
 namespace Controls
@@ -25,7 +27,13 @@ namespace Controls
             {
                 var forward = _actionCommands.YDirection > 0;
 
-                _actionCommands.TriggerStartMovement(forward);
+                _actionCommands.TriggerStartMovement(forward).Forget(exception =>
+                {
+                    if (exception is OperationCanceledException)
+                        return;
+
+                    Debug.LogException(exception);
+                });
             }
 
             if (Input.GetButtonUp(InputConstants.VerticalMoveAxis))
@@ -34,7 +42,14 @@ namespace Controls
 
                 _actionCommands.TriggerInertialMovement();
                 _actionCommands.TriggerStopCompensateInertia();
-                _actionCommands.TriggerChangeSpeed(false);
+                
+                _actionCommands.TriggerChangeSpeed(false).Forget(exception =>
+                {
+                    if (exception is OperationCanceledException)
+                        return;
+
+                    Debug.LogException(exception);
+                });
             }
         }
     }

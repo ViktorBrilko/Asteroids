@@ -56,8 +56,21 @@ namespace Gameplay.Enemies
 
             _signalBus.Subscribe<EnemyDiedSignal>(OnEnemyDeath);
 
-            SpawnUfos(_cts.Token).Forget();
-            SpawnAsteroids(_cts.Token).Forget();
+            SpawnUfos(_cts.Token).Forget(exception =>
+            {
+                if (exception is OperationCanceledException)
+                    return;
+
+                Debug.LogException(exception);
+            });
+
+            SpawnAsteroids(_cts.Token).Forget(exception =>
+            {
+                if (exception is OperationCanceledException)
+                    return;
+
+                Debug.LogException(exception);
+            });
         }
 
         private async void OnEnemyDeath(EnemyDiedSignal signal)
@@ -67,13 +80,41 @@ namespace Gameplay.Enemies
                 _asteroidsCount--;
                 SpawnSmallAsteroids(signal.DeathPosition);
 
-                if (_asteroidsCount < _config.MaxAsteroids) await SpawnAsteroids(_cts.Token);
+                if (_asteroidsCount < _config.MaxAsteroids)
+                {
+                    try
+                    {
+                        await SpawnAsteroids(_cts.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return;
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
             }
             else if (signal.Enemy is Ufo _)
             {
                 _ufosCount--;
 
-                if (_ufosCount < _config.MaxUfos) await SpawnUfos(_cts.Token);
+                if (_ufosCount < _config.MaxUfos)
+                {
+                    try
+                    {
+                        await SpawnUfos(_cts.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return;
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
             }
         }
 
@@ -86,37 +127,23 @@ namespace Gameplay.Enemies
 
         private async UniTask SpawnAsteroids(CancellationToken cancellationToken)
         {
-            try
+            while (_asteroidsCount < _config.MaxAsteroids)
             {
-                while (_asteroidsCount < _config.MaxAsteroids)
-                {
-                    await UniTask.Delay(_config.AsteroidSpawnCooldown, cancellationToken: cancellationToken);
-                    var spawnPosition = GetSpawnPosition();
-                    _asteroidSpawner.SpawnItem(spawnPosition, GetRandomRotation());
-                    _asteroidsCount++;
-                }
-            }
-            catch (OperationCanceledException e)
-            {
-                Debug.Log(e.Message);
+                await UniTask.Delay(_config.AsteroidSpawnCooldown, cancellationToken: cancellationToken);
+                var spawnPosition = GetSpawnPosition();
+                _asteroidSpawner.SpawnItem(spawnPosition, GetRandomRotation());
+                _asteroidsCount++;
             }
         }
 
         private async UniTask SpawnUfos(CancellationToken cancellationToken)
         {
-            try
+            while (_ufosCount < _config.MaxUfos)
             {
-                while (_ufosCount < _config.MaxUfos)
-                {
-                    await UniTask.Delay(_config.UfoSpawnCooldown, cancellationToken: cancellationToken);
-                    var spawnPosition = GetSpawnPosition();
-                    _ufoSpawner.SpawnItem(spawnPosition, GetRandomRotation());
-                    _ufosCount++;
-                }
-            }
-            catch (OperationCanceledException e)
-            {
-                Debug.Log(e.Message);
+                await UniTask.Delay(_config.UfoSpawnCooldown, cancellationToken: cancellationToken);
+                var spawnPosition = GetSpawnPosition();
+                _ufoSpawner.SpawnItem(spawnPosition, GetRandomRotation());
+                _ufosCount++;
             }
         }
 

@@ -1,4 +1,8 @@
-﻿namespace Controls
+﻿using System;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
+
+namespace Controls
 {
     public class MobileController
     {
@@ -46,13 +50,26 @@
             {
                 var forward = _actionCommands.YDirection > 0;
 
-                _actionCommands.TriggerStartMovement(forward);
+                _actionCommands.TriggerStartMovement(forward).Forget(exception =>
+                {
+                    if (exception is OperationCanceledException)
+                        return;
+
+                    Debug.LogException(exception);
+                });
             }
             else
             {
                 _actionCommands.TriggerInertialMovement();
                 _actionCommands.TriggerStopCompensateInertia();
-                _actionCommands.TriggerChangeSpeed(false);
+
+                _actionCommands.TriggerChangeSpeed(false).Forget(exception =>
+                {
+                    if (exception is OperationCanceledException)
+                        return;
+
+                    Debug.LogException(exception);
+                });
             }
         }
     }

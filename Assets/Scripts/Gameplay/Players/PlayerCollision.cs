@@ -55,14 +55,13 @@ namespace Gameplay.Players
 
         private void HandlePlayerCollision(PlayerCollidedSignal signal)
         {
-            try
+            OnPlayerCollision(signal).Forget(exception =>
             {
-                OnPlayerCollision(signal).Forget();
-            }
-            catch (OperationCanceledException e)
-            {
-                Debug.Log(e.Message);
-            }
+                if (exception is OperationCanceledException)
+                    return;
+
+                Debug.LogException(exception);
+            });
         }
 
         private async UniTask OnPlayerCollision(PlayerCollidedSignal signal)
@@ -83,14 +82,13 @@ namespace Gameplay.Players
             _shield.Play();
             _playerInertia.InertialSpeed = _config.AfterCollisionSpeed;
 
-            try
+            _playerMovement.ChangeSpeed(false).Forget(exception =>
             {
-                _playerMovement.ChangeSpeed(false).Forget();
-            }
-            catch (OperationCanceledException e)
-            {
-                Debug.Log(e.Message);
-            }
+                if (exception is OperationCanceledException)
+                    return;
+
+                Debug.LogException(exception);
+            });
 
             _playerMovement.StartInertialMove();
 

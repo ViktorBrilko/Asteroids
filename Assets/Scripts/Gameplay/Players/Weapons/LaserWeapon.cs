@@ -55,7 +55,14 @@ namespace Gameplay.Players.Weapons
 
             LaserShootsCount--;
             OnLaserCountChanged?.Invoke(LaserShootsCount);
-            ChargeLaser().Forget();
+
+            ChargeLaser().Forget(exception =>
+            {
+                if (exception is OperationCanceledException)
+                    return;
+
+                Debug.LogException(exception);
+            });
         }
 
         private void OnEnable()
@@ -76,21 +83,23 @@ namespace Gameplay.Players.Weapons
             _isLaserCharging = true;
             OnLaserChargeStarted?.Invoke(Config.LaserCooldown);
 
-            try
-            {
-                await UniTask.Delay(TimeSpan.FromSeconds(Config.LaserCooldown),
-                    cancellationToken: this.GetCancellationTokenOnDestroy());
-            }
-            catch (OperationCanceledException e)
-            {
-                Debug.Log(e.Message);
-            }
+            await UniTask.Delay(TimeSpan.FromSeconds(Config.LaserCooldown),
+                cancellationToken: this.GetCancellationTokenOnDestroy());
 
             LaserShootsCount++;
             OnLaserCountChanged?.Invoke(LaserShootsCount);
             _isLaserCharging = false;
 
-            if (LaserShootsCount != Config.LaserCount) ChargeLaser().Forget();
+            if (LaserShootsCount != Config.LaserCount)
+            {
+                ChargeLaser().Forget(exception =>
+                {
+                    if (exception is OperationCanceledException)
+                        return;
+
+                    Debug.LogException(exception);
+                });
+            }
         }
     }
 }

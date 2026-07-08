@@ -41,49 +41,41 @@ namespace Gameplay.Players
 
             _speedCts = new CancellationTokenSource();
 
-            try
+            while (!Mathf.Approximately(_currentSpeed, _config.MaxSpeed) ||
+                   !Mathf.Approximately(_currentSpeed, 0f))
             {
-                while (!Mathf.Approximately(_currentSpeed, _config.MaxSpeed) ||
-                       !Mathf.Approximately(_currentSpeed, 0f))
+                await UniTask.Yield(PlayerLoopTiming.Update, _speedCts.Token);
+
+                if (increase)
                 {
-                    await UniTask.Yield(PlayerLoopTiming.Update, _speedCts.Token);
+                    _currentSpeed = Mathf.MoveTowards(_currentSpeed, _config.MaxSpeed,
+                        _config.SpeedChangeStep * Time.deltaTime);
 
-                    if (increase)
+                    if (_playerInertia.InertialCts != null && _currentSpeed >= _playerInertia.InertialSpeed)
                     {
-                        _currentSpeed = Mathf.MoveTowards(_currentSpeed, _config.MaxSpeed,
-                            _config.SpeedChangeStep * Time.deltaTime);
-
-                        if (_playerInertia.InertialCts != null && _currentSpeed >= _playerInertia.InertialSpeed)
-                        {
-                            _playerInertia.InertialCts.Cancel();
-                            _playerInertia.InertialSpeed = 0;
-                            _playerInertia.InertiaSpeedChanged(_playerInertia.InertialSpeed);
-                        }
+                        _playerInertia.InertialCts.Cancel();
+                        _playerInertia.InertialSpeed = 0;
+                        _playerInertia.ChangeInertiaSpeedInUI(_playerInertia.InertialSpeed);
                     }
-                    else
-                    {
-                        _currentSpeed = Mathf.MoveTowards(_currentSpeed, 0f, _config.SpeedChangeStep * Time.deltaTime);
-                    }
-
-                    OnSpeedChanged?.Invoke(_currentSpeed);
                 }
-            }
-            catch (OperationCanceledException e)
-            {
-                Debug.Log(e.Message);
+                else
+                {
+                    _currentSpeed = Mathf.MoveTowards(_currentSpeed, 0f, _config.SpeedChangeStep * Time.deltaTime);
+                }
+
+                OnSpeedChanged?.Invoke(_currentSpeed);
             }
         }
 
         public void StartInertialMove()
         {
-            try
+            _playerInertia.InertialMove(_currentSpeed).Forget(exception =>
             {
-                _playerInertia.InertialMove(_currentSpeed).Forget();
-            }
-            catch (OperationCanceledException e)
-            {
-                Debug.Log(e.Message);
-            }
+                if (exception is OperationCanceledException)
+                    return;
+
+                Debug.LogException(exception);
+            });
         }
 
         private void Update()
@@ -133,14 +125,13 @@ namespace Gameplay.Players
 
             if (isSameDirection)
             {
-                try
+                ChangeSpeed(true).Forget(exception =>
                 {
-                    ChangeSpeed(true).Forget();
-                }
-                catch (OperationCanceledException e)
-                {
-                    Debug.Log(e.Message);
-                }
+                    if (exception is OperationCanceledException)
+                        return;
+
+                    Debug.LogException(exception);
+                });
             }
             else
             {
@@ -148,14 +139,13 @@ namespace Gameplay.Players
 
                 if (wasFinished)
                 {
-                    try
+                    ChangeSpeed(true).Forget(exception =>
                     {
-                        ChangeSpeed(true).Forget();
-                    }
-                    catch (OperationCanceledException e)
-                    {
-                        Debug.Log(e.Message);
-                    }
+                        if (exception is OperationCanceledException)
+                            return;
+
+                        Debug.LogException(exception);
+                    });
                 }
             }
         }

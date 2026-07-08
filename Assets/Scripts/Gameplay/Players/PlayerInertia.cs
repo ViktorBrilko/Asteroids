@@ -48,7 +48,7 @@ namespace Gameplay.Players
             if (!_player.IsUncontrollable)
                 _inertialSpeed = currentSpeed;
 
-            InertiaSpeedChanged(_inertialSpeed);
+            ChangeInertiaSpeedInUI(_inertialSpeed);
 
             if (_inertialCts != null)
             {
@@ -67,7 +67,7 @@ namespace Gameplay.Players
             }
         }
 
-        public void InertiaSpeedChanged(float newSpeed)
+        public void ChangeInertiaSpeedInUI(float newSpeed)
         {
             OnInertiaSpeedChanged?.Invoke(newSpeed);
         }
@@ -75,7 +75,21 @@ namespace Gameplay.Players
         public async UniTask<bool> CompensateInertia()
         {
             _stopCompensateInertia = false;
-            await CompensationInertia();
+
+            try
+            {
+                await CompensationInertia();
+            }
+            catch (OperationCanceledException e)
+            {
+               return false;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return false;
+            }
+
             if (_stopCompensateInertia) return false;
 
             if (_inertialDirection.y < 0)
@@ -117,19 +131,12 @@ namespace Gameplay.Players
 
         private async UniTask CompensationInertia()
         {
-            try
+            while (!_stopCompensateInertia && _inertialSpeed != 0)
             {
-                while (!_stopCompensateInertia && _inertialSpeed != 0)
-                {
-                    await UniTask.Yield(PlayerLoopTiming.Update, _inertialCts.Token);
+                await UniTask.Yield(PlayerLoopTiming.Update, _inertialCts.Token);
 
-                    _inertialSpeed = Mathf.MoveTowards(_inertialSpeed, 0f, _config.SpeedChangeStep * Time.deltaTime);
-                    InertiaSpeedChanged(_inertialSpeed);
-                }
-            }
-            catch (OperationCanceledException e)
-            {
-                Debug.Log(e.Message);
+                _inertialSpeed = Mathf.MoveTowards(_inertialSpeed, 0f, _config.SpeedChangeStep * Time.deltaTime);
+                ChangeInertiaSpeedInUI(_inertialSpeed);
             }
         }
     }
