@@ -1,5 +1,4 @@
 ﻿using System;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Zenject;
 
@@ -14,7 +13,7 @@ namespace Controls
             _actionCommands = actionCommands;
         }
 
-        public void Tick()
+        public async void Tick()
         {
             _actionCommands.YDirection = Input.GetAxisRaw(InputConstants.VerticalMoveAxis);
             _actionCommands.Rotation = Input.GetAxisRaw(InputConstants.RotateAxis);
@@ -27,13 +26,17 @@ namespace Controls
             {
                 var forward = _actionCommands.YDirection > 0;
 
-                _actionCommands.TriggerStartMovement(forward).Forget(exception =>
+                try
                 {
-                    if (exception is OperationCanceledException)
-                        return;
-
-                    Debug.LogException(exception);
-                });
+                    await _actionCommands.TriggerStartMovement(forward);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             }
 
             if (Input.GetButtonUp(InputConstants.VerticalMoveAxis))
@@ -42,14 +45,18 @@ namespace Controls
 
                 _actionCommands.TriggerInertialMovement();
                 _actionCommands.TriggerStopCompensateInertia();
-                
-                _actionCommands.TriggerChangeSpeed(false).Forget(exception =>
-                {
-                    if (exception is OperationCanceledException)
-                        return;
 
-                    Debug.LogException(exception);
-                });
+                try
+                {
+                    await _actionCommands.TriggerChangeSpeed(false);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             }
         }
     }

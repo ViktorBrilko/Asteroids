@@ -5,11 +5,11 @@ namespace Controls
 {
     public class PlayerActionCommands
     {
-        public event Func<bool, UniTask> ChangeSpeed;
         public event Func<UniTask> FireBullet;
         public event Func<UniTask> FireLaser;
         public event Action InertialMovement;
         public event Func<bool, UniTask> StartMovement;
+        public event Func<bool, UniTask> ChangeSpeed;
         public event Action StopCompensateInertia;
 
         public float YDirection { get; set; }
